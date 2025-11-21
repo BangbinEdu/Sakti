@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Evaluasi Sekolah</title>
+    <title>SAKTI - Dashboard Evaluasi Sekolah</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="shortcut icon" href="/static/disdik/images/logo/logo.png" type="image/png" />
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
         
         /* Scrollbar Halus */
@@ -21,9 +20,68 @@
         .sidebar-item.active { background-color: #eff6ff; border-left-color: #2563eb; color: #1e40af; }
         .sidebar-item:hover:not(.active) { background-color: #f9fafb; }
 
-        /* Animasi Konten */
+        /* Animasi Konten Dashboard */
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- INTRO SEQUENCE STYLES --- */
+        #intro-layer {
+            position: fixed;
+            inset: 0;
+            background-color: black;
+            z-index: 9999; /* Paling depan */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow: hidden;
+        }
+
+        .intro-text-main {
+            font-size: 5rem;
+            font-weight: 900;
+            letter-spacing: 0.5rem;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 2s ease-out, transform 3s ease-out;
+            background: linear-gradient(to bottom, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255,255,255,0.1);
+        }
+
+        .intro-text-sub {
+            font-size: 1.25rem;
+            font-weight: 300;
+            letter-spacing: 0.1rem;
+            color: #cbd5e1;
+            margin-top: 1rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 1.5s ease-out, transform 1.5s ease-out;
+        }
+
+        /* Flash Putih */
+        #intro-flash {
+            position: fixed;
+            inset: 0;
+            background-color: white;
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.1s ease-in; /* Cepat masuk */
+        }
+
+        /* Saat animasi aktif */
+        .intro-active .intro-text-main { opacity: 1; transform: scale(1); }
+        .intro-active .intro-text-sub { opacity: 1; transform: translateY(0); }
+
+        /* Responsif Intro */
+        @media (max-width: 768px) {
+            .intro-text-main { font-size: 3rem; letter-spacing: 0.2rem; }
+            .intro-text-sub { font-size: 0.9rem; text-align: center; padding: 0 20px; }
+        }
 
         /* --- CUSTOM LOGIN STYLES --- */
         #login-overlay { 
@@ -37,6 +95,8 @@
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
+            opacity: 0; /* Default opacity 0, akan di fade-in setelah intro */
+            transition: opacity 1.5s ease-in;
         }
 
         @media (min-width: 768px) {
@@ -76,13 +136,20 @@
 </head>
 <body class="h-screen flex overflow-hidden">
 
+    <!-- INTRO SEQUENCE -->
+    <div id="intro-layer">
+        <h1 class="intro-text-main">SAKTI</h1>
+        <p class="intro-text-sub">Sistem Asesmen dan Kurikulum Terintegrasi</p>
+    </div>
+    <div id="intro-flash"></div>
+
     <!-- LOGIN OVERLAY -->
     <div id="login-overlay">
         <div class="login-card p-8 rounded-2xl shadow-xl w-full max-w-sm mx-4 md:mx-0 text-center">
             <div class="bg-white/80 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
                 <i class="fas fa-school text-2xl text-blue-600"></i>
             </div>
-            <h2 class="text-2xl font-bold text-gray-900 mb-1 drop-shadow-sm">Portal Evaluasi</h2>
+            <h2 class="text-2xl font-bold text-gray-900 mb-1 drop-shadow-sm">Portal SAKTI</h2>
             <p class="text-gray-800 font-medium text-sm mb-6 drop-shadow-sm">Silakan masuk menggunakan NPSN</p>
             
             <form id="loginForm" class="space-y-5">
@@ -105,7 +172,7 @@
     <aside class="bg-white w-64 flex-shrink-0 border-r border-gray-200 flex flex-col hidden md:flex h-full">
         <div class="h-16 flex items-center px-6 border-b border-gray-200">
             <div class="font-bold text-xl text-blue-700 flex items-center gap-2">
-                <i class="fas fa-chart-pie"></i> Evaluasi
+                <i class="fas fa-chart-pie"></i> SAKTI
             </div>
         </div>
         
@@ -126,7 +193,7 @@
     <main class="flex-1 flex flex-col h-full overflow-hidden relative">
         <!-- Mobile Header -->
         <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:hidden z-10">
-            <span class="font-bold text-gray-800">Evaluasi Sekolah</span>
+            <span class="font-bold text-gray-800">SAKTI Dashboard</span>
             <button onclick="toggleMobileMenu()" class="text-gray-600 hover:text-blue-600">
                 <i class="fas fa-bars text-xl"></i>
             </button>
@@ -210,6 +277,80 @@
     <script>
         // URL SCRIPT
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVaCEKo5uut1StJltwkkOg2JqDleKb8hzgYzH8vXtqLDWSCAALAhBvq1Fc09OrDeD_/exec"; 
+
+        // --- INTRO ANIMATION LOGIC ---
+        function playCinematicBoom() {
+            // Menggunakan Web Audio API untuk membuat efek suara dramatis tanpa file eksternal
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const ctx = new AudioContext();
+                
+                const osc = ctx.createOscillator();
+                const gainNode = ctx.createGain();
+                const filter = ctx.createBiquadFilter();
+
+                osc.type = 'sawtooth'; // Suara agak kasar untuk impact
+                osc.frequency.setValueAtTime(80, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5); // Drop frekuensi (Boom)
+
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(1000, ctx.currentTime);
+                filter.frequency.linearRampToValueAtTime(100, ctx.currentTime + 1);
+
+                gainNode.gain.setValueAtTime(0.5, ctx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 2); // Fade out
+
+                osc.connect(filter);
+                filter.connect(gainNode);
+                gainNode.connect(ctx.destination);
+
+                osc.start();
+                osc.stop(ctx.currentTime + 2.5);
+            } catch(e) {
+                console.log("Audio context not supported or blocked");
+            }
+        }
+
+        function runIntroSequence() {
+            const introLayer = document.getElementById('intro-layer');
+            const flashLayer = document.getElementById('intro-flash');
+            const loginOverlay = document.getElementById('login-overlay');
+
+            // 1. Mulai dengan Hitam (Default CSS)
+            
+            // 2. Fade In Teks SAKTI (Delay 500ms)
+            setTimeout(() => {
+                introLayer.classList.add('intro-active');
+            }, 500);
+
+            // 3. Klimaks (Delay 4000ms)
+            setTimeout(() => {
+                // Play Sound
+                playCinematicBoom();
+
+                // Flash Putih
+                flashLayer.style.opacity = '1';
+
+                // Sembunyikan Layer Hitam & Teks di balik flash putih secara instan
+                setTimeout(() => {
+                    introLayer.style.display = 'none';
+                    
+                    // Munculkan Login (Fade In)
+                    loginOverlay.style.opacity = '1';
+                    
+                    // Hilangkan Flash Putih (Fade Out perlahan)
+                    flashLayer.style.transition = 'opacity 1.5s ease-out';
+                    flashLayer.style.opacity = '0';
+                    
+                    // Bersihkan Flash dari DOM
+                    setTimeout(() => {
+                        flashLayer.remove();
+                    }, 1500);
+
+                }, 100); // Tunggu 100ms agar flash putih sempurna dulu
+
+            }, 4000);
+        }
 
         // --- DATA INDIKATOR ---
         const sections = [
@@ -418,6 +559,9 @@
 
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
+            // Start Intro Sequence
+            runIntroSequence();
+
             renderSidebar();
             renderContent();
             updateNavButtons();
