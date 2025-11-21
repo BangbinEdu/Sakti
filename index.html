@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Evaluasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="shortcut icon" href="/static/disdik/images/logo/logo.png" type="image/png" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        
+        /* Scrollbar Halus */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        
+        /* Transisi Sidebar */
+        .sidebar-item { transition: all 0.2s; border-left: 3px solid transparent; }
+        .sidebar-item.active { background-color: #eff6ff; border-left-color: #2563eb; color: #1e40af; }
+        .sidebar-item:hover:not(.active) { background-color: #f9fafb; }
+
+        /* Animasi Konten */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- CUSTOM LOGIN STYLES --- */
+        #login-overlay { 
+            position: fixed; 
+            inset: 0; 
+            z-index: 50; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            background-image: url('https://lh3.googleusercontent.com/d/1k3NhekvpCpZofQOCerTrmx7lMXh-I93g');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        @media (min-width: 768px) {
+            #login-overlay {
+                justify-content: flex-end; 
+                padding-right: 5%; 
+            }
+        }
+
+        .login-card {
+            background-color: rgba(255, 255, 255, 0.25); 
+            backdrop-filter: blur(8px); 
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #1f2937;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        .login-card:hover, .login-card:focus-within {
+            background-color: rgba(255, 255, 255, 0.98); 
+            backdrop-filter: blur(0);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: scale(1); 
+            opacity: 1;
+            border-color: white;
+        }
+        
+        .login-input {
+            background-color: rgba(255, 255, 255, 0.7) !important;
+            transition: background-color 0.3s;
+        }
+        .login-card:hover .login-input {
+            background-color: #fff !important;
+        }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden">
+
+    <!-- LOGIN OVERLAY -->
+    <div id="login-overlay">
+        <div class="login-card p-8 rounded-2xl shadow-xl w-full max-w-sm mx-4 md:mx-0 text-center">
+            <div class="bg-white/80 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <i class="fas fa-school text-2xl text-blue-600"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-1 drop-shadow-sm">Portal Evaluasi</h2>
+            <p class="text-gray-800 font-medium text-sm mb-6 drop-shadow-sm">Silakan masuk menggunakan NPSN</p>
+            
+            <form id="loginForm" class="space-y-5">
+                <div class="relative group">
+                    <input type="text" id="npsnInput" required 
+                        class="login-input w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-center text-lg font-bold tracking-widest placeholder-gray-500" 
+                        placeholder="NPSN">
+                </div>
+                <button type="submit" id="btnLogin" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-lg flex justify-center items-center gap-2 transform hover:scale-[1.02]">
+                    <span>Masuk Dashboard</span> <i class="fas fa-arrow-right"></i>
+                </button>
+                <div id="loginError" class="text-red-600 bg-red-100/90 p-2 rounded-lg text-sm hidden mt-2 font-semibold border border-red-200">
+                    <i class="fas fa-exclamation-circle"></i> Data tidak ditemukan.
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SIDEBAR (Desktop & Mobile) -->
+    <aside class="bg-white w-64 flex-shrink-0 border-r border-gray-200 flex flex-col hidden md:flex h-full">
+        <div class="h-16 flex items-center px-6 border-b border-gray-200">
+            <div class="font-bold text-xl text-blue-700 flex items-center gap-2">
+                <i class="fas fa-chart-pie"></i> Evaluasi
+            </div>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto py-4 space-y-1" id="sidebar-menu">
+            <!-- Menu Items Generated by JS -->
+        </div>
+
+        <div class="p-4 border-t border-gray-200 bg-gray-50">
+            <div class="text-xs font-semibold text-gray-500 uppercase mb-2">Progress Total</div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+                <div id="global-progress" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <div class="text-right text-xs text-gray-600 font-bold" id="global-progress-text">0%</div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        <!-- Mobile Header -->
+        <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:hidden z-10">
+            <span class="font-bold text-gray-800">Evaluasi Sekolah</span>
+            <button onclick="toggleMobileMenu()" class="text-gray-600 hover:text-blue-600">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </header>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden md:hidden" onclick="toggleMobileMenu()">
+            <div class="bg-white w-64 h-full shadow-lg p-4" onclick="event.stopPropagation()">
+                <div class="text-lg font-bold mb-4 border-b pb-2">Menu Evaluasi</div>
+                <div id="mobile-sidebar-menu" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- Content Scroll Area -->
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth" id="main-scroll">
+            <form id="evalForm" class="max-w-4xl mx-auto pb-20">
+                <input type="hidden" name="action" value="submit">
+                <input type="hidden" name="npsn_sekolah" id="hidden_npsn">
+                <input type="hidden" name="nama_sekolah" id="hidden_nama_sekolah">
+
+                <!-- Header Sekolah Info -->
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-200">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h1 id="schoolNameDisplay" class="text-2xl font-bold text-gray-900">Nama Sekolah</h1>
+                            <p id="npsnDisplay" class="text-gray-500 font-mono text-sm mt-1">NPSN: -</p>
+                        </div>
+                        <div class="text-right hidden md:block">
+                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-200">Tahun 2024</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Identitas Responden (Global) -->
+                    <div class="mt-6 pt-6 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nama Responden</label>
+                            <input type="text" name="nama_responden" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded text-sm outline-none focus:border-blue-500" placeholder="Masukkan nama Anda..." oninput="calculateProgress()">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nomor WhatsApp</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                                    <i class="fab fa-whatsapp"></i>
+                                </span>
+                                <input type="tel" name="no_wa" class="w-full pl-8 pr-3 py-2 bg-gray-50 border border-gray-300 rounded text-sm outline-none focus:border-blue-500" placeholder="08xxxxxxxxxx" oninput="calculateProgress()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DYNAMIC CONTENT SECTIONS -->
+                <div id="content-area">
+                    <!-- Sections injected by JS -->
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="flex justify-between mt-8">
+                    <button type="button" id="btnPrev" onclick="navigate(-1)" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium hidden">
+                        <i class="fas fa-arrow-left mr-2"></i> Sebelumnya
+                    </button>
+                    <button type="button" id="btnNext" onclick="navigate(1)" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium ml-auto">
+                        Selanjutnya <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                    <button type="submit" id="btnSubmit" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium shadow-lg ml-auto hidden">
+                        <i class="fas fa-save mr-2"></i> Kirim Semua Data
+                    </button>
+                </div>
+
+            </form>
+        </main>
+
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl">
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // URL SCRIPT
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVaCEKo5uut1StJltwkkOg2JqDleKb8hzgYzH8vXtqLDWSCAALAhBvq1Fc09OrDeD_/exec"; 
+
+        // --- DATA INDIKATOR ---
+        const sections = [
+            {
+                id: 'pm',
+                title: 'Pembelajaran Mendalam',
+                short: 'PM',
+                icon: 'fa-brain',
+                desc: 'Fokus pada pemahaman konsep & berpikir kritis.',
+                keyQuestion: "Apakah sekolah menerapkan Deep Learning dalam KBM?",
+                questions: [
+                    "Diskusi mendalam di kelas.", "Studi kasus nyata.", "Pertanyaan pemantik (Why/How).",
+                    "Waktu refleksi siswa.", "Koneksi materi dengan kehidupan.", "Metode variatif.",
+                    "Analisis data oleh siswa.", "Konstruksi pengetahuan mandiri.", "Lingkungan aman berpendapat.", "Sumber belajar beragam."
+                ]
+            },
+            {
+                id: 'kka',
+                title: 'Koding & Kecerdasan Artifisial',
+                short: 'KKA',
+                icon: 'fa-laptop-code',
+                desc: 'Integrasi teknologi, koding, dan AI.',
+                keyQuestion: "Apakah anda mengimplementasikan Pembelajaran KodingKA?",
+                questions: [
+                    { 
+                        type: 'checkbox', 
+                        text: "1. Kelas berapa? (Bisa pilih lebih dari satu)", 
+                        options: ["Kelas 1", "Kelas 2", "Kelas 3", "Kelas 4", "Kelas 5", "Kelas 6"] 
+                    },
+                    { type: 'select', text: "2. Siapa yang mengampu?", options: ["Guru Kelas", "Guru Mapel"] },
+                    { 
+                        type: 'select', 
+                        text: "3. Apakah guru pengampu sudah mengikuti pelatihan?", 
+                        options: ["Sudah", "Belum"], 
+                        triggerId: 'kka_trigger_pelatihan' 
+                    },
+                    { 
+                        type: 'select_with_other', 
+                        text: "3.1. Siapa penyelenggara pelatihannya?", 
+                        options: ["BGTK", "LPD", "MANDIRI", "BPMP", "P4 Dinas Pendidikan", "P4TK", "Lainnya"],
+                        placeholder: "Tuliskan Penyelenggara Lainnya...",
+                        hiddenBy: 'kka_trigger_pelatihan', 
+                        showIf: 'Sudah'
+                    },
+                    { 
+                        type: 'select', 
+                        text: "3.2. Sumber Pendanaan", 
+                        options: ["BOSKIN", "BOS Reguler", "Mandiri"],
+                        hiddenBy: 'kka_trigger_pelatihan',
+                        showIf: 'Sudah'
+                    },
+                    { type: 'text', text: "4. Kapan mata pelajaran Koding KA dilaksanakan? Berapa JP per minggu?", placeholder: "Contoh: Rabu, 2 JP" },
+                    { type: 'textarea', text: "5. Bagaimana gambaran pelaksanaan dalam pembelajaran Koding KA?", placeholder: "Deskripsikan metode dan suasana..." },
+                    { type: 'textarea', text: "6. Bagaimana gambaran pelaksanaan asesmen pembelajaran Koding KA?", placeholder: "Bentuk asesmen yang digunakan..." },
+                    { 
+                        type: 'text', 
+                        text: "7.1. Buku teks : (tuliskan apa Buku Teks Utama yang Digunakan)", 
+                        header: "7. Sumber belajar apa saja yang digunakan?", 
+                        placeholder: "Judul buku..." 
+                    },
+                    { type: 'text', text: "7.2. Sumber belajar lain : (tuliskan sumbernya)", placeholder: "Youtube, Website, dll..." },
+                ]
+            },
+            {
+                id: 'koku',
+                title: 'Kokurikuler',
+                short: 'Koku',
+                icon: 'fa-users',
+                desc: 'Penguatan karakter & P5.',
+                keyQuestion: "1. Apakah sekolah Anda melaksanakan kegiatan kokurikuler pada tahun ini?",
+                questions: [
+                    // 1. Muncul saat YA
+                    { text: "Jika ya, apakah kegiatan kokurikuler tersebut sudah tercantum secara jelas dalam dokumen kurikulum sekolah?", mode: 'ya' },
+                    
+                    // 2. Muncul saat TIDAK
+                    { text: "Jika tidak, apa alasannya sekolah belum melaksanakan kegiatan kokurikuler?", mode: 'tidak' },
+                    
+                    // 3. Bentuk Kegiatan (Dropdown + Lainnya)
+                    { 
+                        type: 'select_with_other',
+                        text: "Bentuk kegiatan kokurikuler apa yang dipilih sekolah?", 
+                        options: [
+                            "Pembelajaran kolaboratif lintas disiplin",
+                            "Gerakan 7 Kebiasaan Anak Indonesia Hebat",
+                            "Kegiatan khas sekolah berbasis konteks lokal",
+                            "Lainnya"
+                        ],
+                        placeholder: "Sebutkan bentuk kegiatan lainnya...",
+                        mode: 'ya' 
+                    }, 
+                    
+                    // 4. Tim Kerja (Radio Button Ya/Tidak)
+                    { 
+                        type: 'radio',
+                        text: "Apakah sekolah memiliki tim kerja kokurikuler (kepala sekolah, koordinator, fasilitator kelas)?", 
+                        options: ["Ya", "Tidak"],
+                        triggerId: 'koku_trigger_tim',
+                        mode: 'ya' 
+                    }, 
+                    
+                    // 5. Peran Tim (Hidden unless Q4 is Ya)
+                    { 
+                        text: "Jika ya Sejauh mana peran masing-masing (kepsek, koordinator, guru) berjalan sesuai panduan?", 
+                        hiddenBy: 'koku_trigger_tim',
+                        showIf: 'Ya',
+                        mode: 'ya' 
+                    },
+                    
+                    // Pertanyaan 6 "Fokus soft-skills" DIHAPUS
+                    
+                    // 7. SK Tim (Radio Button)
+                    { 
+                        type: 'radio',
+                        text: "Apakah ada SK tim pengembang Kokurikuler?", 
+                        options: ["Ya", "Tidak"],
+                        mode: 'ya' 
+                    }, 
+                    
+                    // 8. Mitra (Radio Button)
+                    { 
+                        type: 'radio', 
+                        text: "Apakah sekolah melibatkan orang tua/komunitas/mitra?", 
+                        options: ["Ya", "Tidak"],
+                        mode: 'ya' 
+                    },
+                    
+                    // 9. Perencanaan Khusus (Radio Button + Trigger)
+                    { 
+                        type: 'radio',
+                        text: "Apakah sekolah menyusun perencanaan khusus untuk kegiatan kokurikuler (misalnya tujuan, langkah kegiatan, dan waktu pelaksanaan)?", 
+                        options: ["Ya", "Tidak"],
+                        triggerId: 'koku_trigger_rencana',
+                        mode: 'ya' 
+                    }, 
+                    
+                    // 10. Penjelasan Perencanaan (Hidden unless Q9 is Ya)
+                    { 
+                        type: 'textarea',
+                        text: "Jelaskan perencanaan khusus tersebut:", 
+                        placeholder: "Uraikan tujuan, langkah, dan waktu...",
+                        hiddenBy: 'koku_trigger_rencana',
+                        showIf: 'Ya',
+                        mode: 'ya'
+                    },
+
+                    // 11. Alokasi Waktu (Radio Button + Trigger)
+                    { 
+                        type: 'radio', 
+                        text: "Apakah sekolah memahami alokasi waktu kokurikuler resmi per tahun?", 
+                        options: ["Ya", "Tidak"],
+                        triggerId: 'koku_trigger_alokasi',
+                        mode: 'ya' 
+                    }, 
+                    
+                    // 12. Jadwal (Hidden unless Q11 is Ya)
+                    { 
+                        text: "Jika ya apakah alokasi waktu tersebut disusun dalam jadwal sekolah?", 
+                        hiddenBy: 'koku_trigger_alokasi', 
+                        showIf: 'Ya',
+                        mode: 'ya' 
+                    }, 
+                ]
+            },
+            {
+                id: 'tka',
+                title: 'Tes Kompetensi Akademik',
+                short: 'TKA',
+                icon: 'fa-file-signature',
+                desc: 'Pengukuran standar kompetensi siswa.',
+                keyQuestion: "Apakah sekolah melaksanakan pengukuran kompetensi akademik berkala?",
+                questions: [
+                    "Pelaksanaan Try Out/Uji Kompetensi.", "Analisis hasil tes per siswa.", "Bank soal tervalidasi.",
+                    "Integritas pelaksanaan tes.", "Tindak lanjut hasil tes.", "Pelatihan soal HOTS.",
+                    "Pemetaan kemampuan literasi.", "Pemetaan kemampuan numerasi.", "Laporan hasil ke orang tua.", "Program bimbingan sukses ujian."
+                ]
+            },
+            {
+                id: 'dp',
+                title: 'Digitalisasi Pembelajaran',
+                short: 'DP',
+                icon: 'fa-wifi',
+                desc: 'Pemanfaatan platform digital & LMS.',
+                keyQuestion: "Apakah ekosistem digital sekolah sudah terbangun?",
+                questions: [
+                    "Penggunaan LMS (Google Classroom/dll).", "Akses akun belajar.id optimal.", "Presensi/Administrasi digital.",
+                    "Perpustakaan digital.", "Ujian berbasis komputer (CBT).", "Materi ajar digital (Video/E-book).",
+                    "Komunikasi digital dengan ortu.", "Website sekolah aktif.", "Dashboard data siswa.", "Keamanan data digital."
+                ]
+            },
+            {
+                id: 'ksp',
+                title: 'Kurikulum Sekolah',
+                short: 'KSP',
+                icon: 'fa-book',
+                desc: 'Implementasi & Relevansi KOSP.',
+                keyQuestion: "Apakah KOSP disusun sesuai kebutuhan sekolah?",
+                questions: [
+                    "Visi Misi relevan.", "Penyusunan partisipatif.", "Kesesuaian kebutuhan murid.",
+                    "Muatan lokal daerah.", "Review kurikulum tahunan.", "Sosialisasi dokumen KOSP.",
+                    "Struktur kurikulum adaptif.", "Pengembangan profesi guru.", "Kerjasama eksternal.", "Fleksibilitas jam pelajaran."
+                ]
+            }
+        ];
+
+        let currentSectionIndex = 0;
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSidebar();
+            renderContent();
+            updateNavButtons();
+        });
+
+        // --- RENDER FUNCTIONS ---
+        function renderSidebar() {
+            const menu = document.getElementById('sidebar-menu');
+            const mobileMenu = document.getElementById('mobile-sidebar-menu');
+            let html = '';
+
+            sections.forEach((sec, idx) => {
+                const itemHtml = `
+                    <div onclick="switchSection(${idx})" id="menu-item-${idx}" 
+                         class="sidebar-item cursor-pointer px-6 py-3 flex items-center justify-between text-sm font-medium text-gray-600">
+                        <div class="flex items-center gap-3">
+                            <i class="fas ${sec.icon} w-5 text-center"></i>
+                            <span class="hidden md:inline">${sec.title}</span>
+                            <span class="md:hidden">${sec.title}</span>
+                        </div>
+                        <i id="check-${idx}" class="fas fa-check-circle text-green-500 opacity-0 transition"></i>
+                    </div>
+                `;
+                html += itemHtml;
+            });
+
+            menu.innerHTML = html;
+            mobileMenu.innerHTML = html;
+            highlightMenu(0);
+        }
+
+        function renderContent() {
+            const container = document.getElementById('content-area');
+            container.innerHTML = '';
+
+            sections.forEach((sec, idx) => {
+                const hiddenClass = idx === 0 ? '' : 'hidden';
+                
+                let qHtml = '';
+                
+                sec.questions.forEach((q, qIdx) => {
+                    let qObj = typeof q === 'string' ? { type: 'textarea', text: q } : q;
+                    
+                    // ID Handling for Backend Slots (Max 15)
+                    const slotNum = qIdx + 1;
+                    const inputName = `${sec.id}_${slotNum}`;
+                    
+                    // Header Group
+                    if (qObj.header) {
+                        qHtml += `
+                            <div class="mt-6 mb-3 pb-2 border-b border-gray-200">
+                                <h3 class="text-md font-bold text-gray-700 flex items-center gap-2">
+                                    <i class="fas fa-list-ul text-blue-500"></i> ${qObj.header}
+                                </h3>
+                            </div>
+                        `;
+                    }
+
+                    // Visibility Wrapper (Standard + Custom Mode Logic)
+                    let wrapperClass = "mb-6 pb-6 border-b border-gray-100 last:border-0 transition-all duration-300";
+                    if (qObj.hiddenBy) {
+                        wrapperClass += " hidden bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500"; 
+                    }
+
+                    // LOGIC KHUSUS KOKURIKULER (Mode Ya/Tidak)
+                    if (sec.id === 'koku') {
+                        if (qObj.mode === 'tidak') {
+                            wrapperClass += " mode-tidak hidden"; // Default hidden (karena default key = undefined/Tidak)
+                        } else {
+                            // Default untuk pertanyaan lain adalah mode 'ya'
+                            wrapperClass += " mode-ya"; 
+                        }
+                    }
+
+                    // --- INPUT GENERATION ---
+                    let inputElement = '';
+                    const commonClass = "child-input w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 outline-none";
+
+                    if (qObj.type === 'checkbox') {
+                        // CHECKBOX GROUP (Kelas)
+                        let checks = '<div class="grid grid-cols-2 md:grid-cols-3 gap-2">';
+                        qObj.options.forEach(opt => {
+                            checks += `
+                                <label class="flex items-center space-x-2 cursor-pointer bg-white p-2 rounded border border-gray-200 hover:border-blue-400">
+                                    <input type="checkbox" class="form-checkbox text-blue-600 rounded focus:ring-blue-500" 
+                                        value="${opt}" onchange="updateCheckboxValue('${inputName}', this)">
+                                    <span class="text-sm text-gray-700">${opt}</span>
+                                </label>
+                            `;
+                        });
+                        checks += '</div>';
+                        // Hidden input to store merged string for backend
+                        inputElement = `
+                            <input type="hidden" name="${inputName}" id="${inputName}" class="child-input">
+                            ${checks}
+                        `;
+
+                    } else if (qObj.type === 'radio') {
+                        // RADIO BUTTONS (Custom styled as buttons)
+                        let triggerAttr = qObj.triggerId ? `onchange="handleConditional('${qObj.triggerId}', this.value)"` : `onchange="calculateProgress()"`;
+                        inputElement = `
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-gray-300 hover:border-blue-500 transition shadow-sm">
+                                    <input type="radio" name="${inputName}" value="Ya" class="child-input text-blue-600" ${triggerAttr}>
+                                    <span class="text-sm font-medium text-gray-700">Ya</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-gray-300 hover:border-blue-500 transition shadow-sm">
+                                    <input type="radio" name="${inputName}" value="Tidak" class="child-input text-blue-600" ${triggerAttr}>
+                                    <span class="text-sm font-medium text-gray-700">Tidak</span>
+                                </label>
+                            </div>
+                        `;
+
+                    } else if (qObj.type === 'select') {
+                        let opts = `<option value="">- Pilih -</option>`;
+                        qObj.options.forEach(opt => { opts += `<option value="${opt}">${opt}</option>`; });
+                        let onChange = qObj.triggerId ? `onchange="handleConditional('${qObj.triggerId}', this.value)"` : 'oninput="calculateProgress()"';
+                        inputElement = `<select name="${inputName}" class="${commonClass} h-10" ${onChange}>${opts}</select>`;
+
+                    } else if (qObj.type === 'select_with_other') {
+                        // DROPDOWN + LAINNYA
+                        let opts = `<option value="">- Pilih -</option>`;
+                        qObj.options.forEach(opt => { opts += `<option value="${opt}">${opt}</option>`; });
+                        
+                        inputElement = `
+                            <select id="sel_${inputName}" class="${commonClass} h-10 mb-2" 
+                                onchange="handleSelectWithOther('${inputName}', this.value)">
+                                ${opts}
+                            </select>
+                            <input type="text" id="other_${inputName}" 
+                                class="w-full bg-gray-50 border border-blue-300 rounded-lg px-3 py-2 text-sm focus:bg-white focus:ring-1 focus:ring-blue-500 outline-none hidden"
+                                placeholder="${qObj.placeholder || 'Tuliskan lainnya...'}" 
+                                oninput="document.getElementById('${inputName}').value = this.value">
+                            <input type="hidden" name="${inputName}" id="${inputName}" class="child-input">
+                        `;
+
+                    } else if (qObj.type === 'textarea') {
+                        inputElement = `<textarea name="${inputName}" class="${commonClass} h-20 resize-none" placeholder="${qObj.placeholder || 'Deskripsi jawaban...'}" oninput="calculateProgress()"></textarea>`;
+                    } else { 
+                        inputElement = `<input type="text" name="${inputName}" class="${commonClass}" placeholder="${qObj.placeholder || 'Jawaban singkat...'}" oninput="calculateProgress()">`;
+                    }
+
+                    // RENDER ITEM
+                    qHtml += `
+                        <div id="wrapper_${inputName}" class="${wrapperClass}" 
+                             data-trigger-source="${qObj.hiddenBy || ''}" 
+                             data-show-if="${qObj.showIf || ''}">
+                            
+                            <div class="flex gap-3 mb-2">
+                                <span class="bg-gray-100 text-gray-600 font-bold text-xs px-2 py-1 rounded h-fit shadow-sm">${slotNum}</span>
+                                <p class="text-gray-800 font-medium text-sm">${qObj.text}</p>
+                            </div>
+                            <div class="pl-9">
+                                ${inputElement}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                // --- 3 BUKTI LINK SECTION (FIXED AT BOTTOM) ---
+                // Added ID for toggling visibility
+                qHtml += `
+                    <div id="bukti-wrapper-${sec.id}" class="mt-8 pt-6 border-t-2 border-gray-100">
+                        <h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+                            <i class="fas fa-link text-blue-500"></i> Bukti Dukung & Dokumentasi (Maksimal 3 Link)
+                        </h3>
+                        <div class="grid grid-cols-1 gap-3">
+                            <div class="relative">
+                                <i class="fas fa-link absolute left-3 top-3 text-gray-400 text-xs"></i>
+                                <input type="url" name="link_${sec.id}_1" 
+                                    class="child-input-opt w-full bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-sm focus:bg-white focus:border-blue-400 outline-none"
+                                    placeholder="Link Bukti 1 (Google Drive/PDF/Youtube)">
+                            </div>
+                            <div class="relative">
+                                <i class="fas fa-link absolute left-3 top-3 text-gray-400 text-xs"></i>
+                                <input type="url" name="link_${sec.id}_2" 
+                                    class="child-input-opt w-full bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-sm focus:bg-white focus:border-blue-400 outline-none"
+                                    placeholder="Link Bukti 2 (Opsional)">
+                            </div>
+                             <div class="relative">
+                                <i class="fas fa-link absolute left-3 top-3 text-gray-400 text-xs"></i>
+                                <input type="url" name="link_${sec.id}_3" 
+                                    class="child-input-opt w-full bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-sm focus:bg-white focus:border-blue-400 outline-none"
+                                    placeholder="Link Bukti 3 (Opsional)">
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // DOKUMEN PROGRAM UTAMA (Mapped to doc_link_code)
+                // Added ID for toggling visibility
+                qHtml += `
+                    <div id="doc-wrapper-${sec.id}" class="mt-4 pt-4 border-t border-gray-100 bg-yellow-50 rounded-lg p-4">
+                        <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center">
+                            <i class="fas fa-folder-open text-yellow-600 mr-2"></i>
+                            Unggah Dokumen Program Utama
+                        </label>
+                        <input type="url" name="doc_link_${sec.id}" 
+                            class="child-input-opt w-full bg-white border border-yellow-300 rounded-lg px-4 py-2 text-sm focus:ring-1 focus:ring-yellow-500 outline-none"
+                            placeholder="Link Folder/Dokumen Program (Google Drive)...">
+                    </div>
+                `;
+
+                const sectionHtml = `
+                    <div id="section-${idx}" class="${hiddenClass} fade-in">
+                        <div class="mb-6 border-b border-gray-200 pb-4">
+                            <h2 class="text-2xl font-bold text-blue-800 flex items-center gap-2">
+                                <i class="fas ${sec.icon}"></i> ${sec.title}
+                            </h2>
+                            <p class="text-gray-500 text-sm mt-1">${sec.desc}</p>
+                        </div>
+
+                        <!-- Key Question Box -->
+                        <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-5 mb-6">
+                            <div class="font-semibold text-indigo-900 mb-3 flex items-center gap-2">
+                                <i class="fas fa-key"></i> Pertanyaan Kunci
+                            </div>
+                            <p class="text-indigo-800 text-sm mb-4">${sec.keyQuestion}</p>
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-indigo-200 hover:border-blue-500 transition shadow-sm">
+                                    <input type="radio" name="key_${sec.id}" value="Ya" class="text-blue-600" onchange="toggleQuestions(${idx}, this.value)">
+                                    <span class="text-sm font-medium text-gray-700">Ya</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-indigo-200 hover:border-blue-500 transition shadow-sm">
+                                    <input type="radio" name="key_${sec.id}" value="Tidak" class="text-blue-600" onchange="toggleQuestions(${idx}, this.value)">
+                                    <span class="text-sm font-medium text-gray-700">Tidak</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Question List -->
+                        <div id="q-wrapper-${idx}" class="hidden transition-all duration-500 ease-in-out overflow-hidden max-h-0">
+                            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                                ${qHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += sectionHtml;
+            });
+        }
+
+        // --- LOGIC HELPERS ---
+
+        function updateCheckboxValue(inputName, el) {
+            const checkboxes = document.querySelectorAll(`input[onchange="updateCheckboxValue('${inputName}', this)"]:checked`);
+            const values = Array.from(checkboxes).map(cb => cb.value);
+            document.getElementById(inputName).value = values.join(", ");
+            calculateProgress();
+        }
+
+        function handleSelectWithOther(inputName, value) {
+            const otherInput = document.getElementById(`other_${inputName}`);
+            const hiddenInput = document.getElementById(inputName);
+
+            if (value === 'Lainnya') {
+                otherInput.classList.remove('hidden');
+                otherInput.setAttribute('required', 'true');
+                otherInput.focus();
+                hiddenInput.value = otherInput.value; 
+            } else {
+                otherInput.classList.add('hidden');
+                otherInput.removeAttribute('required');
+                hiddenInput.value = value; 
+            }
+            calculateProgress();
+        }
+
+        function handleConditional(triggerId, value) {
+            const targets = document.querySelectorAll(`[data-trigger-source="${triggerId}"]`);
+            targets.forEach(target => {
+                const showValue = target.getAttribute('data-show-if');
+                const inputs = target.querySelectorAll('input, select, textarea');
+                
+                if (value === showValue) {
+                    target.classList.remove('hidden');
+                } else {
+                    target.classList.add('hidden');
+                    inputs.forEach(input => {
+                        // Hanya reset jika ini bukan radio button, atau uncheck jika radio
+                        if(input.type === 'radio') {
+                            input.checked = false;
+                        } else {
+                            input.value = '';
+                        }
+                        if(input.id && input.id.startsWith('other_')) input.classList.add('hidden');
+                    });
+                    const selects = target.querySelectorAll('select');
+                    selects.forEach(sel => sel.value = '');
+                }
+            });
+            calculateProgress();
+        }
+
+        // --- INTERACTION LOGIC ---
+        function switchSection(index) {
+            sections.forEach((_, i) => {
+                document.getElementById(`section-${i}`).classList.add('hidden');
+            });
+            document.getElementById(`section-${index}`).classList.remove('hidden');
+            
+            currentSectionIndex = index;
+            highlightMenu(index);
+            updateNavButtons();
+            document.getElementById('main-scroll').scrollTop = 0;
+            document.getElementById('mobile-menu').classList.add('hidden');
+        }
+
+        function highlightMenu(index) {
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`menu-item-${index}`).classList.add('active');
+        }
+
+        function navigate(direction) {
+            const newIndex = currentSectionIndex + direction;
+            if (newIndex >= 0 && newIndex < sections.length) {
+                switchSection(newIndex);
+            }
+        }
+
+        function updateNavButtons() {
+            const prev = document.getElementById('btnPrev');
+            const next = document.getElementById('btnNext');
+            const submit = document.getElementById('btnSubmit');
+
+            if (currentSectionIndex === 0) {
+                prev.classList.add('hidden');
+            } else {
+                prev.classList.remove('hidden');
+            }
+
+            if (currentSectionIndex === sections.length - 1) {
+                next.classList.add('hidden');
+                submit.classList.remove('hidden');
+            } else {
+                next.classList.remove('hidden');
+                submit.classList.add('hidden');
+            }
+        }
+
+        function toggleQuestions(idx, val) {
+            const wrapper = document.getElementById(`q-wrapper-${idx}`);
+            const sectionId = sections[idx].id;
+
+            // --- LOGIKA KHUSUS KOKURIKULER ---
+            if (sectionId === 'koku') {
+                wrapper.classList.remove('hidden');
+                wrapper.style.maxHeight = "8000px";
+
+                const modeYaItems = wrapper.querySelectorAll('.mode-ya');
+                const modeTidakItems = wrapper.querySelectorAll('.mode-tidak');
+                // Ambil referensi ke wrapper Bukti dan Dokumen
+                const buktiWrapper = document.getElementById(`bukti-wrapper-${sectionId}`);
+                const docWrapper = document.getElementById(`doc-wrapper-${sectionId}`);
+                
+                // Reset semua required dulu
+                wrapper.querySelectorAll('.child-input').forEach(i => i.removeAttribute('required'));
+
+                if (val === 'Ya') {
+                    // Tampilkan Item YA, Sembunyikan Item TIDAK
+                    // FIX: Jangan tampilkan item yang punya data-trigger-source (anak pertanyaan)
+                    modeYaItems.forEach(el => {
+                        if(!el.hasAttribute('data-trigger-source')) {
+                            el.classList.remove('hidden');
+                        }
+                    });
+                    
+                    modeTidakItems.forEach(el => el.classList.add('hidden'));
+                    
+                    // TAMPILKAN Bukti & Dokumen
+                    if(buktiWrapper) buktiWrapper.classList.remove('hidden');
+                    if(docWrapper) docWrapper.classList.remove('hidden');
+                    
+                    // Set Required untuk item yang visible (Hanya yang tidak hidden)
+                    modeYaItems.forEach(g => {
+                         if(!g.classList.contains('hidden')) {
+                             g.querySelectorAll('.child-input').forEach(i => i.setAttribute('required', 'true'));
+                         }
+                    });
+                } else {
+                    // Tampilkan Item TIDAK (Alasan), Sembunyikan Item YA
+                    modeYaItems.forEach(el => el.classList.add('hidden'));
+                    modeTidakItems.forEach(el => el.classList.remove('hidden'));
+                    
+                    // SEMBUNYIKAN Bukti & Dokumen
+                    if(buktiWrapper) {
+                        buktiWrapper.classList.add('hidden');
+                        buktiWrapper.querySelectorAll('input').forEach(i => i.value = ''); 
+                    }
+                    if(docWrapper) {
+                        docWrapper.classList.add('hidden');
+                        docWrapper.querySelectorAll('input').forEach(i => i.value = '');
+                    }
+                    
+                    // Set Required untuk item yang visible
+                    modeTidakItems.forEach(g => g.querySelectorAll('.child-input').forEach(i => i.setAttribute('required', 'true')));
+                }
+            } 
+            // --- LOGIKA STANDAR (PM, KKA, TKA, dll) ---
+            else {
+                const inputs = wrapper.querySelectorAll('.child-input');
+                if (val === 'Ya') {
+                    wrapper.classList.remove('hidden');
+                    wrapper.style.maxHeight = "8000px"; 
+                    inputs.forEach(inp => {
+                        const parentHidden = inp.closest('[data-trigger-source]')?.classList.contains('hidden');
+                        if (!parentHidden) inp.setAttribute('required', 'true');
+                    });
+                } else {
+                    wrapper.style.maxHeight = "0px";
+                    setTimeout(() => wrapper.classList.add('hidden'), 500);
+                    inputs.forEach(inp => { inp.removeAttribute('required'); inp.value = ''; });
+                }
+            }
+            calculateProgress();
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // --- PROGRESS LOGIC ---
+        function calculateProgress() {
+            const form = document.getElementById('evalForm');
+            let totalItems = 2; 
+            let completedItems = 0;
+
+            if (form.nama_responden.value.trim()) completedItems++;
+            if (form.no_wa.value.trim()) completedItems++;
+
+            sections.forEach((sec, idx) => {
+                let sectionTotal = 1; 
+                let sectionFilled = 0;
+                
+                const keyVal = form.elements[`key_${sec.id}`].value;
+                if (keyVal) sectionFilled++;
+
+                // Logika Progress juga harus mengakomodir Koku
+                if (sec.id === 'koku') {
+                     if (keyVal === 'Ya') {
+                        sectionTotal += 11; // Estimasi pertanyaan Ya
+                     } else if (keyVal === 'Tidak') {
+                        sectionTotal += 1; // Hanya pertanyaan Alasan
+                     }
+                } else {
+                    if (keyVal === 'Ya') {
+                        sectionTotal += 10; 
+                    } else if (keyVal === 'Tidak') {
+                        sectionTotal = 1;
+                        sectionFilled = 1;
+                    }
+                }
+
+                if (keyVal === 'Ya' || (sec.id === 'koku' && keyVal === 'Tidak')) {
+                    const container = document.getElementById(`section-${idx}`);
+                    const validInputs = container.querySelectorAll('input.child-input:not([type=hidden]), select.child-input, textarea.child-input');
+                    
+                    validInputs.forEach(el => {
+                         // Ignore if hidden (class hidden di parent wrapper atau conditional)
+                         if(el.closest('.hidden')) return;
+                         // Check radio buttons specifically
+                         if(el.type === 'radio') {
+                             if(el.checked) sectionFilled++;
+                         } else {
+                             if(el.value.trim()) sectionFilled++;
+                         }
+                    });
+                    // Adjust count for radios (groups) - logic simplified above counts checked radios
+                }
+
+                // Visual checkmark
+                const checkIcon = document.getElementById(`check-${idx}`);
+                if (keyVal) {
+                    if(keyVal === 'Tidak' && sec.id !== 'koku') {
+                        checkIcon.classList.remove('opacity-0');
+                    } else if ((keyVal === 'Ya' || (sec.id === 'koku' && keyVal === 'Tidak')) && sectionFilled > 1) {
+                        checkIcon.classList.remove('opacity-0');
+                    } else {
+                        checkIcon.classList.add('opacity-0');
+                    }
+                } else {
+                    checkIcon.classList.add('opacity-0');
+                }
+
+                totalItems += sectionTotal;
+                completedItems += sectionFilled;
+            });
+
+            const percent = Math.round((completedItems / totalItems) * 100) || 0;
+            const finalPercent = percent > 100 ? 100 : percent;
+            document.getElementById('global-progress').style.width = `${finalPercent}%`;
+            document.getElementById('global-progress-text').innerText = `${finalPercent}%`;
+        }
+
+        // --- LOGIN LOGIC ---
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if(!SCRIPT_URL) { showModal('error', "Script URL belum disetting!"); return; }
+            
+            const npsn = document.getElementById('npsnInput').value;
+            const btn = document.getElementById('btnLogin');
+            const err = document.getElementById('loginError');
+            
+            btn.disabled = true; 
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            err.classList.add('hidden');
+
+            fetch(SCRIPT_URL + '?action=login&npsn=' + npsn, { method: "POST" })
+            .then(res => res.json())
+            .then(data => {
+                if(data.result === 'success') {
+                    document.getElementById('hidden_npsn').value = data.data.npsn;
+                    document.getElementById('hidden_nama_sekolah').value = data.data.nama_sekolah;
+                    document.getElementById('schoolNameDisplay').innerText = data.data.nama_sekolah;
+                    document.getElementById('npsnDisplay').innerText = `NPSN: ${data.data.npsn}`;
+                    
+                    document.getElementById('login-overlay').style.opacity = 0;
+                    setTimeout(() => document.getElementById('login-overlay').remove(), 500);
+                } else {
+                    err.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>Masuk Dashboard</span> <i class="fas fa-arrow-right"></i>';
+                }
+            }).catch(() => {
+                showModal('error', "Gagal koneksi.");
+                btn.disabled = false;
+                btn.innerHTML = '<span>Masuk Dashboard</span> <i class="fas fa-arrow-right"></i>';
+            });
+        });
+
+        // --- SUBMIT LOGIC ---
+        document.getElementById('evalForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            showModal('loading', 'Mengirim Data...');
+            
+            fetch(SCRIPT_URL, { method: 'POST', body: new FormData(this) })
+            .then(res => res.json())
+            .then(data => {
+                if(data.result === 'success') {
+                    showModal('success', 'Terkirim!');
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    showModal('error', 'Gagal: ' + data.message);
+                }
+            })
+            .catch(() => showModal('error', 'Error koneksi'));
+        });
+
+        function showModal(type, msg) {
+            const m = document.getElementById('modal');
+            m.classList.remove('hidden');
+            let html = '';
+            if(type == 'loading') html = '<i class="fas fa-circle-notch fa-spin text-4xl text-blue-500 mb-3"></i><p>'+msg+'</p>';
+            else if(type == 'success') html = '<i class="fas fa-check-circle text-4xl text-green-500 mb-3"></i><p>'+msg+'</p>';
+            else html = '<i class="fas fa-times-circle text-4xl text-red-500 mb-3"></i><p>'+msg+'</p><button onclick="document.getElementById(\'modal\').classList.add(\'hidden\')" class="mt-3 text-sm underline">Tutup</button>';
+            document.getElementById('modal-content').innerHTML = html;
+        }
+    </script>
+</body>
+</html>
