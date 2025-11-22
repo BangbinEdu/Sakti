@@ -387,7 +387,7 @@
             if(confirm('Apakah Anda yakin ingin keluar?')) {
                 localStorage.removeItem('sakti_npsn');
                 localStorage.removeItem('sakti_nama_sekolah');
-                localStorage.removeItem('sakti_draft'); // Clear draft on logout? Usually yes.
+                localStorage.removeItem('sakti_draft'); 
                 location.reload();
             }
         }
@@ -415,34 +415,25 @@
             try {
                 const data = JSON.parse(raw);
                 
-                // 1. Populate Identitas
                 if(data['nama_responden']) document.querySelector('[name="nama_responden"]').value = data['nama_responden'];
                 if(data['no_wa']) document.querySelector('[name="no_wa"]').value = data['no_wa'];
 
-                // 2. Iterate Keys
                 Object.keys(data).forEach(key => {
                     const val = data[key];
-                    
-                    // Skip if hidden fields for npsn/nama_sekolah (already handled by session)
                     if(key === 'npsn_sekolah' || key === 'nama_sekolah' || key === 'action') return;
 
                     const els = document.getElementsByName(key);
                     if (els.length === 0) return;
 
-                    const el = els[0]; // Usually the first element is enough to determine type, or the element itself
+                    const el = els[0]; 
 
                     if (el.type === 'radio') {
-                        // Find specific radio
                         const radio = document.querySelector(`input[name="${key}"][value="${val}"]`);
                         if (radio) radio.checked = true;
                     } else if (el.tagName === 'SELECT') {
                         el.value = val;
-                        
-                        // Handle Select With Other Logic
-                        // Check if this select has corresponding 'sel_' + key ID (our custom select with other pattern)
                         const selectEl = document.getElementById('sel_' + key);
                         if (selectEl) {
-                            // Check if value exists in standard options
                             let optExists = [...selectEl.options].some(o => o.value === val);
                             if (optExists) {
                                 selectEl.value = val;
@@ -452,12 +443,11 @@
                                 handleSelectWithOther(key, 'Lainnya');
                                 const otherInput = document.getElementById('other_' + key);
                                 if(otherInput) otherInput.value = val;
-                                document.getElementById(key).value = val; // Restore hidden val
+                                document.getElementById(key).value = val; 
                             }
                         }
                     } else if (el.type === 'hidden') {
                         el.value = val;
-                        // Try to restore checkboxes based on this hidden value
                         const checkboxes = document.querySelectorAll(`input[type="checkbox"][onchange*="${key}"]`);
                         if (checkboxes.length > 0) {
                             const values = val.split(', ');
@@ -466,13 +456,10 @@
                             });
                         }
                     } else {
-                        // Text, Textarea, etc.
                         el.value = val;
                     }
                 });
 
-                // 3. Trigger Logic for Display (Questions Visibility)
-                // Toggle Sections (Key Questions)
                 sections.forEach((sec, idx) => {
                     const keyName = `key_${sec.id}`;
                     if (data[keyName]) {
@@ -480,21 +467,15 @@
                     }
                 });
 
-                // Trigger Conditional Logic (Sub-questions)
-                // We find all inputs that have Conditional Logic and trigger it based on their current value
                 const conditionalTriggers = document.querySelectorAll('[onchange*="handleConditional"]');
                 conditionalTriggers.forEach(t => {
                     if ((t.type === 'radio' && t.checked) || (t.tagName === 'SELECT' && t.value) || (t.type === 'hidden' && t.value)) {
-                        // Extract ID from function call string
                         const match = t.getAttribute('onchange').match(/handleConditional\('([^']+)',/);
                         if(match && match[1]) {
-                            handleConditional(match[1], t.value || t.getAttribute('value')); // radio value is in attribute sometimes if not checked, but here we checked checked property
+                            handleConditional(match[1], t.value || t.getAttribute('value')); 
                         }
                     }
                 });
-
-                // Special case for Radio triggers that might rely on 'this.value' which needs the checked one
-                // The loop above covers radios that are checked.
 
             } catch (e) {
                 console.error("Gagal memuat draf:", e);
@@ -539,33 +520,25 @@
             const loginOverlay = document.getElementById('login-overlay');
             const subTextContainer = document.getElementById('intro-sub-text');
 
-            // 1. Siapkan Text Bounce per Huruf
             const textToAnimate = "Sistem Asesmen dan Kurikulum Terintegrasi";
             subTextContainer.innerHTML = textToAnimate.split('').map(char => {
-                // Jika spasi, gunakan non-breaking space agar layout aman
                 if (char === ' ') return '<span class="intro-char mx-1">&nbsp;</span>';
                 return `<span class="intro-char">${char}</span>`;
             }).join('');
 
-            // 2. Mulai Animasi Utama "SAKTI"
             setTimeout(() => {
                 introLayer.classList.add('intro-active');
             }, 300);
 
-            // 3. Mulai Animasi Bounce per Huruf (setelah SAKTI muncul sebagian)
             setTimeout(() => {
                 const chars = document.querySelectorAll('.intro-char');
                 chars.forEach((char, index) => {
-                    // Delay bertingkat untuk efek "ngetik" + bounce
                     setTimeout(() => {
                         char.classList.add('animate-bounce-in');
-                    }, index * 35); // 35ms per huruf
+                    }, index * 35); 
                 });
-            }, 1200); // Mulai di detik ke 1.2
+            }, 1200); 
 
-            // 4. Klimaks & Flash (Sesuaikan waktu agar selesai setelah teks sub muncul semua)
-            // Total durasi sub text kira-kira: 40 huruf * 35ms = 1400ms + 1200ms start = 2600ms
-            // Kita set flash di 3800ms agar user sempat baca sebentar
             setTimeout(() => {
                 playCinematicBoom();
                 flashLayer.style.transition = 'opacity 0.1s ease-in';
@@ -716,27 +689,15 @@
                 desc: 'Penguatan karakter.',
                 keyQuestion: "Apakah sekolah Anda melaksanakan kegiatan kokurikuler pada tahun ini?",
                 questions: [
-                    // 1. Muncul saat YA
                     { text: "Apakah kegiatan kokurikuler tersebut sudah tercantum secara jelas dalam dokumen kurikulum sekolah?", mode: 'ya' },
-                    
-                    // 2. Muncul saat TIDAK
                     { text: "Apa alasannya sekolah belum melaksanakan kegiatan kokurikuler?", mode: 'tidak' },
-                    
-                    // 3. Bentuk Kegiatan (Dropdown + Lainnya)
                     { 
                         type: 'select_with_other',
                         text: "Bentuk kegiatan kokurikuler apa yang dipilih sekolah?", 
-                        options: [
-                            "Pembelajaran kolaboratif lintas disiplin",
-                            "Gerakan 7 Kebiasaan Anak Indonesia Hebat",
-                            "Kegiatan khas sekolah berbasis konteks lokal",
-                            "Lainnya"
-                        ],
+                        options: ["Pembelajaran kolaboratif lintas disiplin", "Gerakan 7 Kebiasaan Anak Indonesia Hebat", "Kegiatan khas sekolah berbasis konteks lokal", "Lainnya"],
                         placeholder: "Sebutkan bentuk kegiatan lainnya...",
                         mode: 'ya' 
                     }, 
-                    
-                    // 4. Tim Kerja (Radio Button Ya/Tidak)
                     { 
                         type: 'radio',
                         text: "Apakah sekolah memiliki tim kerja kokurikuler (kepala sekolah, koordinator, fasilitator kelas)?", 
@@ -744,32 +705,24 @@
                         triggerId: 'koku_trigger_tim',
                         mode: 'ya' 
                     }, 
-                    
-                    // 5. Peran Tim (Hidden unless Q4 is Ya)
                     { 
                         text: "Sejauh mana peran masing-masing (kepsek, koordinator, guru) berjalan sesuai panduan?", 
                         hiddenBy: 'koku_trigger_tim',
                         showIf: 'Ya',
                         mode: 'ya' 
                     },
-                    
-                    // 7. SK Tim (Radio Button)
                     { 
                         type: 'radio',
                         text: "Apakah ada SK tim pengembang Kokurikuler?", 
                         options: ["Ya", "Tidak"],
                         mode: 'ya' 
                     }, 
-                    
-                    // 8. Mitra (Radio Button)
                     { 
                         type: 'radio', 
                         text: "Apakah sekolah melibatkan orang tua/komunitas/mitra?", 
                         options: ["Ya", "Tidak"],
                         mode: 'ya' 
                     },
-                    
-                    // 9. Perencanaan Khusus (Radio Button + Trigger)
                     { 
                         type: 'radio',
                         text: "Apakah sekolah menyusun perencanaan khusus untuk kegiatan kokurikuler (misalnya tujuan, langkah kegiatan, dan waktu pelaksanaan)?", 
@@ -777,8 +730,6 @@
                         triggerId: 'koku_trigger_rencana',
                         mode: 'ya' 
                     }, 
-                    
-                    // 10. Penjelasan Perencanaan (Hidden unless Q9 is Ya)
                     { 
                         type: 'textarea',
                         text: "Jelaskan perencanaan khusus tersebut:", 
@@ -787,8 +738,6 @@
                         showIf: 'Ya',
                         mode: 'ya'
                     },
-
-                    // 11. Alokasi Waktu (Radio Button + Trigger)
                     { 
                         type: 'radio', 
                         text: "Apakah sekolah memahami alokasi waktu kokurikuler resmi per tahun?", 
@@ -796,8 +745,6 @@
                         triggerId: 'koku_trigger_alokasi',
                         mode: 'ya' 
                     }, 
-                    
-                    // 12. Jadwal (Hidden unless Q11 is Ya)
                     { 
                         text: "Apakah alokasi waktu tersebut disusun dalam jadwal sekolah?", 
                         hiddenBy: 'koku_trigger_alokasi', 
@@ -824,12 +771,133 @@
                 title: 'Digitalisasi Pembelajaran',
                 short: 'DP',
                 icon: 'fa-wifi',
-                desc: 'Pemanfaatan platform digital & LMS.',
-                keyQuestion: "Apakah ekosistem digital sekolah sudah terbangun?",
+                desc: 'Pemanfaatan platform digital & LMS serta Panel Interaktif.',
+                keyQuestion: "Apakah sekolah memanfaatkan digitalisasi untuk pembelajaran?",
                 questions: [
-                    "Penggunaan LMS (Google Classroom/dll).", "Akses akun belajar.id optimal.", "Presensi/Administrasi digital.",
-                    "Perpustakaan digital.", "Ujian berbasis komputer (CBT).", "Materi ajar digital (Video/E-book).",
-                    "Komunikasi digital dengan ortu.", "Website sekolah aktif.", "Dashboard data siswa.", "Keamanan data digital."
+                    {
+                        type: 'textarea',
+                        text: "Bagaimana sekolah dalam memanfaatkan digitalisasi pada pembelajaran!",
+                        customSlot: "1"
+                    },
+                    {
+                        type: 'checkbox',
+                        text: "Apakah sekolah memanfaatkan platform berikut:",
+                        options: ["Belajar.id", "Laman Ruang GTK", "Laman Ruang Murid", "Laman Buku Digital", "Laman Google Workspace", "Laman Canva.id", "Gemini.ai", "Lainnya"],
+                        customSlot: "2"
+                    },
+                    {
+                        type: 'textarea',
+                        text: "Sejauh mana pemanfaatan laman tersebut terhadap kegiatan pembelajaran!",
+                        customSlot: "2g"
+                    },
+                    {
+                        header: "Panel Interaktif Digital (PID)",
+                        type: 'radio',
+                        text: "Apakah sekolah mendapatkan PID?",
+                        options: ["Ya", "Tidak"],
+                        triggerId: 'dp_trigger_pid',
+                        customSlot: "3"
+                    },
+                    {
+                        type: 'select_with_other',
+                        text: "Dimana diletakan layar IFP/PID tersebut?",
+                        options: ["Ruang Kepala Sekolah", "Ruang Guru", "Ruang Operator", "Ruang Lab. Komputer", "Ruang Perpustakaan", "Ruang Kelas", "Gudang", "Lainnya"],
+                        hiddenBy: 'dp_trigger_pid',
+                        showIf: 'Ya',
+                        customSlot: "3a"
+                    },
+                    {
+                        type: 'textarea',
+                        text: "Ceritakan gambaran pemanfaatan IFP/PID setelah menerima selama ini?",
+                        hiddenBy: 'dp_trigger_pid',
+                        showIf: 'Ya',
+                        customSlot: "3b"
+                    },
+                    {
+                        type: 'radio',
+                        text: "Apakah ada Tim Khusus yang mengelola/menangani papan IFP/PID tersebut?",
+                        options: ["Ya", "Tidak"],
+                        triggerId: 'dp_trigger_tim',
+                        hiddenBy: 'dp_trigger_pid',
+                        showIf: 'Ya',
+                        customSlot: "3c"
+                    },
+                    {
+                        type: 'checkbox',
+                        text: "Siapa yang terlibat dalam tim tersebut?",
+                        options: ["Guru Kelas", "Guru Olahraga", "Guru Agama", "Operator", "Penjaga Sekolah", "Orang Tua", "Lainnya"],
+                        hiddenBy: 'dp_trigger_tim',
+                        showIf: 'Ya',
+                        customSlot: "3c.1"
+                    },
+                    {
+                        type: 'text',
+                        text: "Unggah SK TIM (Link Google Drive/PDF)",
+                        isAttachment: true,
+                        hiddenBy: 'dp_trigger_tim',
+                        showIf: 'Ya'
+                    },
+                    {
+                        type: 'radio',
+                        text: "Apakah sekolah membuat jadwal pelaksanaan/pemanfaatan IFP?",
+                        options: ["Ya", "Tidak"],
+                        triggerId: 'dp_trigger_jadwal',
+                        hiddenBy: 'dp_trigger_pid',
+                        showIf: 'Ya',
+                        customSlot: "3d"
+                    },
+                    {
+                        type: 'text',
+                        text: "Unggah Jadwal (Link)",
+                        isAttachment: true,
+                        hiddenBy: 'dp_trigger_jadwal',
+                        showIf: 'Ya'
+                    },
+                    {
+                        type: 'radio',
+                        text: "Apakah sekolah membuat SOP Pemanfaatan IFP/PID?",
+                        options: ["Ya", "Tidak"],
+                        triggerId: 'dp_trigger_sop',
+                        hiddenBy: 'dp_trigger_pid',
+                        showIf: 'Ya',
+                        customSlot: "3e"
+                    },
+                    {
+                        type: 'textarea',
+                        text: "Deskripsikan Program SOP tersebut:",
+                        hiddenBy: 'dp_trigger_sop',
+                        showIf: 'Ya'
+                    },
+                    {
+                        type: 'radio',
+                        text: "Apakah sekolah telah menganggarkan perawatan IFP/PID tahun 2026?",
+                        options: ["Sudah", "Belum"],
+                        hiddenBy: 'dp_trigger_pid',
+                        showIf: 'Ya',
+                        customSlot: "3f"
+                    },
+                    {
+                        type: 'textarea',
+                        text: "Fitur apa saja yang dimanfaatkan pada IFP/PID?",
+                        hiddenBy: 'dp_trigger_pid',
+                        showIf: 'Ya',
+                        customSlot: "3g"
+                    },
+                    {
+                        type: 'radio',
+                        text: "Apakah Guru telah mengakses Ruang Murid untuk Pembelajaran?",
+                        options: ["Ya", "Tidak"],
+                        triggerId: 'dp_trigger_rm',
+                        hiddenBy: 'dp_trigger_pid',
+                        showIf: 'Ya',
+                        customSlot: "3h"
+                    },
+                    {
+                        type: 'textarea',
+                        text: "Fitur Apa saja yang diakses? Jelaskan!",
+                        hiddenBy: 'dp_trigger_rm',
+                        showIf: 'Ya'
+                    }
                 ]
             },
             {
