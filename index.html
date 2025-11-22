@@ -454,6 +454,8 @@
                             checkboxes.forEach(cb => {
                                 if(values.includes(cb.value)) cb.checked = true;
                             });
+                            // TRIGGER UPDATE FOR CHECKBOX LOGIC (LIKE LAINNYA)
+                            updateCheckboxValue(key, null, null); 
                         }
                     } else {
                         el.value = val;
@@ -783,12 +785,15 @@
                         type: 'checkbox',
                         text: "Apakah sekolah memanfaatkan platform berikut:",
                         options: ["Belajar.id", "Laman Ruang GTK", "Laman Ruang Murid", "Laman Buku Digital", "Laman Google Workspace", "Laman Canva.id", "Gemini.ai", "Lainnya"],
-                        customSlot: "2"
+                        customSlot: "2",
+                        triggerId: 'dp_trigger_platform' // Trigger untuk Q2g
                     },
                     {
                         type: 'textarea',
                         text: "Sejauh mana pemanfaatan laman tersebut terhadap kegiatan pembelajaran!",
-                        customSlot: "2g"
+                        customSlot: "2g",
+                        hiddenBy: 'dp_trigger_platform',
+                        showIf: 'any_checked' // Tampil jika ada satu pun yang dicentang
                     },
                     {
                         header: "Panel Interaktif Digital (PID)",
@@ -1181,12 +1186,19 @@
                             checks += `
                                 <label class="flex items-center space-x-2 cursor-pointer bg-white p-2 rounded border border-gray-200 hover:border-blue-400">
                                     <input type="checkbox" class="form-checkbox text-blue-600 rounded focus:ring-blue-500" 
-                                        value="${opt}" onchange="updateCheckboxValue('${inputName}', this)">
+                                        value="${opt}" onchange="updateCheckboxValue('${inputName}', this, '${qObj.triggerId || ''}')">
                                     <span class="text-sm text-gray-700">${opt}</span>
                                 </label>
                             `;
                         });
                         checks += '</div>';
+                        
+                        // Add special "Lainnya" text input container (hidden by default)
+                        // Only if "Lainnya" is an option
+                        if(qObj.options.includes("Lainnya")) {
+                             checks += `<input type="text" id="other_text_${inputName}" class="mt-2 w-full bg-gray-50 border border-blue-300 rounded-lg px-3 py-2 text-sm hidden" placeholder="Sebutkan lainnya..." oninput="updateCheckboxValue('${inputName}', null, '${qObj.triggerId || ''}')">`;
+                        }
+
                         inputElement = `
                             <input type="hidden" name="${inputName}" id="${inputName}" class="child-input" ${optionalAttr}>
                             ${checks}
@@ -1362,10 +1374,47 @@
 
         // --- LOGIC HELPERS ---
 
-        function updateCheckboxValue(inputName, el) {
-            const checkboxes = document.querySelectorAll(`input[onchange="updateCheckboxValue('${inputName}', this)"]:checked`);
+        function updateCheckboxValue(inputName, el, triggerId) {
+            // Ambil semua checkbox yang dicentang
+            // Karena el bisa null (dipanggil manual), kita query berdasarkan name
+            // Trik: Saat render, kita tidak punya name atribut yang unique per checkbox, tapi onchange punya inputName
+            const checkboxes = document.querySelectorAll(`input[onchange^="updateCheckboxValue('${inputName}'"]:checked`);
             const values = Array.from(checkboxes).map(cb => cb.value);
-            document.getElementById(inputName).value = values.join(", ");
+            
+            // 1. Handle Lainnya Input Visibility
+            const otherInput = document.getElementById(`other_text_${inputName}`);
+            if(otherInput) {
+                if(values.includes('Lainnya')) {
+                    otherInput.classList.remove('hidden');
+                    otherInput.setAttribute('required', 'true');
+                } else {
+                    otherInput.classList.add('hidden');
+                    otherInput.removeAttribute('required');
+                    otherInput.value = ''; // Reset jika uncheck
+                }
+            }
+
+            // 2. Construct Final Value
+            let finalVal = values.join(", ");
+            if(otherInput && !otherInput.classList.contains('hidden') && otherInput.value.trim()) {
+                // Tambahkan isi text input ke dalam value
+                // Kita ganti "Lainnya" dengan "Lainnya: [Isi]" agar rapi di database
+                finalVal = finalVal.replace("Lainnya", "Lainnya: " + otherInput.value);
+            }
+            document.getElementById(inputName).value = finalVal;
+
+            // 3. Handle Trigger (Any Checked Logic)
+            if (triggerId && triggerId !== 'undefined' && triggerId !== '') {
+                const targets = document.querySelectorAll(`[data-trigger-source="${triggerId}"]`);
+                targets.forEach(target => {
+                    const showCondition = target.getAttribute('data-show-if');
+                    if (showCondition === 'any_checked') {
+                        if (values.length > 0) target.classList.remove('hidden');
+                        else target.classList.add('hidden');
+                    }
+                });
+            }
+
             calculateProgress();
         }
 
