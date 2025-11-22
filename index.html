@@ -986,6 +986,71 @@
                     }
                 ]
             },
+            // ASESMEN PEMBELAJARAN (DIPINDAH KE SINI SEBELUM KSP)
+            {
+                id: 'asesmen',
+                title: 'Asesmen Pembelajaran',
+                short: 'Asesmen',
+                icon: 'fa-tasks',
+                desc: 'Evaluasi implementasi asesmen awal, formatif, dan sumatif.',
+                keyQuestion: "Apakah sekolah melaksanakan sistem asesmen pembelajaran yang komprehensif?",
+                questions: [
+                    {
+                        type: 'radio',
+                        header: 'Asesmen Awal',
+                        text: 'Asesmen Awal dilakukan secara rutin di awal semester atau awal unit pembelajaran.',
+                        options: ['Belum pernah atau sangat jarang melakukan Asesmen Awal di awal semester/unit pembelajaran.', 'Melakukan Asesmen Awal, tetapi tidak rutin dan/atau hanya di awal semester (tidak di awal unit pembelajaran).', 'Melakukan Asesmen Awal secara rutin di awal semester atau di awal setiap unit pembelajaran.', 'Melakukan Asesmen Awal secara rutin dan konsisten di awal semester dan di awal setiap unit pembelajaran.']
+                    },
+                    {
+                        type: 'radio',
+                        text: 'Asesmen Awal yang dilakukan berfokus untuk mengidentifikasi kesiapan belajar dan kebutuhan emosional/sosial murid.',
+                        options: ['Asesmen Awal hanya berfokus pada tes pengetahuan tanpa mempertimbangkan kesiapan belajar atau kebutuhan emosional/sosial murid.', 'Asesmen Awal sudah mencoba mengidentifikasi kesiapan belajar, tetapi belum mencakup kebutuhan emosional/sosial murid.', 'Asesmen Awal berfokus untuk mengidentifikasi kesiapan belajar dan kebutuhan emosional/sosial murid, tetapi pelaksanaannya belum optimal.', 'Asesmen Awal berfokus untuk mengidentifikasi secara komprehensif kesiapan belajar dan kebutuhan emosional/sosial murid.']
+                    },
+                    {
+                        type: 'radio',
+                        header: 'Asesmen Formatif',
+                        text: 'Asesmen Formatif digunakan untuk memantau pemahaman murid selama pembelajaran berlangsung, secara rutin digunakan untuk memantau kemajuan belajar siswa selama proses pembelajaran.',
+                        options: ['Asesmen Formatif jarang dilakukan atau hanya di akhir unit/bab, dan tidak rutin memantau kemajuan belajar.', 'Melakukan Asesmen Formatif, tetapi belum rutin atau hanya sebatas memantau, bukan untuk mengukur kemajuan belajar secara berkelanjutan.', 'Melakukan Asesmen Formatif secara rutin untuk memantau pemahaman dan kemajuan belajar siswa selama proses pembelajaran.', 'Melakukan Asesmen Formatif secara rutin, terstruktur, dan berkelanjutan untuk memantau pemahaman dan kemajuan belajar siswa selama proses pembelajaran.']
+                    },
+                    {
+                        type: 'radio',
+                        text: 'Guru menggunakan berbagai teknik asesmen formatif misalnya, diskusi kelas, feedback lisan, jurnal, exit ticket, penilaian kinerja atau projek kecil selama proses pembelajaran.',
+                        options: ['Guru hanya menggunakan satu atau dua teknik asesmen formatif yang sederhana (misalnya, tanya jawab lisan).', 'Guru menggunakan beberapa teknik asesmen formatif (3-4 jenis), tetapi belum bervariasi secara signifikan.', 'Guru menggunakan berbagai teknik asesmen formatif (misalnya, diskusi, feedback lisan, jurnal, exit ticket, penilaian kinerja) selama proses pembelajaran.', 'Guru menggunakan berbagai teknik asesmen formatif secara kreatif dan proporsional sesuai kebutuhan materi dan murid.']
+                    },
+                    {
+                        type: 'radio',
+                        text: 'Guru memberikan umpan balik atau feedback yang spesifik dan konstruktif kepada murid berdasarkan hasil asesmen formatif.',
+                        options: ['Guru jarang memberikan umpan balik, atau hanya memberikan nilai/komentar yang sangat umum ("Bagus" atau "Perlu ditingkatkan").', 'Guru memberikan umpan balik, tetapi masih bersifat umum (tidak spesifik) atau kurang konstruktif.', 'Guru memberikan umpan balik yang spesifik (menunjukkan bagian yang benar/salah) dan konstruktif (memberikan saran perbaikan).', 'Guru memberikan umpan balik yang spesifik, konstruktif, tepat waktu, dan berdampak bagi peningkatan pemahaman murid.']
+                    },
+                    {
+                        type: 'radio',
+                        text: 'Umpan balik tersebut digunakan oleh murid untuk refleksi diri atau memperbaiki pekerjaan atau pemahaman mereka (Asesmen as Learning).',
+                        options: ['Murid tidak diminta untuk menggunakan umpan balik sebagai alat refleksi diri atau perbaikan.', 'Murid diminta, tetapi kurang dimotivasi atau dibimbing untuk menggunakan umpan balik untuk refleksi diri atau perbaikan.', 'Murid menggunakan umpan balik untuk melakukan refleksi diri atau memperbaiki pekerjaan/pemahaman mereka (Asesmen as Learning).', 'Murid secara mandiri menggunakan umpan balik untuk refleksi diri dan secara aktif memperbaiki pekerjaan/pemahaman mereka.']
+                    },
+                    {
+                        type: 'radio',
+                        header: 'Asesmen Sumatif',
+                        text: 'Asesmen Sumatif benar-benar mengukur Capaian Pembelajaran (CP) atau Tujuan Pembelajaran (TP) secara holistik.',
+                        options: ['Asesmen Sumatif hanya mengukur sebagian kecil dari CP/TP atau hanya berfokus pada aspek pengetahuan saja.', 'Asesmen Sumatif mengukur CP/TP, tetapi belum secara holistik (misalnya, hanya fokus pada pengetahuan dan keterampilan, bukan sikap).', 'Asesmen Sumatif mengukur Capaian Pembelajaran (CP) atau Tujuan Pembelajaran (TP) secara holistik (mencakup pengetahuan, keterampilan, dan/atau sikap yang relevan).', 'Asesmen Sumatif dirancang secara komprehensif untuk mengukur CP/TP secara holistik dan mendalam sesuai konteks.']
+                    },
+                    {
+                        type: 'radio',
+                        text: 'Instrumen Asesmen Sumatif memiliki proporsi yang memadai untuk mengukur kemampuan berpikir tingkat tinggi (HOTS).',
+                        options: ['Instrumen Asesmen Sumatif didominasi oleh soal-soal tingkat rendah (LOTS) atau hanya mengingat/memahami.', 'Instrumen Asesmen Sumatif sudah memasukkan soal HOTS, tetapi proporsinya masih sangat kecil atau penempatannya kurang tepat.', 'Instrumen Asesmen Sumatif memiliki proporsi yang memadai (misalnya 30-50%) untuk mengukur kemampuan berpikir tingkat tinggi (HOTS).', 'Instrumen Asesmen Sumatif memiliki proporsi HOTS yang ideal dan instrumennya bervariasi (analisis, evaluasi, kreasi).']
+                    },
+                    {
+                        type: 'radio',
+                        text: 'Hasil Asesmen Sumatif digunakan sekolah sebagai bahan evaluasi kurikulum dan program sekolah.',
+                        options: ['Hasil Asesmen Sumatif hanya digunakan untuk laporan nilai akhir murid dan tidak digunakan untuk evaluasi kurikulum/program sekolah.', 'Hasil Asesmen Sumatif digunakan sebatas informasi, tetapi belum secara sistematis dijadikan bahan evaluasi kurikulum atau program sekolah.', 'Hasil Asesmen Sumatif digunakan sekolah sebagai bahan evaluasi kurikulum atau program sekolah.', 'Hasil Asesmen Sumatif digunakan secara sistematis dan berkala sebagai bahan evaluasi dan perbaikan kurikulum dan program sekolah.']
+                    },
+                    {
+                        type: 'radio',
+                        text: 'Asesmen sumatif yang dilaksanakan bervariasi (misalnya, proyek, portofolio, tes tertulis) dan tidak hanya tes pilihan ganda/esai.',
+                        options: ['Asesmen Sumatif hanya dilakukan dengan satu jenis instrumen (misalnya, tes pilihan ganda atau esai saja).', 'Asesmen Sumatif menggunakan dua jenis instrumen, tetapi keduanya masih berupa tes tertulis (misalnya, pilihan ganda dan esai).', 'Asesmen Sumatif yang dilaksanakan bervariasi, mencakup tes tertulis dan bentuk lain (misalnya, proyek, portofolio, atau penilaian kinerja).', 'Asesmen Sumatif yang dilaksanakan sangat bervariasi, disesuaikan dengan tujuan pembelajaran, dan mencakup berbagai bentuk (proyek, portofolio, tes tertulis, dll.).']
+                    }
+                ]
+            },
+            // KURIKULUM SEKOLAH (KSP) - SEKARANG JADI INDIKATOR TERAKHIR
             {
                 id: 'ksp',
                 title: 'Kurikulum Sekolah',
@@ -1084,69 +1149,6 @@
                         type: 'textarea', 
                         text: "Bagaimana Evaluasi, Pengembangan Profesional, dan Pendampingan pelaksanaan Kurikulum di sekolah Anda?",
                         customSlot: "7"
-                    }
-                ]
-            },
-            {
-                id: 'asesmen',
-                title: 'Asesmen Pembelajaran',
-                short: 'Asesmen',
-                icon: 'fa-tasks',
-                desc: 'Evaluasi implementasi asesmen awal, formatif, dan sumatif.',
-                keyQuestion: "Apakah sekolah melaksanakan sistem asesmen pembelajaran yang komprehensif?",
-                questions: [
-                    {
-                        type: 'radio',
-                        header: 'Asesmen Awal',
-                        text: 'Asesmen Awal dilakukan secara rutin di awal semester atau awal unit pembelajaran.',
-                        options: ['Belum pernah atau sangat jarang melakukan Asesmen Awal di awal semester/unit pembelajaran.', 'Melakukan Asesmen Awal, tetapi tidak rutin dan/atau hanya di awal semester (tidak di awal unit pembelajaran).', 'Melakukan Asesmen Awal secara rutin di awal semester atau di awal setiap unit pembelajaran.', 'Melakukan Asesmen Awal secara rutin dan konsisten di awal semester dan di awal setiap unit pembelajaran.']
-                    },
-                    {
-                        type: 'radio',
-                        text: 'Asesmen Awal yang dilakukan berfokus untuk mengidentifikasi kesiapan belajar dan kebutuhan emosional/sosial murid.',
-                        options: ['Asesmen Awal hanya berfokus pada tes pengetahuan tanpa mempertimbangkan kesiapan belajar atau kebutuhan emosional/sosial murid.', 'Asesmen Awal sudah mencoba mengidentifikasi kesiapan belajar, tetapi belum mencakup kebutuhan emosional/sosial murid.', 'Asesmen Awal berfokus untuk mengidentifikasi kesiapan belajar dan kebutuhan emosional/sosial murid, tetapi pelaksanaannya belum optimal.', 'Asesmen Awal berfokus untuk mengidentifikasi secara komprehensif kesiapan belajar dan kebutuhan emosional/sosial murid.']
-                    },
-                    {
-                        type: 'radio',
-                        header: 'Asesmen Formatif',
-                        text: 'Asesmen Formatif digunakan untuk memantau pemahaman murid selama pembelajaran berlangsung, secara rutin digunakan untuk memantau kemajuan belajar siswa selama proses pembelajaran.',
-                        options: ['Asesmen Formatif jarang dilakukan atau hanya di akhir unit/bab, dan tidak rutin memantau kemajuan belajar.', 'Melakukan Asesmen Formatif, tetapi belum rutin atau hanya sebatas memantau, bukan untuk mengukur kemajuan belajar secara berkelanjutan.', 'Melakukan Asesmen Formatif secara rutin untuk memantau pemahaman dan kemajuan belajar siswa selama proses pembelajaran.', 'Melakukan Asesmen Formatif secara rutin, terstruktur, dan berkelanjutan untuk memantau pemahaman dan kemajuan belajar siswa selama proses pembelajaran.']
-                    },
-                    {
-                        type: 'radio',
-                        text: 'Guru menggunakan berbagai teknik asesmen formatif misalnya, diskusi kelas, feedback lisan, jurnal, exit ticket, penilaian kinerja atau projek kecil selama proses pembelajaran.',
-                        options: ['Guru hanya menggunakan satu atau dua teknik asesmen formatif yang sederhana (misalnya, tanya jawab lisan).', 'Guru menggunakan beberapa teknik asesmen formatif (3-4 jenis), tetapi belum bervariasi secara signifikan.', 'Guru menggunakan berbagai teknik asesmen formatif (misalnya, diskusi, feedback lisan, jurnal, exit ticket, penilaian kinerja) selama proses pembelajaran.', 'Guru menggunakan berbagai teknik asesmen formatif secara kreatif dan proporsional sesuai kebutuhan materi dan murid.']
-                    },
-                    {
-                        type: 'radio',
-                        text: 'Guru memberikan umpan balik atau feedback yang spesifik dan konstruktif kepada murid berdasarkan hasil asesmen formatif.',
-                        options: ['Guru jarang memberikan umpan balik, atau hanya memberikan nilai/komentar yang sangat umum ("Bagus" atau "Perlu ditingkatkan").', 'Guru memberikan umpan balik, tetapi masih bersifat umum (tidak spesifik) atau kurang konstruktif.', 'Guru memberikan umpan balik yang spesifik (menunjukkan bagian yang benar/salah) dan konstruktif (memberikan saran perbaikan).', 'Guru memberikan umpan balik yang spesifik, konstruktif, tepat waktu, dan berdampak bagi peningkatan pemahaman murid.']
-                    },
-                    {
-                        type: 'radio',
-                        text: 'Umpan balik tersebut digunakan oleh murid untuk refleksi diri atau memperbaiki pekerjaan atau pemahaman mereka (Asesmen as Learning).',
-                        options: ['Murid tidak diminta untuk menggunakan umpan balik sebagai alat refleksi diri atau perbaikan.', 'Murid diminta, tetapi kurang dimotivasi atau dibimbing untuk menggunakan umpan balik untuk refleksi diri atau perbaikan.', 'Murid menggunakan umpan balik untuk melakukan refleksi diri atau memperbaiki pekerjaan/pemahaman mereka (Asesmen as Learning).', 'Murid secara mandiri menggunakan umpan balik untuk refleksi diri dan secara aktif memperbaiki pekerjaan/pemahaman mereka.']
-                    },
-                    {
-                        type: 'radio',
-                        header: 'Asesmen Sumatif',
-                        text: 'Asesmen Sumatif benar-benar mengukur Capaian Pembelajaran (CP) atau Tujuan Pembelajaran (TP) secara holistik.',
-                        options: ['Asesmen Sumatif hanya mengukur sebagian kecil dari CP/TP atau hanya berfokus pada aspek pengetahuan saja.', 'Asesmen Sumatif mengukur CP/TP, tetapi belum secara holistik (misalnya, hanya fokus pada pengetahuan dan keterampilan, bukan sikap).', 'Asesmen Sumatif mengukur Capaian Pembelajaran (CP) atau Tujuan Pembelajaran (TP) secara holistik (mencakup pengetahuan, keterampilan, dan/atau sikap yang relevan).', 'Asesmen Sumatif dirancang secara komprehensif untuk mengukur CP/TP secara holistik dan mendalam sesuai konteks.']
-                    },
-                    {
-                        type: 'radio',
-                        text: 'Instrumen Asesmen Sumatif memiliki proporsi yang memadai untuk mengukur kemampuan berpikir tingkat tinggi (HOTS).',
-                        options: ['Instrumen Asesmen Sumatif didominasi oleh soal-soal tingkat rendah (LOTS) atau hanya mengingat/memahami.', 'Instrumen Asesmen Sumatif sudah memasukkan soal HOTS, tetapi proporsinya masih sangat kecil atau penempatannya kurang tepat.', 'Instrumen Asesmen Sumatif memiliki proporsi yang memadai (misalnya 30-50%) untuk mengukur kemampuan berpikir tingkat tinggi (HOTS).', 'Instrumen Asesmen Sumatif memiliki proporsi HOTS yang ideal dan instrumennya bervariasi (analisis, evaluasi, kreasi).']
-                    },
-                    {
-                        type: 'radio',
-                        text: 'Hasil Asesmen Sumatif digunakan sekolah sebagai bahan evaluasi kurikulum dan program sekolah.',
-                        options: ['Hasil Asesmen Sumatif hanya digunakan untuk laporan nilai akhir murid dan tidak digunakan untuk evaluasi kurikulum/program sekolah.', 'Hasil Asesmen Sumatif digunakan sebatas informasi, tetapi belum secara sistematis dijadikan bahan evaluasi kurikulum atau program sekolah.', 'Hasil Asesmen Sumatif digunakan sekolah sebagai bahan evaluasi kurikulum atau program sekolah.', 'Hasil Asesmen Sumatif digunakan secara sistematis dan berkala sebagai bahan evaluasi dan perbaikan kurikulum dan program sekolah.']
-                    },
-                    {
-                        type: 'radio',
-                        text: 'Asesmen sumatif yang dilaksanakan bervariasi (misalnya, proyek, portofolio, tes tertulis) dan tidak hanya tes pilihan ganda/esai.',
-                        options: ['Asesmen Sumatif hanya dilakukan dengan satu jenis instrumen (misalnya, tes pilihan ganda atau esai saja).', 'Asesmen Sumatif menggunakan dua jenis instrumen, tetapi keduanya masih berupa tes tertulis (misalnya, pilihan ganda dan esai).', 'Asesmen Sumatif yang dilaksanakan bervariasi, mencakup tes tertulis dan bentuk lain (misalnya, proyek, portofolio, atau penilaian kinerja).', 'Asesmen Sumatif yang dilaksanakan sangat bervariasi, disesuaikan dengan tujuan pembelajaran, dan mencakup berbagai bentuk (proyek, portofolio, tes tertulis, dll.).']
                     }
                 ]
             }
@@ -1425,9 +1427,6 @@
 
                         <!-- Key Question Box -->
                         <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-5 mb-6">
-                            <div class="font-semibold text-indigo-900 mb-3 flex items-center gap-2">
-                                <i class="fas fa-key"></i> Pertanyaan Kunci
-                            </div>
                             <p class="text-indigo-800 text-sm mb-4">${sec.keyQuestion}</p>
                             <div class="flex gap-4">
                                 <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-indigo-200 hover:border-blue-500 transition shadow-sm">
