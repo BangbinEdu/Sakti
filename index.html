@@ -266,14 +266,19 @@
                 <input type="hidden" name="nama_sekolah" id="hidden_nama_sekolah">
 
                 <!-- Header Sekolah Info -->
-                <div class="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-200">
-                    <div class="flex justify-between items-start">
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-200 relative">
+                    <!-- Tombol Logout -->
+                    <button type="button" onclick="logout()" class="absolute top-6 right-6 text-red-500 hover:text-red-700 text-sm font-semibold flex items-center gap-2 transition">
+                        <i class="fas fa-sign-out-alt"></i> Keluar
+                    </button>
+
+                    <div class="flex justify-between items-start pr-20">
                         <div>
                             <h1 id="schoolNameDisplay" class="text-2xl font-bold text-gray-900">Nama Sekolah</h1>
                             <p id="npsnDisplay" class="text-gray-500 font-mono text-sm mt-1">NPSN: -</p>
                         </div>
                         <div class="text-right hidden md:block">
-                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-200">Tahun 2025</span>
+                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-200">Tahun 2024</span>
                         </div>
                     </div>
                     
@@ -328,6 +333,35 @@
     <script>
         // URL SCRIPT
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVaCEKo5uut1StJltwkkOg2JqDleKb8hzgYzH8vXtqLDWSCAALAhBvq1Fc09OrDeD_/exec"; 
+
+        // --- SESSION LOGIC ---
+        function checkSession() {
+            const storedNPSN = localStorage.getItem('sakti_npsn');
+            const storedNama = localStorage.getItem('sakti_nama_sekolah');
+
+            if (storedNPSN && storedNama) {
+                // Data sesi ditemukan, restore data dan sembunyikan intro
+                document.getElementById('hidden_npsn').value = storedNPSN;
+                document.getElementById('hidden_nama_sekolah').value = storedNama;
+                document.getElementById('schoolNameDisplay').innerText = storedNama;
+                document.getElementById('npsnDisplay').innerText = `NPSN: ${storedNPSN}`;
+                
+                // Sembunyikan intro dan login
+                document.getElementById('intro-layer').style.display = 'none';
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('intro-flash').style.display = 'none';
+                return true;
+            }
+            return false;
+        }
+
+        function logout() {
+            if(confirm('Apakah Anda yakin ingin keluar?')) {
+                localStorage.removeItem('sakti_npsn');
+                localStorage.removeItem('sakti_nama_sekolah');
+                location.reload();
+            }
+        }
 
         // --- INTRO ANIMATION LOGIC ---
         function playCinematicBoom() {
@@ -424,7 +458,7 @@
                 questions: [
                     { 
                         type: 'checkbox', 
-                        text: "Apakah tersedia regulasi pelaksanaan pembelajaran mendalam di satuan pendidikan?", 
+                        text: "Apakah tersedia regulasi pelaksanaan pembelajaran medalam di satuan pendidikan?", 
                         options: ["Permendikbud", "BSKAP", "Buku Panduan Pembelajaran dan Asesmen", "Buku Panduan Mata Pelajaran"] 
                     },
                     { 
@@ -830,8 +864,11 @@
 
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Start Intro Sequence
-            runIntroSequence();
+            // Check Session FIRST
+            if(!checkSession()) {
+                // Only run intro if no session
+                runIntroSequence();
+            }
 
             renderSidebar();
             renderContent();
@@ -1387,6 +1424,10 @@
             .then(res => res.json())
             .then(data => {
                 if(data.result === 'success') {
+                    // SAVE SESSION TO LOCALSTORAGE
+                    localStorage.setItem('sakti_npsn', data.data.npsn);
+                    localStorage.setItem('sakti_nama_sekolah', data.data.nama_sekolah);
+
                     document.getElementById('hidden_npsn').value = data.data.npsn;
                     document.getElementById('hidden_nama_sekolah').value = data.data.nama_sekolah;
                     document.getElementById('schoolNameDisplay').innerText = data.data.nama_sekolah;
