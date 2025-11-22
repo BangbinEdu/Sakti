@@ -24,12 +24,12 @@
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- INTRO SEQUENCE STYLES --- */
+        /* --- INTRO SEQUENCE STYLES (UPDATED) --- */
         #intro-layer {
             position: fixed;
             inset: 0;
             background-color: black;
-            z-index: 9999; /* Paling depan */
+            z-index: 9999;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -38,28 +38,78 @@
             overflow: hidden;
         }
 
+        /* Animasi Utama SAKTI - Cinematic Zoom & Blur */
         .intro-text-main {
-            font-size: 5rem;
+            font-size: 6rem;
             font-weight: 900;
             letter-spacing: 0.5rem;
             opacity: 0;
-            transform: scale(0.9);
-            transition: opacity 2s ease-out, transform 3s ease-out;
-            background: linear-gradient(to bottom, #ffffff, #94a3b8);
+            background: linear-gradient(to bottom, #ffffff 0%, #94a3b8 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 20px rgba(255,255,255,0.1);
+            filter: blur(10px);
+            transform: scale(1.5);
+            text-shadow: 0 0 30px rgba(255,255,255,0.3);
         }
 
+        .intro-active .intro-text-main {
+            animation: cinematicReveal 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        @keyframes cinematicReveal {
+            0% {
+                opacity: 0;
+                filter: blur(20px);
+                transform: scale(1.8);
+                letter-spacing: 1.5rem;
+            }
+            100% {
+                opacity: 1;
+                filter: blur(0);
+                transform: scale(1);
+                letter-spacing: 0.5rem;
+            }
+        }
+
+        /* Container Sub Text */
         .intro-text-sub {
+            margin-top: 1.5rem;
             font-size: 1.25rem;
-            font-weight: 300;
-            letter-spacing: 0.1rem;
+            font-weight: 400;
             color: #cbd5e1;
-            margin-top: 1rem;
+            text-align: center;
+            min-height: 30px; /* Menjaga layout agar tidak geser */
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2px; /* Jarak antar huruf sedikit */
+        }
+
+        /* Animasi Huruf Bouncing */
+        .intro-char {
+            display: inline-block;
             opacity: 0;
             transform: translateY(20px);
-            transition: opacity 1.5s ease-out, transform 1.5s ease-out;
+        }
+
+        .intro-char.animate-bounce-in {
+            animation: bounceInChar 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Keyframe Bounce: Muncul dari bawah, sedikit overshoot ke atas, lalu turun */
+        @keyframes bounceInChar {
+            0% {
+                opacity: 0;
+                transform: translateY(30px) scale(0.8);
+            }
+            60% {
+                opacity: 1;
+                transform: translateY(-10px) scale(1.1);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
         /* Flash Putih */
@@ -70,17 +120,16 @@
             z-index: 10000;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.1s ease-in; /* Cepat masuk */
         }
-
-        /* Saat animasi aktif */
-        .intro-active .intro-text-main { opacity: 1; transform: scale(1); }
-        .intro-active .intro-text-sub { opacity: 1; transform: translateY(0); }
 
         /* Responsif Intro */
         @media (max-width: 768px) {
-            .intro-text-main { font-size: 3rem; letter-spacing: 0.2rem; }
-            .intro-text-sub { font-size: 0.9rem; text-align: center; padding: 0 20px; }
+            .intro-text-main { font-size: 3.5rem; letter-spacing: 0.2rem; }
+            .intro-text-sub { font-size: 0.9rem; padding: 0 20px; }
+            @keyframes cinematicReveal {
+                0% { opacity: 0; filter: blur(10px); transform: scale(1.5); letter-spacing: 0.5rem; }
+                100% { opacity: 1; filter: blur(0); transform: scale(1); letter-spacing: 0.2rem; }
+            }
         }
 
         /* --- CUSTOM LOGIN STYLES --- */
@@ -95,7 +144,7 @@
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            opacity: 0; /* Default opacity 0, akan di fade-in setelah intro */
+            opacity: 0; /* Default opacity 0 */
             transition: opacity 1.5s ease-in;
         }
 
@@ -139,7 +188,9 @@
     <!-- INTRO SEQUENCE -->
     <div id="intro-layer">
         <h1 class="intro-text-main">SAKTI</h1>
-        <p class="intro-text-sub">Sistem Asesmen dan Kurikulum Terintegrasi</p>
+        <div id="intro-sub-text" class="intro-text-sub">
+            <!-- Text akan di-inject per huruf via JS -->
+        </div>
     </div>
     <div id="intro-flash"></div>
 
@@ -280,7 +331,6 @@
 
         // --- INTRO ANIMATION LOGIC ---
         function playCinematicBoom() {
-            // Menggunakan Web Audio API untuk membuat efek suara dramatis tanpa file eksternal
             try {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                 const ctx = new AudioContext();
@@ -289,16 +339,16 @@
                 const gainNode = ctx.createGain();
                 const filter = ctx.createBiquadFilter();
 
-                osc.type = 'sawtooth'; // Suara agak kasar untuk impact
+                osc.type = 'sawtooth'; 
                 osc.frequency.setValueAtTime(80, ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5); // Drop frekuensi (Boom)
+                osc.frequency.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5); 
 
                 filter.type = 'lowpass';
                 filter.frequency.setValueAtTime(1000, ctx.currentTime);
                 filter.frequency.linearRampToValueAtTime(100, ctx.currentTime + 1);
 
                 gainNode.gain.setValueAtTime(0.5, ctx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 2); // Fade out
+                gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 2); 
 
                 osc.connect(filter);
                 filter.connect(gainNode);
@@ -307,7 +357,7 @@
                 osc.start();
                 osc.stop(ctx.currentTime + 2.5);
             } catch(e) {
-                console.log("Audio context not supported or blocked");
+                console.log("Audio blocked");
             }
         }
 
@@ -315,41 +365,51 @@
             const introLayer = document.getElementById('intro-layer');
             const flashLayer = document.getElementById('intro-flash');
             const loginOverlay = document.getElementById('login-overlay');
+            const subTextContainer = document.getElementById('intro-sub-text');
 
-            // 1. Mulai dengan Hitam (Default CSS)
-            
-            // 2. Fade In Teks SAKTI (Delay 500ms)
+            // 1. Siapkan Text Bounce per Huruf
+            const textToAnimate = "Sistem Asesmen dan Kurikulum Terintegrasi";
+            subTextContainer.innerHTML = textToAnimate.split('').map(char => {
+                // Jika spasi, gunakan non-breaking space agar layout aman
+                if (char === ' ') return '<span class="intro-char mx-1">&nbsp;</span>';
+                return `<span class="intro-char">${char}</span>`;
+            }).join('');
+
+            // 2. Mulai Animasi Utama "SAKTI"
             setTimeout(() => {
                 introLayer.classList.add('intro-active');
-            }, 500);
+            }, 300);
 
-            // 3. Klimaks (Delay 4000ms)
+            // 3. Mulai Animasi Bounce per Huruf (setelah SAKTI muncul sebagian)
             setTimeout(() => {
-                // Play Sound
-                playCinematicBoom();
+                const chars = document.querySelectorAll('.intro-char');
+                chars.forEach((char, index) => {
+                    // Delay bertingkat untuk efek "ngetik" + bounce
+                    setTimeout(() => {
+                        char.classList.add('animate-bounce-in');
+                    }, index * 35); // 35ms per huruf
+                });
+            }, 1200); // Mulai di detik ke 1.2
 
-                // Flash Putih
+            // 4. Klimaks & Flash (Sesuaikan waktu agar selesai setelah teks sub muncul semua)
+            // Total durasi sub text kira-kira: 40 huruf * 35ms = 1400ms + 1200ms start = 2600ms
+            // Kita set flash di 3800ms agar user sempat baca sebentar
+            setTimeout(() => {
+                playCinematicBoom();
+                flashLayer.style.transition = 'opacity 0.1s ease-in';
                 flashLayer.style.opacity = '1';
 
-                // Sembunyikan Layer Hitam & Teks di balik flash putih secara instan
                 setTimeout(() => {
                     introLayer.style.display = 'none';
-                    
-                    // Munculkan Login (Fade In)
                     loginOverlay.style.opacity = '1';
                     
-                    // Hilangkan Flash Putih (Fade Out perlahan)
                     flashLayer.style.transition = 'opacity 1.5s ease-out';
                     flashLayer.style.opacity = '0';
                     
-                    // Bersihkan Flash dari DOM
-                    setTimeout(() => {
-                        flashLayer.remove();
-                    }, 1500);
+                    setTimeout(() => { flashLayer.remove(); }, 1500);
+                }, 150); 
 
-                }, 100); // Tunggu 100ms agar flash putih sempurna dulu
-
-            }, 4000);
+            }, 3800);
         }
 
         // --- DATA INDIKATOR ---
@@ -377,19 +437,19 @@
                 questions: [
                     { 
                         type: 'checkbox', 
-                        text: "1. Kelas berapa? (Bisa pilih lebih dari satu)", 
+                        text: "Kelas berapa? (Bisa pilih lebih dari satu)", 
                         options: ["Kelas 1", "Kelas 2", "Kelas 3", "Kelas 4", "Kelas 5", "Kelas 6"] 
                     },
                     { type: 'select', text: "2. Siapa yang mengampu?", options: ["Guru Kelas", "Guru Mapel"] },
                     { 
                         type: 'select', 
-                        text: "3. Apakah guru pengampu sudah mengikuti pelatihan?", 
+                        text: "Apakah guru pengampu sudah mengikuti pelatihan?", 
                         options: ["Sudah", "Belum"], 
                         triggerId: 'kka_trigger_pelatihan' 
                     },
                     { 
                         type: 'select_with_other', 
-                        text: "3.1. Siapa penyelenggara pelatihannya?", 
+                        text: "Siapa penyelenggara pelatihannya?", 
                         options: ["BGTK", "LPD", "MANDIRI", "BPMP", "P4 Dinas Pendidikan", "P4TK", "Lainnya"],
                         placeholder: "Tuliskan Penyelenggara Lainnya...",
                         hiddenBy: 'kka_trigger_pelatihan', 
@@ -397,21 +457,21 @@
                     },
                     { 
                         type: 'select', 
-                        text: "3.2. Sumber Pendanaan", 
+                        text: "Sumber Pendanaan", 
                         options: ["BOSKIN", "BOS Reguler", "Mandiri"],
                         hiddenBy: 'kka_trigger_pelatihan',
                         showIf: 'Sudah'
                     },
-                    { type: 'text', text: "4. Kapan mata pelajaran Koding KA dilaksanakan? Berapa JP per minggu?", placeholder: "Contoh: Rabu, 2 JP" },
-                    { type: 'textarea', text: "5. Bagaimana gambaran pelaksanaan dalam pembelajaran Koding KA?", placeholder: "Deskripsikan metode dan suasana..." },
-                    { type: 'textarea', text: "6. Bagaimana gambaran pelaksanaan asesmen pembelajaran Koding KA?", placeholder: "Bentuk asesmen yang digunakan..." },
+                    { type: 'text', text: "Kapan mata pelajaran Koding KA dilaksanakan? Berapa JP per minggu?", placeholder: "Contoh: Rabu, 2 JP" },
+                    { type: 'textarea', text: "Bagaimana gambaran pelaksanaan dalam pembelajaran Koding KA?", placeholder: "Deskripsikan metode dan suasana..." },
+                    { type: 'textarea', text: "Bagaimana gambaran pelaksanaan asesmen pembelajaran Koding KA?", placeholder: "Bentuk asesmen yang digunakan..." },
                     { 
                         type: 'text', 
-                        text: "7.1. Buku teks : (tuliskan apa Buku Teks Utama yang Digunakan)", 
-                        header: "7. Sumber belajar apa saja yang digunakan?", 
+                        text: "Buku teks : (tuliskan apa Buku Teks Utama yang Digunakan)", 
+                        header: "Sumber belajar apa saja yang digunakan?", 
                         placeholder: "Judul buku..." 
                     },
-                    { type: 'text', text: "7.2. Sumber belajar lain : (tuliskan sumbernya)", placeholder: "Youtube, Website, dll..." },
+                    { type: 'text', text: "Sumber belajar lain : (tuliskan sumbernya)", placeholder: "Youtube, Website, dll..." },
                 ]
             },
             {
@@ -419,14 +479,14 @@
                 title: 'Kokurikuler',
                 short: 'Koku',
                 icon: 'fa-users',
-                desc: 'Penguatan karakter & P5.',
-                keyQuestion: "1. Apakah sekolah Anda melaksanakan kegiatan kokurikuler pada tahun ini?",
+                desc: 'Penguatan karakter.',
+                keyQuestion: "Apakah sekolah Anda melaksanakan kegiatan kokurikuler pada tahun ini?",
                 questions: [
                     // 1. Muncul saat YA
-                    { text: "Jika ya, apakah kegiatan kokurikuler tersebut sudah tercantum secara jelas dalam dokumen kurikulum sekolah?", mode: 'ya' },
+                    { text: "Apakah kegiatan kokurikuler tersebut sudah tercantum secara jelas dalam dokumen kurikulum sekolah?", mode: 'ya' },
                     
                     // 2. Muncul saat TIDAK
-                    { text: "Jika tidak, apa alasannya sekolah belum melaksanakan kegiatan kokurikuler?", mode: 'tidak' },
+                    { text: "Apa alasannya sekolah belum melaksanakan kegiatan kokurikuler?", mode: 'tidak' },
                     
                     // 3. Bentuk Kegiatan (Dropdown + Lainnya)
                     { 
@@ -453,13 +513,11 @@
                     
                     // 5. Peran Tim (Hidden unless Q4 is Ya)
                     { 
-                        text: "Jika ya Sejauh mana peran masing-masing (kepsek, koordinator, guru) berjalan sesuai panduan?", 
+                        text: "Sejauh mana peran masing-masing (kepsek, koordinator, guru) berjalan sesuai panduan?", 
                         hiddenBy: 'koku_trigger_tim',
                         showIf: 'Ya',
                         mode: 'ya' 
                     },
-                    
-                    // Pertanyaan 6 "Fokus soft-skills" DIHAPUS
                     
                     // 7. SK Tim (Radio Button)
                     { 
@@ -507,7 +565,7 @@
                     
                     // 12. Jadwal (Hidden unless Q11 is Ya)
                     { 
-                        text: "Jika ya apakah alokasi waktu tersebut disusun dalam jadwal sekolah?", 
+                        text: "Apakah alokasi waktu tersebut disusun dalam jadwal sekolah?", 
                         hiddenBy: 'koku_trigger_alokasi', 
                         showIf: 'Ya',
                         mode: 'ya' 
@@ -546,11 +604,99 @@
                 short: 'KSP',
                 icon: 'fa-book',
                 desc: 'Implementasi & Relevansi KOSP.',
-                keyQuestion: "Apakah KOSP disusun sesuai kebutuhan sekolah?",
+                keyQuestion: "Apakah sekolah sudah menyusun Kurikulum Satuan Pendidikan (KSP)?",
                 questions: [
-                    "Visi Misi relevan.", "Penyusunan partisipatif.", "Kesesuaian kebutuhan murid.",
-                    "Muatan lokal daerah.", "Review kurikulum tahunan.", "Sosialisasi dokumen KOSP.",
-                    "Struktur kurikulum adaptif.", "Pengembangan profesi guru.", "Kerjasama eksternal.", "Fleksibilitas jam pelajaran."
+                    { 
+                        type: 'textarea', 
+                        text: "Sejauh mana latar belakang/karakteristik satuan pendidikan yang disajikan dalam KSP benar-benar mencerminkan kondisi riil dan menjadi dasar yang kuat untuk pengembangan kurikulum?",
+                        customSlot: "1"
+                    },
+                    { 
+                        type: 'checkbox', 
+                        text: "Siapa saja yang terlibat dalam penyusunan Visi, Misi, dan Tujuan Sekolah?", 
+                        options: ["Guru", "Tenaga Kependidikan", "Orang Tua", "Komite Sekolah", "Murid", "Pemangku kepentingan"],
+                        customSlot: "2"
+                    },
+                    { 
+                        type: 'textarea', 
+                        text: "Uraikan bunyi Visi Misi dan Tujuan sekolah Anda!",
+                        customSlot: "3" 
+                    },
+                    // Header 4
+                    { 
+                        type: 'textarea', 
+                        header: "Sejauh mana pengorganisasian pembelajaran di sekolah Anda? Jelaskan masing-masing!",
+                        text: "Bagaimana pengembangan Intrakurikuler?",
+                        customSlot: "4a",
+                        indent: true
+                    },
+                    { 
+                        type: 'text', 
+                        text: "Unggah struktur kurikulum (Link Drive/PDF)",
+                        placeholder: "Tempelkan Link Google Drive (Opsional)...",
+                        optional: true,
+                        indent: true,
+                        isAttachment: true
+                    },
+                    { 
+                        type: 'textarea', 
+                        text: "Bagaimana pengembangan kokurikuler?",
+                        customSlot: "4b",
+                        indent: true
+                    },
+                    { 
+                        type: 'text', 
+                        text: "Unggah Program Kokurikuler (Link Drive/PDF)",
+                        placeholder: "Tempelkan Link Google Drive (Opsional)...",
+                        optional: true,
+                        indent: true,
+                        isAttachment: true
+                    },
+                    { 
+                        type: 'textarea', 
+                        text: "Bagaimana pengembangan program ekstrakurikuler?",
+                        customSlot: "4c",
+                        indent: true
+                    },
+                    { 
+                        type: 'text', 
+                        text: "Unggah dokumen program ekstrakurikuler (Link Drive/PDF)",
+                        placeholder: "Tempelkan Link Google Drive (Opsional)...",
+                        optional: true,
+                        indent: true,
+                        isAttachment: true
+                    },
+                    { 
+                        type: 'textarea', 
+                        text: "Bagaimana Pengembangan Budaya Sekolah?",
+                        customSlot: "4d",
+                        indent: true
+                    },
+                    { 
+                        type: 'text', 
+                        text: "Unggah dokumen pengembangan budaya sekolah (Link Drive/PDF)",
+                        placeholder: "Tempelkan Link Google Drive (Opsional)...",
+                        optional: true,
+                        indent: true,
+                        isAttachment: true
+                    },
+                    { 
+                        type: 'textarea', 
+                        text: "Bagaimana Pelaksanaan Pembelajaran Mendalam (Perancangan RPP, Penerapan Prinsip & Pengalaman Belajar)?",
+                        placeholder: "Jelaskan bagaimana guru merancang RPP, menerapkan prinsip PM, dan pengalaman belajar...",
+                        customSlot: "5"
+                    },
+                    { 
+                        type: 'checkbox', 
+                        text: "Bagaimana bentuk-bentuk soal yang digunakan dalam proses penilaian di sekolah Anda?",
+                        options: ["PG", "PG Kompleks", "Isian", "Uraian", "Menjodohkan", "Benar-Salah", "MCMA"],
+                        customSlot: "6"
+                    },
+                    { 
+                        type: 'textarea', 
+                        text: "Bagaimana Evaluasi, Pengembangan Profesional, dan Pendampingan pelaksanaan Kurikulum di sekolah Anda?",
+                        customSlot: "7"
+                    }
                 ]
             }
         ];
@@ -612,7 +758,7 @@
                     // Header Group
                     if (qObj.header) {
                         qHtml += `
-                            <div class="mt-6 mb-3 pb-2 border-b border-gray-200">
+                            <div class="mt-6 mb-4 pb-2 border-b border-gray-200">
                                 <h3 class="text-md font-bold text-gray-700 flex items-center gap-2">
                                     <i class="fas fa-list-ul text-blue-500"></i> ${qObj.header}
                                 </h3>
@@ -626,22 +772,36 @@
                         wrapperClass += " hidden bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500"; 
                     }
 
+                    // INDENTATION & TIGHT SPACING FOR SUB-QUESTIONS
+                    if (qObj.indent) {
+                        wrapperClass += " ml-8 pl-4 border-l-2 border-gray-200"; 
+                        // Reduce margin bottom for tight grouping
+                        wrapperClass = wrapperClass.replace("mb-6 pb-6", "mb-4 pb-2");
+                    }
+
+                    // ATTACHMENT STYLING (Closer to previous question)
+                    if (qObj.isAttachment) {
+                        wrapperClass = wrapperClass.replace("border-b border-gray-100", ""); // Remove border
+                        wrapperClass += " mt-[-10px] bg-gray-50 rounded-r-lg rounded-b-lg pr-4";
+                    }
+
                     // LOGIC KHUSUS KOKURIKULER (Mode Ya/Tidak)
                     if (sec.id === 'koku') {
                         if (qObj.mode === 'tidak') {
-                            wrapperClass += " mode-tidak hidden"; // Default hidden (karena default key = undefined/Tidak)
+                            wrapperClass += " mode-tidak hidden"; 
                         } else {
-                            // Default untuk pertanyaan lain adalah mode 'ya'
                             wrapperClass += " mode-ya"; 
                         }
                     }
 
                     // --- INPUT GENERATION ---
                     let inputElement = '';
+                    // Tambahkan atribut data-optional jika ada
+                    const optionalAttr = qObj.optional ? 'data-optional="true"' : '';
                     const commonClass = "child-input w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 outline-none";
 
                     if (qObj.type === 'checkbox') {
-                        // CHECKBOX GROUP (Kelas)
+                        // CHECKBOX GROUP
                         let checks = '<div class="grid grid-cols-2 md:grid-cols-3 gap-2">';
                         qObj.options.forEach(opt => {
                             checks += `
@@ -653,23 +813,21 @@
                             `;
                         });
                         checks += '</div>';
-                        // Hidden input to store merged string for backend
                         inputElement = `
-                            <input type="hidden" name="${inputName}" id="${inputName}" class="child-input">
+                            <input type="hidden" name="${inputName}" id="${inputName}" class="child-input" ${optionalAttr}>
                             ${checks}
                         `;
 
                     } else if (qObj.type === 'radio') {
-                        // RADIO BUTTONS (Custom styled as buttons)
                         let triggerAttr = qObj.triggerId ? `onchange="handleConditional('${qObj.triggerId}', this.value)"` : `onchange="calculateProgress()"`;
                         inputElement = `
                             <div class="flex gap-4">
                                 <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-gray-300 hover:border-blue-500 transition shadow-sm">
-                                    <input type="radio" name="${inputName}" value="Ya" class="child-input text-blue-600" ${triggerAttr}>
+                                    <input type="radio" name="${inputName}" value="Ya" class="child-input text-blue-600" ${triggerAttr} ${optionalAttr}>
                                     <span class="text-sm font-medium text-gray-700">Ya</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-gray-300 hover:border-blue-500 transition shadow-sm">
-                                    <input type="radio" name="${inputName}" value="Tidak" class="child-input text-blue-600" ${triggerAttr}>
+                                    <input type="radio" name="${inputName}" value="Tidak" class="child-input text-blue-600" ${triggerAttr} ${optionalAttr}>
                                     <span class="text-sm font-medium text-gray-700">Tidak</span>
                                 </label>
                             </div>
@@ -679,10 +837,9 @@
                         let opts = `<option value="">- Pilih -</option>`;
                         qObj.options.forEach(opt => { opts += `<option value="${opt}">${opt}</option>`; });
                         let onChange = qObj.triggerId ? `onchange="handleConditional('${qObj.triggerId}', this.value)"` : 'oninput="calculateProgress()"';
-                        inputElement = `<select name="${inputName}" class="${commonClass} h-10" ${onChange}>${opts}</select>`;
+                        inputElement = `<select name="${inputName}" class="${commonClass} h-10" ${onChange} ${optionalAttr}>${opts}</select>`;
 
                     } else if (qObj.type === 'select_with_other') {
-                        // DROPDOWN + LAINNYA
                         let opts = `<option value="">- Pilih -</option>`;
                         qObj.options.forEach(opt => { opts += `<option value="${opt}">${opt}</option>`; });
                         
@@ -695,13 +852,28 @@
                                 class="w-full bg-gray-50 border border-blue-300 rounded-lg px-3 py-2 text-sm focus:bg-white focus:ring-1 focus:ring-blue-500 outline-none hidden"
                                 placeholder="${qObj.placeholder || 'Tuliskan lainnya...'}" 
                                 oninput="document.getElementById('${inputName}').value = this.value">
-                            <input type="hidden" name="${inputName}" id="${inputName}" class="child-input">
+                            <input type="hidden" name="${inputName}" id="${inputName}" class="child-input" ${optionalAttr}>
                         `;
 
                     } else if (qObj.type === 'textarea') {
                         inputElement = `<textarea name="${inputName}" class="${commonClass} h-20 resize-none" placeholder="${qObj.placeholder || 'Deskripsi jawaban...'}" oninput="calculateProgress()"></textarea>`;
                     } else { 
-                        inputElement = `<input type="text" name="${inputName}" class="${commonClass}" placeholder="${qObj.placeholder || 'Jawaban singkat...'}" oninput="calculateProgress()">`;
+                        // Jika ini adalah input file link (attachment), gunakan icon link
+                        let icon = '';
+                        if(qObj.isAttachment) {
+                             icon = '<i class="fas fa-paperclip absolute right-3 top-3 text-gray-400"></i>';
+                        }
+                        inputElement = `<div class="relative">${icon}<input type="text" name="${inputName}" class="${commonClass}" placeholder="${qObj.placeholder || 'Jawaban singkat...'}" oninput="calculateProgress()" ${optionalAttr}></div>`;
+                    }
+
+                    // SLOT NUMBER BADGE LOGIC
+                    let badge = '';
+                    // Jika customSlot ada (misal "4a", "1"), tampilkan. 
+                    // Jika isAttachment, sembunyikan badge.
+                    // Jika tidak ada customSlot, gunakan slotNum default.
+                    if (!qObj.isAttachment) {
+                        const displayNum = qObj.customSlot ? qObj.customSlot : slotNum;
+                        badge = `<span class="bg-gray-100 text-gray-600 font-bold text-xs px-2 py-1 rounded h-fit shadow-sm min-w-[24px] text-center">${displayNum}</span>`;
                     }
 
                     // RENDER ITEM
@@ -711,20 +883,21 @@
                              data-show-if="${qObj.showIf || ''}">
                             
                             <div class="flex gap-3 mb-2">
-                                <span class="bg-gray-100 text-gray-600 font-bold text-xs px-2 py-1 rounded h-fit shadow-sm">${slotNum}</span>
-                                <p class="text-gray-800 font-medium text-sm">${qObj.text}</p>
+                                ${badge}
+                                <p class="text-gray-800 font-medium text-sm flex-1">${qObj.text}</p>
                             </div>
-                            <div class="pl-9">
+                            <div class="${qObj.isAttachment ? '' : 'pl-0 md:pl-9'}">
                                 ${inputElement}
                             </div>
                         </div>
                     `;
                 });
 
-                // --- 3 BUKTI LINK SECTION (FIXED AT BOTTOM) ---
-                // Added ID for toggling visibility
+                // --- 3 BUKTI LINK SECTION (HIDDEN FOR KSP) ---
+                const buktiDisplay = sec.id === 'ksp' ? 'hidden' : '';
+                
                 qHtml += `
-                    <div id="bukti-wrapper-${sec.id}" class="mt-8 pt-6 border-t-2 border-gray-100">
+                    <div id="bukti-wrapper-${sec.id}" class="mt-8 pt-6 border-t-2 border-gray-100 ${buktiDisplay}">
                         <h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
                             <i class="fas fa-link text-blue-500"></i> Bukti Dukung & Dokumentasi (Maksimal 3 Link)
                         </h3>
@@ -751,8 +924,7 @@
                     </div>
                 `;
 
-                // DOKUMEN PROGRAM UTAMA (Mapped to doc_link_code)
-                // Added ID for toggling visibility
+                // DOKUMEN PROGRAM UTAMA
                 qHtml += `
                     <div id="doc-wrapper-${sec.id}" class="mt-4 pt-4 border-t border-gray-100 bg-yellow-50 rounded-lg p-4">
                         <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center">
@@ -922,7 +1094,6 @@
 
                 if (val === 'Ya') {
                     // Tampilkan Item YA, Sembunyikan Item TIDAK
-                    // FIX: Jangan tampilkan item yang punya data-trigger-source (anak pertanyaan)
                     modeYaItems.forEach(el => {
                         if(!el.hasAttribute('data-trigger-source')) {
                             el.classList.remove('hidden');
@@ -960,7 +1131,7 @@
                     modeTidakItems.forEach(g => g.querySelectorAll('.child-input').forEach(i => i.setAttribute('required', 'true')));
                 }
             } 
-            // --- LOGIKA STANDAR (PM, KKA, TKA, dll) ---
+            // --- LOGIKA STANDAR (PM, KKA, TKA, KSP, dll) ---
             else {
                 const inputs = wrapper.querySelectorAll('.child-input');
                 if (val === 'Ya') {
@@ -968,8 +1139,14 @@
                     wrapper.style.maxHeight = "8000px"; 
                     inputs.forEach(inp => {
                         const parentHidden = inp.closest('[data-trigger-source]')?.classList.contains('hidden');
-                        if (!parentHidden) inp.setAttribute('required', 'true');
+                        const isOptional = inp.hasAttribute('data-optional');
+                        if (!parentHidden && !isOptional) inp.setAttribute('required', 'true');
                     });
+                    
+                    if(sectionId === 'ksp') {
+                         const buktiW = document.getElementById(`bukti-wrapper-${sectionId}`);
+                         if(buktiW) buktiW.classList.add('hidden');
+                    }
                 } else {
                     wrapper.style.maxHeight = "0px";
                     setTimeout(() => wrapper.classList.add('hidden'), 500);
@@ -1030,7 +1207,6 @@
                              if(el.value.trim()) sectionFilled++;
                          }
                     });
-                    // Adjust count for radios (groups) - logic simplified above counts checked radios
                 }
 
                 // Visual checkmark
