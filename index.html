@@ -24,6 +24,28 @@
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* Indikator Draft Tersimpan */
+        #draft-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: #64748b;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+        #draft-indicator.visible { opacity: 1; }
+
         /* --- INTRO SEQUENCE STYLES --- */
         #intro-layer {
             position: fixed;
@@ -278,7 +300,7 @@
                             <p id="npsnDisplay" class="text-gray-500 font-mono text-sm mt-1">NPSN: -</p>
                         </div>
                         <div class="text-right hidden md:block">
-                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-200">Tahun 2025</span>
+                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-200">Tahun 2024</span>
                         </div>
                     </div>
                     
@@ -323,6 +345,12 @@
 
     </div>
 
+    <!-- Draft Saved Indicator -->
+    <div id="draft-indicator">
+        <i class="fas fa-check-circle text-green-500"></i>
+        <span>Draf tersimpan</span>
+    </div>
+
     <!-- Modal -->
     <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 z-[100] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl">
@@ -359,7 +387,117 @@
             if(confirm('Apakah Anda yakin ingin keluar?')) {
                 localStorage.removeItem('sakti_npsn');
                 localStorage.removeItem('sakti_nama_sekolah');
+                localStorage.removeItem('sakti_draft'); // Clear draft on logout? Usually yes.
                 location.reload();
+            }
+        }
+
+        // --- DRAFT LOGIC ---
+        function saveDraft() {
+            const form = document.getElementById('evalForm');
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+            localStorage.setItem('sakti_draft', JSON.stringify(data));
+            
+            // Show indicator
+            const ind = document.getElementById('draft-indicator');
+            ind.classList.add('visible');
+            setTimeout(() => ind.classList.remove('visible'), 2000);
+        }
+
+        function loadDraft() {
+            const raw = localStorage.getItem('sakti_draft');
+            if (!raw) return;
+            
+            try {
+                const data = JSON.parse(raw);
+                
+                // 1. Populate Identitas
+                if(data['nama_responden']) document.querySelector('[name="nama_responden"]').value = data['nama_responden'];
+                if(data['no_wa']) document.querySelector('[name="no_wa"]').value = data['no_wa'];
+
+                // 2. Iterate Keys
+                Object.keys(data).forEach(key => {
+                    const val = data[key];
+                    
+                    // Skip if hidden fields for npsn/nama_sekolah (already handled by session)
+                    if(key === 'npsn_sekolah' || key === 'nama_sekolah' || key === 'action') return;
+
+                    const els = document.getElementsByName(key);
+                    if (els.length === 0) return;
+
+                    const el = els[0]; // Usually the first element is enough to determine type, or the element itself
+
+                    if (el.type === 'radio') {
+                        // Find specific radio
+                        const radio = document.querySelector(`input[name="${key}"][value="${val}"]`);
+                        if (radio) radio.checked = true;
+                    } else if (el.tagName === 'SELECT') {
+                        el.value = val;
+                        
+                        // Handle Select With Other Logic
+                        // Check if this select has corresponding 'sel_' + key ID (our custom select with other pattern)
+                        const selectEl = document.getElementById('sel_' + key);
+                        if (selectEl) {
+                            // Check if value exists in standard options
+                            let optExists = [...selectEl.options].some(o => o.value === val);
+                            if (optExists) {
+                                selectEl.value = val;
+                                handleSelectWithOther(key, val);
+                            } else {
+                                selectEl.value = 'Lainnya';
+                                handleSelectWithOther(key, 'Lainnya');
+                                const otherInput = document.getElementById('other_' + key);
+                                if(otherInput) otherInput.value = val;
+                                document.getElementById(key).value = val; // Restore hidden val
+                            }
+                        }
+                    } else if (el.type === 'hidden') {
+                        el.value = val;
+                        // Try to restore checkboxes based on this hidden value
+                        const checkboxes = document.querySelectorAll(`input[type="checkbox"][onchange*="${key}"]`);
+                        if (checkboxes.length > 0) {
+                            const values = val.split(', ');
+                            checkboxes.forEach(cb => {
+                                if(values.includes(cb.value)) cb.checked = true;
+                            });
+                        }
+                    } else {
+                        // Text, Textarea, etc.
+                        el.value = val;
+                    }
+                });
+
+                // 3. Trigger Logic for Display (Questions Visibility)
+                // Toggle Sections (Key Questions)
+                sections.forEach((sec, idx) => {
+                    const keyName = `key_${sec.id}`;
+                    if (data[keyName]) {
+                        toggleQuestions(idx, data[keyName]);
+                    }
+                });
+
+                // Trigger Conditional Logic (Sub-questions)
+                // We find all inputs that have Conditional Logic and trigger it based on their current value
+                const conditionalTriggers = document.querySelectorAll('[onchange*="handleConditional"]');
+                conditionalTriggers.forEach(t => {
+                    if ((t.type === 'radio' && t.checked) || (t.tagName === 'SELECT' && t.value) || (t.type === 'hidden' && t.value)) {
+                        // Extract ID from function call string
+                        const match = t.getAttribute('onchange').match(/handleConditional\('([^']+)',/);
+                        if(match && match[1]) {
+                            handleConditional(match[1], t.value || t.getAttribute('value')); // radio value is in attribute sometimes if not checked, but here we checked checked property
+                        }
+                    }
+                });
+
+                // Special case for Radio triggers that might rely on 'this.value' which needs the checked one
+                // The loop above covers radios that are checked.
+
+            } catch (e) {
+                console.error("Gagal memuat draf:", e);
             }
         }
 
@@ -458,7 +596,7 @@
                 questions: [
                     { 
                         type: 'checkbox', 
-                        text: "Apakah tersedia regulasi pelaksanaan pembelajaran mendalam di satuan pendidikan?", 
+                        text: "Apakah tersedia regulasi pelaksanaan pembelajaran medalam di satuan pendidikan?", 
                         options: ["Permendikbud", "BSKAP", "Buku Panduan Pembelajaran dan Asesmen", "Buku Panduan Mata Pelajaran"] 
                     },
                     { 
@@ -872,7 +1010,13 @@
 
             renderSidebar();
             renderContent();
-            updateNavButtons();
+            
+            // LOAD DRAFT AFTER CONTENT RENDER
+            setTimeout(() => {
+                loadDraft();
+                updateNavButtons();
+                calculateProgress();
+            }, 100);
         });
 
         // --- RENDER FUNCTIONS ---
@@ -1405,6 +1549,9 @@
             const finalPercent = percent > 100 ? 100 : percent;
             document.getElementById('global-progress').style.width = `${finalPercent}%`;
             document.getElementById('global-progress-text').innerText = `${finalPercent}%`;
+
+            // --- SAVE DRAFT ON CHANGE ---
+            saveDraft();
         }
 
         // --- LOGIN LOGIC ---
@@ -1456,6 +1603,9 @@
             .then(res => res.json())
             .then(data => {
                 if(data.result === 'success') {
+                    // CLEAR DRAFT ON SUCCESS
+                    localStorage.removeItem('sakti_draft');
+                    
                     showModal('success', 'Terkirim!');
                     setTimeout(() => location.reload(), 2000);
                 } else {
