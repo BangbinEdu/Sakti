@@ -6,6 +6,8 @@
     <title>SAKTI - Dashboard Evaluasi Sekolah</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="https://disdik.jakarta.go.id/static/disdik/images/logo/logo.png">
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
@@ -219,9 +221,7 @@
     <!-- LOGIN OVERLAY -->
     <div id="login-overlay">
         <div class="login-card p-8 rounded-2xl shadow-xl w-full max-w-sm mx-4 md:mx-0 text-center">
-            <div class="bg-white/80 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <i class="fas fa-school text-2xl text-blue-600"></i>
-            </div>
+            <img src="https://disdik.jakarta.go.id/static/disdik/images/logo/logo.png" class="w-16 h-16 mx-auto mb-4 object-contain" alt="Logo Disdik">
             <h2 class="text-2xl font-bold text-gray-900 mb-1 drop-shadow-sm">Portal SAKTI</h2>
             <p class="text-gray-800 font-medium text-sm mb-6 drop-shadow-sm">Silakan masuk menggunakan NPSN</p>
             
@@ -1690,12 +1690,11 @@
                 const keyVal = form.elements[`key_${sec.id}`].value;
                 if (keyVal) sectionFilled++;
 
-                // Logika Progress juga harus mengakomodir Koku
                 if (sec.id === 'koku') {
                      if (keyVal === 'Ya') {
-                        sectionTotal += 11; // Estimasi pertanyaan Ya
+                        sectionTotal += 11; 
                      } else if (keyVal === 'Tidak') {
-                        sectionTotal += 1; // Hanya pertanyaan Alasan
+                        sectionTotal += 1; 
                      }
                 } else {
                     if (keyVal === 'Ya') {
@@ -1759,7 +1758,6 @@
             const npsn = document.getElementById('npsnInput').value;
             const btn = document.getElementById('btnLogin');
             const err = document.getElementById('loginError');
-            
             btn.disabled = true; 
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             err.classList.add('hidden');
@@ -1768,15 +1766,12 @@
             .then(res => res.json())
             .then(data => {
                 if(data.result === 'success') {
-                    // SAVE SESSION TO LOCALSTORAGE
                     localStorage.setItem('sakti_npsn', data.data.npsn);
                     localStorage.setItem('sakti_nama_sekolah', data.data.nama_sekolah);
-
                     document.getElementById('hidden_npsn').value = data.data.npsn;
                     document.getElementById('hidden_nama_sekolah').value = data.data.nama_sekolah;
                     document.getElementById('schoolNameDisplay').innerText = data.data.nama_sekolah;
                     document.getElementById('npsnDisplay').innerText = `NPSN: ${data.data.npsn}`;
-                    
                     document.getElementById('login-overlay').style.opacity = 0;
                     setTimeout(() => document.getElementById('login-overlay').remove(), 500);
                 } else {
@@ -1795,14 +1790,11 @@
         document.getElementById('evalForm').addEventListener('submit', function(e) {
             e.preventDefault();
             showModal('loading', 'Mengirim Data...');
-            
             fetch(SCRIPT_URL, { method: 'POST', body: new FormData(this) })
             .then(res => res.json())
             .then(data => {
                 if(data.result === 'success') {
-                    // CLEAR DRAFT ON SUCCESS
-                    localStorage.removeItem('sakti_draft');
-                    
+                    localStorage.removeItem('sakti_draft');                  
                     showModal('success', 'Terkirim!');
                     setTimeout(() => location.reload(), 2000);
                 } else {
