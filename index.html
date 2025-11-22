@@ -437,19 +437,19 @@
                 questions: [
                     { 
                         type: 'checkbox', 
-                        text: "Kelas berapa? (Bisa pilih lebih dari satu)", 
+                        text: "1. Kelas berapa? (Bisa pilih lebih dari satu)", 
                         options: ["Kelas 1", "Kelas 2", "Kelas 3", "Kelas 4", "Kelas 5", "Kelas 6"] 
                     },
                     { type: 'select', text: "2. Siapa yang mengampu?", options: ["Guru Kelas", "Guru Mapel"] },
                     { 
                         type: 'select', 
-                        text: "Apakah guru pengampu sudah mengikuti pelatihan?", 
+                        text: "3. Apakah guru pengampu sudah mengikuti pelatihan?", 
                         options: ["Sudah", "Belum"], 
                         triggerId: 'kka_trigger_pelatihan' 
                     },
                     { 
                         type: 'select_with_other', 
-                        text: "Siapa penyelenggara pelatihannya?", 
+                        text: "3.1. Siapa penyelenggara pelatihannya?", 
                         options: ["BGTK", "LPD", "MANDIRI", "BPMP", "P4 Dinas Pendidikan", "P4TK", "Lainnya"],
                         placeholder: "Tuliskan Penyelenggara Lainnya...",
                         hiddenBy: 'kka_trigger_pelatihan', 
@@ -457,21 +457,21 @@
                     },
                     { 
                         type: 'select', 
-                        text: "Sumber Pendanaan", 
+                        text: "3.2. Sumber Pendanaan", 
                         options: ["BOSKIN", "BOS Reguler", "Mandiri"],
                         hiddenBy: 'kka_trigger_pelatihan',
                         showIf: 'Sudah'
                     },
-                    { type: 'text', text: "Kapan mata pelajaran Koding KA dilaksanakan? Berapa JP per minggu?", placeholder: "Contoh: Rabu, 2 JP" },
-                    { type: 'textarea', text: "Bagaimana gambaran pelaksanaan dalam pembelajaran Koding KA?", placeholder: "Deskripsikan metode dan suasana..." },
-                    { type: 'textarea', text: "Bagaimana gambaran pelaksanaan asesmen pembelajaran Koding KA?", placeholder: "Bentuk asesmen yang digunakan..." },
+                    { type: 'text', text: "4. Kapan mata pelajaran Koding KA dilaksanakan? Berapa JP per minggu?", placeholder: "Contoh: Rabu, 2 JP" },
+                    { type: 'textarea', text: "5. Bagaimana gambaran pelaksanaan dalam pembelajaran Koding KA?", placeholder: "Deskripsikan metode dan suasana..." },
+                    { type: 'textarea', text: "6. Bagaimana gambaran pelaksanaan asesmen pembelajaran Koding KA?", placeholder: "Bentuk asesmen yang digunakan..." },
                     { 
                         type: 'text', 
-                        text: "Buku teks : (tuliskan apa Buku Teks Utama yang Digunakan)", 
-                        header: "Sumber belajar apa saja yang digunakan?", 
+                        text: "7.1. Buku teks : (tuliskan apa Buku Teks Utama yang Digunakan)", 
+                        header: "7. Sumber belajar apa saja yang digunakan?", 
                         placeholder: "Judul buku..." 
                     },
-                    { type: 'text', text: "Sumber belajar lain : (tuliskan sumbernya)", placeholder: "Youtube, Website, dll..." },
+                    { type: 'text', text: "7.2. Sumber belajar lain : (tuliskan sumbernya)", placeholder: "Youtube, Website, dll..." },
                 ]
             },
             {
@@ -479,14 +479,14 @@
                 title: 'Kokurikuler',
                 short: 'Koku',
                 icon: 'fa-users',
-                desc: 'Penguatan karakter.',
-                keyQuestion: "Apakah sekolah Anda melaksanakan kegiatan kokurikuler pada tahun ini?",
+                desc: 'Penguatan karakter & P5.',
+                keyQuestion: "1. Apakah sekolah Anda melaksanakan kegiatan kokurikuler pada tahun ini?",
                 questions: [
                     // 1. Muncul saat YA
-                    { text: "Apakah kegiatan kokurikuler tersebut sudah tercantum secara jelas dalam dokumen kurikulum sekolah?", mode: 'ya' },
+                    { text: "Jika ya, apakah kegiatan kokurikuler tersebut sudah tercantum secara jelas dalam dokumen kurikulum sekolah?", mode: 'ya' },
                     
                     // 2. Muncul saat TIDAK
-                    { text: "Apa alasannya sekolah belum melaksanakan kegiatan kokurikuler?", mode: 'tidak' },
+                    { text: "Jika tidak, apa alasannya sekolah belum melaksanakan kegiatan kokurikuler?", mode: 'tidak' },
                     
                     // 3. Bentuk Kegiatan (Dropdown + Lainnya)
                     { 
@@ -513,7 +513,7 @@
                     
                     // 5. Peran Tim (Hidden unless Q4 is Ya)
                     { 
-                        text: "Sejauh mana peran masing-masing (kepsek, koordinator, guru) berjalan sesuai panduan?", 
+                        text: "Jika ya Sejauh mana peran masing-masing (kepsek, koordinator, guru) berjalan sesuai panduan?", 
                         hiddenBy: 'koku_trigger_tim',
                         showIf: 'Ya',
                         mode: 'ya' 
@@ -565,7 +565,7 @@
                     
                     // 12. Jadwal (Hidden unless Q11 is Ya)
                     { 
-                        text: "Apakah alokasi waktu tersebut disusun dalam jadwal sekolah?", 
+                        text: "Jika ya apakah alokasi waktu tersebut disusun dalam jadwal sekolah?", 
                         hiddenBy: 'koku_trigger_alokasi', 
                         showIf: 'Ya',
                         mode: 'ya' 
@@ -608,24 +608,24 @@
                 questions: [
                     { 
                         type: 'textarea', 
-                        text: "Sejauh mana latar belakang/karakteristik satuan pendidikan yang disajikan dalam KSP benar-benar mencerminkan kondisi riil dan menjadi dasar yang kuat untuk pengembangan kurikulum?",
+                        text: "1. Sejauh mana latar belakang/karakteristik satuan pendidikan yang disajikan dalam KSP benar-benar mencerminkan kondisi riil dan menjadi dasar yang kuat untuk pengembangan kurikulum?",
                         customSlot: "1"
                     },
                     { 
                         type: 'checkbox', 
-                        text: "Siapa saja yang terlibat dalam penyusunan Visi, Misi, dan Tujuan Sekolah?", 
+                        text: "2. Siapa saja yang terlibat dalam penyusunan Visi, Misi, dan Tujuan Sekolah?", 
                         options: ["Guru", "Tenaga Kependidikan", "Orang Tua", "Komite Sekolah", "Murid", "Pemangku kepentingan"],
                         customSlot: "2"
                     },
                     { 
                         type: 'textarea', 
-                        text: "Uraikan bunyi Visi Misi dan Tujuan sekolah Anda!",
+                        text: "3. Uraikan bunyi Visi Misi dan Tujuan sekolah Anda!",
                         customSlot: "3" 
                     },
                     // Header 4
                     { 
                         type: 'textarea', 
-                        header: "Sejauh mana pengorganisasian pembelajaran di sekolah Anda? Jelaskan masing-masing!",
+                        header: "4. Sejauh mana pengorganisasian pembelajaran di sekolah Anda? Jelaskan masing-masing!",
                         text: "Bagaimana pengembangan Intrakurikuler?",
                         customSlot: "4a",
                         indent: true
@@ -682,20 +682,139 @@
                     },
                     { 
                         type: 'textarea', 
-                        text: "Bagaimana Pelaksanaan Pembelajaran Mendalam (Perancangan RPP, Penerapan Prinsip & Pengalaman Belajar)?",
+                        text: "5. Bagaimana Pelaksanaan Pembelajaran Mendalam (Perancangan RPP, Penerapan Prinsip & Pengalaman Belajar)?",
                         placeholder: "Jelaskan bagaimana guru merancang RPP, menerapkan prinsip PM, dan pengalaman belajar...",
                         customSlot: "5"
                     },
                     { 
                         type: 'checkbox', 
-                        text: "Bagaimana bentuk-bentuk soal yang digunakan dalam proses penilaian di sekolah Anda?",
+                        text: "6. Bagaimana bentuk-bentuk soal yang digunakan dalam proses penilaian di sekolah Anda?",
                         options: ["PG", "PG Kompleks", "Isian", "Uraian", "Menjodohkan", "Benar-Salah", "MCMA"],
                         customSlot: "6"
                     },
                     { 
                         type: 'textarea', 
-                        text: "Bagaimana Evaluasi, Pengembangan Profesional, dan Pendampingan pelaksanaan Kurikulum di sekolah Anda?",
+                        text: "7. Bagaimana Evaluasi, Pengembangan Profesional, dan Pendampingan pelaksanaan Kurikulum di sekolah Anda?",
                         customSlot: "7"
+                    }
+                ]
+            },
+            {
+                id: 'asesmen',
+                title: 'Asesmen Pembelajaran',
+                short: 'Asesmen',
+                icon: 'fa-tasks',
+                desc: 'Evaluasi implementasi asesmen awal, formatif, dan sumatif.',
+                keyQuestion: "Apakah sekolah melaksanakan sistem asesmen pembelajaran yang komprehensif?",
+                questions: [
+                    {
+                        type: 'radio',
+                        header: 'Asesmen Awal',
+                        text: '1. Asesmen Awal dilakukan secara rutin di awal semester atau awal unit pembelajaran.',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        text: '2. Asesmen Awal yang dilakukan berfokus untuk mengidentifikasi kesiapan belajar dan kebutuhan emosional/sosial murid.',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        text: '3. Hasil Asesmen digunakan untuk menyusun kelompok belajar atau pembelajaran diferensiasi.',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        text: '4. Asesmen Awal terintegrasi dalam perencanaan pembelajaran.',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        text: '5. Guru atau sekolah memahami dan mampu menganalisis hasil asesmen diagnostik untuk mengidentifikasi gap kompetensi murid.',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        header: 'Asesmen Formatif',
+                        text: '6. Asesmen Formatif digunakan untuk memantau pemahaman murid selama pembelajaran berlangsung, secara rutin digunakan untuk memantau kemajuan belajar siswa selama proses pembelajaran.',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        text: '7. Guru menggunakan berbagai teknik asesmen formatif misalnya, diskusi kelas, feedback lisan, jurnal, exit ticket, penilaian kinerja atau projek kecil selama proses pembelajaran.',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        text: '8. Guru memberikan umpan balik atau feedback yang spesifik dan konstruktif kepada murid berdasarkan hasil asesmen formatif.',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        text: '9. Umpan balik tersebut digunakan oleh murid untuk refleksi diri atau memperbaiki pekerjaan atau pemahaman mereka (Asesmen as Learning).',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        text: '10. Hasil Asesmen formatif secara konsisten memengaruhi penyesuaian strategi atau materi ajar di kelas, secara langsung dijadikan dasar untuk memodifikasi/memperbaiki rencana dan metode pengajaran berikutnya.',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        header: 'Asesmen Sumatif',
+                        text: '11. Asesmen Sumatif benar-benar mengukur Capaian Pembelajaran (CP) atau Tujuan Pembelajaran (TP) secara holistik.',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        text: '12. Instrumen Asesmen Sumatif memiliki proporsi yang memadai untuk mengukur kemampuan berpikir tingkat tinggi (HOTS).',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        text: '13. Hasil Asesmen Sumatif digunakan sekolah sebagai bahan evaluasi kurikulum dan program sekolah.',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        text: '14. Asesmen sumatif yang dilaksanakan bervariasi (misalnya, proyek, portofolio, tes tertulis) dan tidak hanya tes pilihan ganda/esai.',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        text: '15. Kriteria Ketercapaian Tujuan Pembelajaran (KKTP) atau kriteria kelulusan dikomunikasikan secara jelas kepada murid dan orang tua.',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        text: '16. Bobot penilaian asesmen formatif (proses) dipertimbangkan lebih besar daripada bobot asesmen sumatif (hasil akhir) dalam laporan nilai akhir.',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        header: 'Pemanfaatan Asesmen',
+                        text: '17. Guru menggunakan hasil asesmen diagnostik untuk melakukan diferensiasi (penyesuaian metode, materi, atau media) pembelajaran.',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        text: '18. Hasil asesmen formatif dibahas dalam forum guru (KKG internal/MGMP) untuk merancang intervensi yang lebih baik.',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        text: '19. Hasil asesmen (diagnostik, formatif, dan sumatif) dikomunikasikan kepada orang tua/wali murid secara berkala untuk mendukung belajar di rumah.',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        text: '20. Sekolah menyediakan program remedial atau pengayaan yang terstruktur berdasarkan analisis hasil asesmen sumatif.',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
+                    },
+                    {
+                        type: 'radio',
+                        text: '21. Sekolah menggunakan hasil asesmen dari tahun sebelumnya (misalnya, rapor pendidikan) untuk merevisi atau memperkuat program kurikulum tahun berjalan.',
+                        options: ['Tidak', 'Jarang', 'Beberapa', 'Selalu']
                     }
                 ]
             }
@@ -820,18 +939,29 @@
 
                     } else if (qObj.type === 'radio') {
                         let triggerAttr = qObj.triggerId ? `onchange="handleConditional('${qObj.triggerId}', this.value)"` : `onchange="calculateProgress()"`;
-                        inputElement = `
-                            <div class="flex gap-4">
-                                <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-gray-300 hover:border-blue-500 transition shadow-sm">
-                                    <input type="radio" name="${inputName}" value="Ya" class="child-input text-blue-600" ${triggerAttr} ${optionalAttr}>
-                                    <span class="text-sm font-medium text-gray-700">Ya</span>
+                        
+                        // CUSTOM OPTIONS SUPPORT (New Logic)
+                        const radioOptions = qObj.options || ["Ya", "Tidak"];
+                        
+                        // Tentukan grid layout berdasarkan jumlah opsi
+                        // Jika 2 opsi: flex biasa (Ya/Tidak)
+                        // Jika >2 opsi: grid 2 kolom di mobile, 4 di desktop
+                        let containerClass = "flex gap-4";
+                        if (radioOptions.length > 2) {
+                             containerClass = "grid grid-cols-2 md:grid-cols-4 gap-3";
+                        }
+
+                        let radiosHtml = `<div class="${containerClass}">`;
+                        radioOptions.forEach(opt => {
+                            radiosHtml += `
+                                <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-2 rounded-lg border border-gray-300 hover:border-blue-500 transition shadow-sm">
+                                    <input type="radio" name="${inputName}" value="${opt}" class="child-input text-blue-600" ${triggerAttr} ${optionalAttr}>
+                                    <span class="text-xs md:text-sm font-medium text-gray-700">${opt}</span>
                                 </label>
-                                <label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-gray-300 hover:border-blue-500 transition shadow-sm">
-                                    <input type="radio" name="${inputName}" value="Tidak" class="child-input text-blue-600" ${triggerAttr} ${optionalAttr}>
-                                    <span class="text-sm font-medium text-gray-700">Tidak</span>
-                                </label>
-                            </div>
-                        `;
+                            `;
+                        });
+                        radiosHtml += `</div>`;
+                        inputElement = radiosHtml;
 
                     } else if (qObj.type === 'select') {
                         let opts = `<option value="">- Pilih -</option>`;
@@ -893,8 +1023,10 @@
                     `;
                 });
 
-                // --- 3 BUKTI LINK SECTION (HIDDEN FOR KSP) ---
-                const buktiDisplay = sec.id === 'ksp' ? 'hidden' : '';
+                // --- 3 BUKTI LINK SECTION (HIDDEN FOR KSP & ASESMEN) ---
+                // Sembunyikan untuk KSP dan Asesmen (karena asesmen panjang, mungkin tidak perlu 3 link default)
+                // Jika user mau menampilkan untuk asesmen, hapus '&& sec.id !== 'asesmen''
+                const buktiDisplay = (sec.id === 'ksp' || sec.id === 'asesmen') ? 'hidden' : '';
                 
                 qHtml += `
                     <div id="bukti-wrapper-${sec.id}" class="mt-8 pt-6 border-t-2 border-gray-100 ${buktiDisplay}">
@@ -1131,7 +1263,7 @@
                     modeTidakItems.forEach(g => g.querySelectorAll('.child-input').forEach(i => i.setAttribute('required', 'true')));
                 }
             } 
-            // --- LOGIKA STANDAR (PM, KKA, TKA, KSP, dll) ---
+            // --- LOGIKA STANDAR (PM, KKA, TKA, KSP, ASESMEN, dll) ---
             else {
                 const inputs = wrapper.querySelectorAll('.child-input');
                 if (val === 'Ya') {
@@ -1143,7 +1275,7 @@
                         if (!parentHidden && !isOptional) inp.setAttribute('required', 'true');
                     });
                     
-                    if(sectionId === 'ksp') {
+                    if(sectionId === 'ksp' || sectionId === 'asesmen') {
                          const buktiW = document.getElementById(`bukti-wrapper-${sectionId}`);
                          if(buktiW) buktiW.classList.add('hidden');
                     }
