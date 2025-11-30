@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAKTI - Dashboard Evaluasi Sekolah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="https://disdik.jakarta.go.id/static/disdik/images/logo/logo.png">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        
+        /* Scrollbar Halus */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        
+        /* Transisi Sidebar */
+        .sidebar-item { transition: all 0.2s; border-left: 3px solid transparent; }
+        .sidebar-item.active { background-color: #eff6ff; border-left-color: #2563eb; color: #1e40af; }
+        .sidebar-item:hover:not(.active) { background-color: #f9fafb; }
+
+        /* Animasi Konten Dashboard */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Indikator Draft Tersimpan */
+        #draft-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: #64748b;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+        #draft-indicator.visible { opacity: 1; }
+
+        /* --- INTRO SEQUENCE STYLES --- */
+        #intro-layer {
+            position: fixed;
+            inset: 0;
+            background-color: black;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow: hidden;
+        }
+
+        .intro-text-main {
+            font-size: 6rem;
+            font-weight: 900;
+            letter-spacing: 0.5rem;
+            opacity: 0;
+            background: linear-gradient(to bottom, #ffffff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: blur(10px);
+            transform: scale(1.5);
+            text-shadow: 0 0 30px rgba(255,255,255,0.3);
+        }
+
+        .intro-active .intro-text-main {
+            animation: cinematicReveal 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        @keyframes cinematicReveal {
+            0% { opacity: 0; filter: blur(20px); transform: scale(1.8); letter-spacing: 1.5rem; }
+            100% { opacity: 1; filter: blur(0); transform: scale(1); letter-spacing: 0.5rem; }
+        }
+
+        .intro-text-sub {
+            margin-top: 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 400;
+            color: #cbd5e1;
+            text-align: center;
+            min-height: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        .intro-char { display: inline-block; opacity: 0; transform: translateY(20px); }
+        .intro-char.animate-bounce-in { animation: bounceInChar 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        @keyframes bounceInChar {
+            0% { opacity: 0; transform: translateY(30px) scale(0.8); }
+            60% { opacity: 1; transform: translateY(-10px) scale(1.1); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        #intro-flash {
+            position: fixed; inset: 0; background-color: white; z-index: 10000; opacity: 0; pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .intro-text-main { font-size: 3.5rem; letter-spacing: 0.2rem; }
+            .intro-text-sub { font-size: 0.9rem; padding: 0 20px; }
+        }
+
+        /* --- CUSTOM LOGIN STYLES --- */
+        #login-overlay { 
+            position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; 
+            background-image: url('https://lh3.googleusercontent.com/d/1k3NhekvpCpZofQOCerTrmx7lMXh-I93g');
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+            opacity: 0; transition: opacity 1.5s ease-in;
+        }
+
+        @media (min-width: 768px) { #login-overlay { justify-content: flex-end; padding-right: 5%; } }
+
+        .login-card {
+            background-color: rgba(255, 255, 255, 0.25); backdrop-filter: blur(8px); 
+            border: 1px solid rgba(255, 255, 255, 0.3); color: #1f2937;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); transform: scale(0.98); opacity: 0.9;
+        }
+
+        .login-card:hover, .login-card:focus-within {
+            background-color: rgba(255, 255, 255, 0.98); backdrop-filter: blur(0);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: scale(1); opacity: 1; border-color: white;
+        }
+        
+        .login-input { background-color: rgba(255, 255, 255, 0.7) !important; transition: background-color 0.3s; }
+        .login-card:hover .login-input { background-color: #fff !important; }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden">
+
+    <!-- INTRO SEQUENCE -->
+    <div id="intro-layer">
+        <h1 class="intro-text-main">SAKTI</h1>
+        <div id="intro-sub-text" class="intro-text-sub"></div>
+    </div>
+    <div id="intro-flash"></div>
+
+    <!-- LOGIN OVERLAY -->
+    <div id="login-overlay">
+        <div class="login-card p-8 rounded-2xl shadow-xl w-full max-w-sm mx-4 md:mx-0 text-center">
+            <img src="https://disdik.jakarta.go.id/static/disdik/images/logo/logo.png" class="w-16 h-16 mx-auto mb-4 object-contain" alt="Logo Disdik">
+            <h2 class="text-2xl font-bold text-gray-900 mb-1 drop-shadow-sm">Portal SAKTI</h2>
+            <p class="text-gray-800 font-medium text-sm mb-6 drop-shadow-sm">Silakan masuk</p>
+            
+            <form id="loginForm" class="space-y-4">
+                <div class="relative group">
+                    <input type="text" id="npsnInput" required 
+                        class="login-input w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-center text-lg font-bold tracking-widest placeholder-gray-500" 
+                        placeholder="NPSN (Username)">
+                </div>
+                <div class="relative group">
+                    <input type="password" id="passwordInput" required 
+                        class="login-input w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-center text-md font-medium placeholder-gray-500" 
+                        placeholder="Password">
+                </div>
+                <button type="submit" id="btnLogin" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-lg flex justify-center items-center gap-2 transform hover:scale-[1.02]">
+                    <span>Masuk Dashboard</span> <i class="fas fa-arrow-right"></i>
+                </button>
+                <div id="loginError" class="text-red-600 bg-red-100/90 p-2 rounded-lg text-sm hidden mt-2 font-semibold border border-red-200">
+                    <i class="fas fa-exclamation-circle"></i> NPSN atau Password salah.
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="bg-white w-64 flex-shrink-0 border-r border-gray-200 flex flex-col hidden md:flex h-full">
+        <div class="h-16 flex items-center px-6 border-b border-gray-200">
+            <div class="font-bold text-xl text-blue-700 flex items-center gap-2">
+                <i class="fas fa-chart-pie"></i> SAKTI
+            </div>
+        </div>
+        <div class="flex-1 overflow-y-auto py-4 space-y-1" id="sidebar-menu"></div>
+        <div class="p-4 border-t border-gray-200 bg-gray-50">
+            <div class="text-xs font-semibold text-gray-500 uppercase mb-2">Progress Total</div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+                <div id="global-progress" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <div class="text-right text-xs text-gray-600 font-bold" id="global-progress-text">0%</div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:hidden z-10">
+            <span class="font-bold text-gray-800">SAKTI Dashboard</span>
+            <button onclick="toggleMobileMenu()" class="text-gray-600 hover:text-blue-600">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </header>
+
+        <div id="mobile-menu" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden md:hidden" onclick="toggleMobileMenu()">
+            <div class="bg-white w-64 h-full shadow-lg p-4" onclick="event.stopPropagation()">
+                <div class="text-lg font-bold mb-4 border-b pb-2">Menu Evaluasi</div>
+                <div id="mobile-sidebar-menu" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth" id="main-scroll">
+            <form id="evalForm" class="max-w-4xl mx-auto pb-20">
+                <input type="hidden" name="npsn_sekolah" id="hidden_npsn">
+                <input type="hidden" name="nama_sekolah" id="hidden_nama_sekolah">
+                <input type="hidden" name="kecamatan" id="hidden_kecamatan">
+                <input type="hidden" name="kelurahan" id="hidden_kelurahan">
+                <input type="hidden" name="sudin" id="hidden_sudin">
+                <input type="hidden" name="kota" id="hidden_kota">
+
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-200 relative">
+                    <button type="button" onclick="logout()" class="absolute top-6 right-6 text-red-500 hover:text-red-700 text-sm font-semibold flex items-center gap-2 transition">
+                        <i class="fas fa-sign-out-alt"></i> Keluar
+                    </button>
+
+                    <div class="flex justify-between items-start pr-20">
+                        <div>
+                            <h1 id="schoolNameDisplay" class="text-2xl font-bold text-gray-900">Memuat Data...</h1>
+                            <p id="npsnDisplay" class="text-gray-500 font-mono text-sm mt-1">NPSN: -</p>
+                        </div>
+                        <div class="text-right hidden md:block">
+                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-200">Tahun 2025</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 pt-6 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="col-span-2 md:col-span-2">
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Wilayah / Suku Dinas</label>
+                            <input type="text" name="wilayah" id="wilayahInput" readonly class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded text-sm outline-none text-gray-600 font-medium cursor-not-allowed" placeholder="Otomatis terisi" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nama Responden</label>
+                            <input type="text" name="nama_responden" id="nama_responden" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded text-sm outline-none focus:border-blue-500" placeholder="Masukkan nama Anda..." oninput="calculateProgress()">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nomor WhatsApp</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400"><i class="fab fa-whatsapp"></i></span>
+                                <input type="tel" name="no_wa" id="no_wa" class="w-full pl-8 pr-3 py-2 bg-gray-50 border border-gray-300 rounded text-sm outline-none focus:border-blue-500" placeholder="08xxxxxxxxxx" oninput="calculateProgress()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="content-area"></div>
+
+                <div class="flex justify-between mt-8">
+                    <button type="button" id="btnPrev" onclick="navigate(-1)" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium hidden">
+                        <i class="fas fa-arrow-left mr-2"></i> Sebelumnya
+                    </button>
+                    <button type="button" id="btnNext" onclick="navigate(1)" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium ml-auto">
+                        Selanjutnya <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                    <button type="submit" id="btnSubmit" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium shadow-lg ml-auto hidden">
+                        <i class="fas fa-save mr-2"></i> Simpan Permanen ke Database
+                    </button>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <div id="draft-indicator">
+        <i class="fas fa-check-circle text-green-500"></i>
+        <span>Data tersimpan (Draft)</span>
+    </div>
+
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl">
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- MAIN SCRIPT (MODULE TYPE FOR FIREBASE) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Konfigurasi Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOYIAjVph2Jwpb0xTSGad1Zlg0DdMlmfU",
+            authDomain: "sakti-sd.firebaseapp.com",
+            projectId: "sakti-sd",
+            storageBucket: "sakti-sd.firebasestorage.app",
+            messagingSenderId: "642095360646",
+            appId: "1:642095360646:web:5b1e90d62f52e7a3e9bf07"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- DATA PERTANYAAN (TIDAK BERUBAH) ---
+        const mapelOptions = [
+            "Pendidikan Agama Islam dan Budi Pekerti", "Pendidikan Agama Kristen dan Budi Pekerti",
+            "Pendidikan Agama Katolik dan Budi Pekerti", "Pendidikan Agama Buddha dan Budi Pekerti",
+            "Pendidikan Agama Hindu dan Budi Pekerti", "Pendidikan Agama Konghucu dan Budi Pekerti",
+            "Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "Ilmu Pengetahuan Alam dan Sosial",
+            "Pendidikan Jasmani Olahraga dan Kesehatan", "Seni Musik", "Seni Rupa", "Seni Teater",
+            "Seni Tari", "Bahasa Inggris", "Koding dan Kercerdasan Artifisial",
+            "Pendidikan Lingkungan dan Budaya Jakarta", "Lainnya"
+        ];
+
+        const sections = [
+            {
+                id: 'pm', title: 'Pembelajaran Mendalam', short: 'PM', icon: 'fa-brain',
+                desc: 'Fokus pada pemahaman konsep & berpikir kritis.',
+                keyQuestion: "Apakah sekolah menerapkan pendekatan Pembelajaran Mendalam dalam KBM?",
+                questions: [
+                    { type: 'checkbox', text: "1.1 Apakah satuan pendidikan Bapak/Ibu telah mengunduh dan mencetak regulasi pelaksanaan pembelajaran medalam? (berikan tanda centang pada regulasi yang telah disediakan)", options: ["4 Standar Nasional Pendidikan (Standar Kompetensi Lulusan, Standar Isi, Standar Proses, dan Standar Penilaian)", "Permendikdasmen No. 13 Tahun 2025", "Keputusan Kepala BSKAP 046/H/KR/2025 tentang CP", "Keputusan Kepala BSKAP 058/H/KR/2025 tentang Alur Perkembangan Kompetensi DPL","Panduan Pengembangan KSP","Panduan Pembelajaran dan Asesmen Edisi Revisi 2025","Panduan Kokurikuler Edisi Revisi 2025","Panduan Mata Pelajaran"], customSlot: "1.1", mode: 'ya' },
+                    { type: 'radio', text: "1.2 Apakah Kepala Satuan Pendidikan dan Guru telah mengikuti pelatihan terkait Pembelajaran Mendalam?", options: ["Ya", "Tidak"], triggerId: 'pm_trigger_pelatihan', customSlot: "1.2", mode: 'ya' },
+                    { type: 'checkbox', text: "1.2.a Siapa yang menyelenggarakan pelatihan tersebut?", options: ["Kemendikdasmen (BGTK)", "Dinas Pendidikan (P4TK)", "Komunitas Belajar di Luar Sekolah (KKG/K3S/Sejenisnya)", "Komunitas Belajar dalam Sekolah (IHT Mandiri)", "Lembaga Pelatihan", "Lainnya"], hiddenBy: 'pm_trigger_pelatihan', showIf: 'Ya', customSlot: "1.2.a", mode: 'ya' },
+                    { type: 'checkbox', text: "1.2.b Sumber Pendanaan", options: ["BOS Reguler", "BOS Kinerja", "BOP", "Yayasan", "Biaya Mandiri", "Lainnya"], hiddenBy: 'pm_trigger_pelatihan', showIf: 'Ya', customSlot: "1.2.b", mode: 'ya' },
+                    { type: 'checkbox', text: "1.3 Pada kelas berapa saja, satuan pendidikan Bapak/Ibu telah mengimplementasikan penerapan kurikulum sesuai regulasi terbaru (Permendikdasmen No. 13 Tahun 2025)?", options: ["Kelas 1", "Kelas 2", "Kelas 3", "Kelas 4", "Kelas 5", "Kelas 6"], customSlot: "1.3", mode: 'ya' },
+                    { type: 'textarea', text: "1.4 Bagaimana implementasi pengalaman belajar memahami-mengaplikasi-merefleksi dalam pembelajaran yang telah berlangsung?", customSlot: "1.4", mode: 'ya' },
+                    { type: 'textarea', text: "1.5 Bagaimana implementasi asesmen yang telah dilaksanakan dalam rangka mengukur ketercapaian tujuan pembelajaran?", customSlot: "1.5", mode: 'ya' },
+                    { type: 'radio', text: "2. Apakah telah dilakukan monitoring terhadap pelaksanaan pembelajaran dengan pendekatan pembelajaran mendalam?", options: ["Ya", "Tidak"], triggerId: 'pm_trigger_monitoring', customSlot: "2", mode: 'ya' },
+                    { type: 'select_with_other', text: "2.1 Berapa kali kegiatan monitoring dilakukan dalam 1 tahun?", hiddenBy: 'pm_trigger_monitoring', showIf: 'Ya', options: ["1", "2", "3", "4", "5", "6", "Lainnya"], placeholder: "Sebutkan jumlah lainnya...", customSlot: "2.1", mode: 'ya' },
+                    { type: 'checkbox', text: "2.2 Siapa pihak yang melaksanakan monitoring?", options: ["Dinas Pendidikan", "Kepala Satuan Pendidikan", "Pengawas"], hiddenBy: 'pm_trigger_monitoring', showIf: 'Ya', customSlot: "2.2", mode: 'ya' },
+                    { type: 'radio', text: "3. Apakah Satuan Pendidikan Bapak/Ibu telah menggunakan Buku Teks Utama Edisi Revisi (Tahun 2024 ke atas)?", options: ["Ya", "Tidak"], customSlot: "3", mode: 'ya' },
+                    { type: 'textarea', text: "4. Kendala yang dihadapi dalam pelaksanaan Pembelajaran Mendalam", placeholder: "Tuliskan Kendalanya...", customSlot: "4", mode: 'ya' },
+                    { type: 'text', text: "5. Unggah Bukti Dukung dan Dokumentasi Kegiatan Pembelajaran (Link)", isAttachment: true, customSlot: "5", mode: 'ya' },
+                    { type: 'text', text: "6. Unggah Dokumen Perencanaan Pembelajaran dengan Pendekatan Pembelajaran Mendalam (Link)", isAttachment: true, customSlot: "6", mode: 'ya' },
+                    { type: 'textarea', text: "Jelaskan alasan sekolah belum menerapkan pendekatan Pembelajaran Mendalam:", mode: 'tidak' }
+                ]
+            },
+            {
+                id: 'kka', title: 'Koding & Kecerdasan Artifisial', short: 'KKA', icon: 'fa-laptop-code',
+                desc: 'Integrasi teknologi, koding, dan AI.',
+                keyQuestion: "Apakah sekolah Bapak/Ibu melaksanakan kegiatan pembelajaran Koding dan Kecerdasan Artifisial (KKA) pada intrakurikuler tahun ini?",
+                questions: [
+                    { type: 'select', text: "1.1 Kelas berapa pembelajaran KKA dilaksanakan?", options: ["Kelas 1", "Kelas 2", "Kelas 3", "Kelas 4", "Kelas 5", "Kelas 6"], mode: 'ya', customSlot: "1.1" },
+                    { type: 'select', text: "1.2 Siapa yang mengampu?", options: ["Guru kelas", "Guru mapel"], mode: 'ya', customSlot: "1.2" },
+                    { type: 'radio', text: "1.3 Apakah guru pengampu sudah mengikuti pelatihan?", options: ["Ya", "Tidak"], triggerId: 'kka_trigger_pelatihan', mode: 'ya', customSlot: "1.3" },
+                    { type: 'text', text: "1.3.a Siapa penyelenggara pelatihannya?", hiddenBy: 'kka_trigger_pelatihan', showIf: 'Ya', mode: 'ya', customSlot: "1.3.a" },
+                    { type: 'select_with_other', text: "1.3.b Sumber pendanaan?", options: ["BOSP Reguler", "BOSP Kinerja", "BOP Alokasi Dasar", "BOP Kinerja", "Lainnya"], hiddenBy: 'kka_trigger_pelatihan', showIf: 'Ya', mode: 'ya', customSlot: "1.3.b" },
+                    { type: 'textarea', text: "1.4 Kapan pelaksanaan mata pelajaran koding KA? Berapa JP per Minggu?", mode: 'ya', customSlot: "1.4" },
+                    { type: 'textarea', text: "1.5 Bagaimana gambaran kegiatan pembelajaran koding dan KA?", mode: 'ya', customSlot: "1.5" },
+                    { type: 'textarea', text: "1.6 Bagaimana gambaran kegiatan asesmen koding dan KA?", mode: 'ya', customSlot: "1.6" },
+                    { type: 'textarea', text: "1.7 Buku teks yang digunakan (Tuliskan Buku Teks Utama yang digunakan pada pembelajaran KKA)", mode: 'ya', customSlot: "1.7" },
+                    { type: 'textarea', text: "1.8 Tuliskan sumber belajar lain yang digunakan yang digunakan dalam pembelajaran KKA", mode: 'ya', customSlot: "1.8" },
+                    { type: 'text', text: "1.9 Unggah bukti dokumentasi kegiatan pembelajaran KKA (Link)", isAttachment: true, mode: 'ya', customSlot: "1.9" },
+                    { type: 'text', text: "1.10 Unggah dokumen program pembelajaran Koding KA dalam 1 Tahun (Link)", isAttachment: true, mode: 'ya', customSlot: "1.10" },
+                    { type: 'select', text: "1.1 Bentuk kegiatan apa yang dilaksanakan?", options: ["Kokurikuler", "Ekstrakurikuler", "Tidak ada kegiatan sama sekali"], mode: 'tidak', customSlot: "1.1" },
+                    { type: 'textarea', text: "1.2 Seperti apa gambaran kegiatannya?", mode: 'tidak', customSlot: "1.2" },
+                    { type: 'textarea', text: "1.3 Kapan pelaksanaan kegiatan koding KA tersebut? Berapa JP per Minggu?", mode: 'tidak', customSlot: "1.3" },
+                    { type: 'textarea', text: "1.4 Tuliskan sumber belajar yang digunakan yang digunakan dalam pembelajaran kokurikuler/ekstrakurikuler KKA", mode: 'tidak', customSlot: "1.4" },
+                    { type: 'text', text: "1.5 Unggah bukti dokumentasi kegiatan pembelajaran KKA (Link)", isAttachment: true, mode: 'tidak', customSlot: "1.5" },
+                    { type: 'text', text: "1.6 Unggah dokumen program pembelajaran Koding KA dalam 1 Tahun (Link)", isAttachment: true, mode: 'tidak', customSlot: "1.6" }
+                ]
+            },
+            {
+                id: 'koku', title: 'Kokurikuler', short: 'Koku', icon: 'fa-users',
+                desc: 'Penguatan karakter.',
+                keyQuestion: "Apakah sekolah Anda melaksanakan kegiatan kokurikuler pada tahun ini?",
+                questions: [
+                    { text: "Apakah kegiatan kokurikuler tersebut sudah tercantum secara jelas dalam dokumen kurikulum sekolah?", mode: 'ya' },
+                    { type: 'textarea', text: "Apa alasannya sekolah belum melaksanakan kegiatan kokurikuler?", mode: 'tidak' },
+                    { type: 'select_with_other', text: "Bentuk kegiatan kokurikuler apa yang dipilih sekolah?", options: ["Pembelajaran kolaboratif lintas disiplin", "Gerakan 7 Kebiasaan Anak Indonesia Hebat", "Kegiatan khas sekolah berbasis konteks lokal", "Lainnya"], placeholder: "Sebutkan bentuk kegiatan lainnya...", mode: 'ya' },
+                    { type: 'radio', text: "Apakah sekolah memiliki tim kerja kokurikuler (kepala sekolah, koordinator, fasilitator kelas)?", options: ["Ya", "Tidak"], triggerId: 'koku_trigger_tim', mode: 'ya' },
+                    { text: "Sejauh mana peran masing-masing (kepsek, koordinator, guru) berjalan sesuai panduan?", hiddenBy: 'koku_trigger_tim', showIf: 'Ya', mode: 'ya' },
+                    { type: 'radio', text: "Apakah ada SK tim pengembang Kokurikuler?", options: ["Ya", "Tidak"], mode: 'ya' },
+                    { type: 'radio', text: "Apakah sekolah melibatkan orang tua/komunitas/mitra?", options: ["Ya", "Tidak"], mode: 'ya' },
+                    { type: 'radio', text: "Apakah sekolah menyusun perencanaan khusus untuk kegiatan kokurikuler (misalnya tujuan, langkah kegiatan, dan waktu pelaksanaan)?", options: ["Ya", "Tidak"], triggerId: 'koku_trigger_rencana', mode: 'ya' },
+                    { type: 'textarea', text: "Jelaskan perencanaan khusus tersebut:", placeholder: "Uraikan tujuan, langkah, dan waktu...", hiddenBy: 'koku_trigger_rencana', showIf: 'Ya', mode: 'ya' },
+                    { type: 'radio', text: "Apakah sekolah memahami alokasi waktu kokurikuler resmi per tahun?", options: ["Ya", "Tidak"], triggerId: 'koku_trigger_alokasi', mode: 'ya' },
+                    { text: "Apakah alokasi waktu tersebut disusun dalam jadwal sekolah?", hiddenBy: 'koku_trigger_alokasi', showIf: 'Ya', mode: 'ya' },
+                ]
+            },
+            {
+                id: 'tka', title: 'Tes Kompetensi Akademik', short: 'TKA', icon: 'fa-file-signature',
+                desc: 'Pengukuran standar kompetensi siswa.',
+                keyQuestion: "Apakah sekolah melaksanakan pengukuran kompetensi akademik berkala?",
+                questions: [
+                    { type: 'textarea', text: "Apakah Anda memahami tentang TKA?", customSlot: "1", mode: 'ya' },
+                    { type: 'textarea', text: "Regulasi apa saja yang berkaitan dengan TKA? Jelaskan!", customSlot: "2", mode: 'ya' },
+                    { type: 'radio', text: "Apakah anda pernah mendapatkan sosialisasi terkait TKA?", options: ["Ya", "Tidak"], triggerId: 'tka_trigger_sosialisasi', customSlot: "3", mode: 'ya' },
+                    { type: 'select_with_other', text: "Dari mana sosialisasi tersebut?", options: ["Sosialisasi Kemendikdasmen", "Sosialisasi Dinas", "Sosialisasi Pengawas", "Media Sosial", "Rekan Sejawat", "Lainnya"], hiddenBy: 'tka_trigger_sosialisasi', showIf: 'Ya', customSlot: "3a", mode: 'ya' },
+                    { type: 'radio', text: "Apakah sekolah anda memiliki program pelaksanaan TKA?", options: ["Ya", "Tidak"], triggerId: 'tka_trigger_program', customSlot: "4", mode: 'ya' },
+                    { type: 'textarea', text: "Jelaskan program TKA:", hiddenBy: 'tka_trigger_program', showIf: 'Ya', customSlot: "4a", mode: 'ya' },
+                    { type: 'radio', text: "Apakah Sekolah ada memiliki Kisi-kisi dan pengembangan Soal TKA?", options: ["Ya", "Tidak"], triggerId: 'tka_trigger_kisi', customSlot: "5", mode: 'ya' },
+                    { type: 'text', text: "Unggah Dokumen Kisi-kisi/Soal (Link)", isAttachment: true, hiddenBy: 'tka_trigger_kisi', showIf: 'Ya', customSlot: "5a", mode: 'ya' },
+                    { type: 'radio', text: "Apakah sekolah anda memiliki Tim Khusus TKA?", options: ["Ya", "Tidak"], customSlot: "6", mode: 'ya' },
+                    { type: 'radio', text: "Apakah sekolah anda memiliki Lab Komputer?", options: ["Ya", "Tidak"], triggerId: 'tka_trigger_lab', customSlot: "7", mode: 'ya' },
+                    { type: 'text', text: "Berapa jumlah Komputer/Laptop di sekolah Anda?", hiddenBy: 'tka_trigger_lab', showIf: 'Ya', customSlot: "8", mode: 'ya' },
+                    { type: 'text', text: "Berapa bandwit Internet di sekolah anda?", customSlot: "9", mode: 'ya' },
+                    { type: 'text', text: "Apa profider Internet yang ada disekolah anda?", customSlot: "10", mode: 'ya' },
+                    { type: 'textarea', text: "Jelaskan alasan sekolah belum melaksanakan Tes Kompetensi Akademik:", mode: 'tidak' }
+                ]
+            },
+            {
+                id: 'dp', title: 'Digitalisasi Pembelajaran', short: 'DP', icon: 'fa-wifi',
+                desc: 'Pemanfaatan platform digital & LMS serta Panel Interaktif.',
+                keyQuestion: "Apakah sekolah memanfaatkan digitalisasi untuk pembelajaran?",
+                questions: [
+                    { type: 'textarea', text: "Bagaimana sekolah dalam memanfaatkan digitalisasi pada pembelajaran!", customSlot: "1", mode: 'ya' },
+                    { type: 'checkbox', text: "Apakah sekolah memanfaatkan platform berikut:", options: ["Belajar.id", "Laman Ruang GTK", "Laman Ruang Murid", "Laman Buku Digital", "Laman Google Workspace", "Laman Canva.id", "Gemini.ai", "Lainnya"], customSlot: "2", triggerId: 'dp_trigger_platform', mode: 'ya' },
+                    { type: 'textarea', text: "Sejauh mana pemanfaatan laman tersebut terhadap kegiatan pembelajaran!", customSlot: "2g", hiddenBy: 'dp_trigger_platform', showIf: 'any_checked', mode: 'ya' },
+                    { header: "Panel Interaktif Digital (PID)", type: 'radio', text: "Apakah sekolah mendapatkan PID?", options: ["Ya", "Tidak"], triggerId: 'dp_trigger_pid', customSlot: "3", mode: 'ya' },
+                    { type: 'select_with_other', text: "Dimana diletakan layar IFP/PID tersebut?", options: ["Ruang Kepala Sekolah", "Ruang Guru", "Ruang Operator", "Ruang Lab. Komputer", "Ruang Perpustakaan", "Ruang Kelas", "Gudang", "Lainnya"], hiddenBy: 'dp_trigger_pid', showIf: 'Ya', customSlot: "3a", mode: 'ya' },
+                    { type: 'textarea', text: "Ceritakan gambaran pemanfaatan IFP/PID setelah menerima selama ini?", hiddenBy: 'dp_trigger_pid', showIf: 'Ya', customSlot: "3b", mode: 'ya' },
+                    { type: 'radio', text: "Apakah ada Tim Khusus yang mengelola/menangani papan IFP/PID tersebut?", options: ["Ya", "Tidak"], triggerId: 'dp_trigger_tim', hiddenBy: 'dp_trigger_pid', showIf: 'Ya', customSlot: "3c", mode: 'ya' },
+                    { type: 'checkbox', text: "Siapa yang terlibat dalam tim tersebut?", options: ["Guru Kelas", "Guru Olahraga", "Guru Agama", "Operator", "Penjaga Sekolah", "Orang Tua", "Lainnya"], hiddenBy: 'dp_trigger_tim', showIf: 'Ya', customSlot: "3c.1", mode: 'ya' },
+                    { type: 'text', text: "Unggah SK TIM (Link Google Drive/PDF)", isAttachment: true, hiddenBy: 'dp_trigger_tim', showIf: 'Ya', mode: 'ya' },
+                    { type: 'radio', text: "Apakah sekolah membuat jadwal pelaksanaan/pemanfaatan IFP?", options: ["Ya", "Tidak"], triggerId: 'dp_trigger_jadwal', hiddenBy: 'dp_trigger_pid', showIf: 'Ya', customSlot: "3d", mode: 'ya' },
+                    { type: 'text', text: "Unggah Jadwal (Link)", isAttachment: true, hiddenBy: 'dp_trigger_jadwal', showIf: 'Ya', mode: 'ya' },
+                    { type: 'radio', text: "Apakah sekolah membuat SOP Pemanfaatan IFP/PID?", options: ["Ya", "Tidak"], triggerId: 'dp_trigger_sop', hiddenBy: 'dp_trigger_pid', showIf: 'Ya', customSlot: "3e", mode: 'ya' },
+                    { type: 'textarea', text: "Deskripsikan Program SOP tersebut:", hiddenBy: 'dp_trigger_sop', showIf: 'Ya', mode: 'ya' },
+                    { type: 'radio', text: "Apakah sekolah telah menganggarkan perawatan IFP/PID tahun 2026?", options: ["Sudah", "Belum"], hiddenBy: 'dp_trigger_pid', showIf: 'Ya', customSlot: "3f", mode: 'ya' },
+                    { type: 'textarea', text: "Fitur apa saja yang dimanfaatkan pada IFP/PID?", hiddenBy: 'dp_trigger_pid', showIf: 'Ya', customSlot: "3g", mode: 'ya' },
+                    { type: 'radio', text: "Apakah Guru telah mengakses Ruang Murid untuk Pembelajaran?", options: ["Ya", "Tidak"], triggerId: 'dp_trigger_rm', hiddenBy: 'dp_trigger_pid', showIf: 'Ya', customSlot: "3h", mode: 'ya' },
+                    { type: 'textarea', text: "Fitur Apa saja yang diakses? Jelaskan!", hiddenBy: 'dp_trigger_rm', showIf: 'Ya', mode: 'ya' },
+                    { type: 'textarea', text: "Jelaskan alasan sekolah belum memanfaatkan digitalisasi dalam pembelajaran:", mode: 'tidak' }
+                ]
+            },
+            {
+                id: 'asesmen', title: 'Asesmen Pembelajaran', short: 'Asesmen', icon: 'fa-tasks',
+                desc: 'Evaluasi implementasi asesmen awal, formatif, dan sumatif.',
+                keyQuestion: "Apakah sekolah melaksanakan sistem asesmen pembelajaran yang komprehensif?",
+                questions: [
+                    { type: 'radio', header: 'Asesmen Awal', text: 'Asesmen Awal dilakukan secara rutin di awal semester atau awal unit pembelajaran.', options: ['Belum pernah atau sangat jarang melakukan Asesmen Awal di awal semester/unit pembelajaran.', 'Melakukan Asesmen Awal, tetapi tidak rutin dan/atau hanya di awal semester (tidak di awal unit pembelajaran).', 'Melakukan Asesmen Awal secara rutin di awal semester atau di awal setiap unit pembelajaran.', 'Melakukan Asesmen Awal secara rutin dan konsisten di awal semester dan di awal setiap unit pembelajaran.'], mode: 'ya' },
+                    { type: 'radio', text: 'Asesmen Awal yang dilakukan berfokus untuk mengidentifikasi kesiapan belajar dan kebutuhan emosional/sosial murid.', options: ['Asesmen Awal hanya berfokus pada tes pengetahuan tanpa mempertimbangkan kesiapan belajar atau kebutuhan emosional/sosial murid.', 'Asesmen Awal sudah mencoba mengidentifikasi kesiapan belajar, tetapi belum mencakup kebutuhan emosional/sosial murid.', 'Asesmen Awal berfokus untuk mengidentifikasi kesiapan belajar dan kebutuhan emosional/sosial murid, tetapi pelaksanaannya belum optimal.', 'Asesmen Awal berfokus untuk mengidentifikasi secara komprehensif kesiapan belajar dan kebutuhan emosional/sosial murid.'], mode: 'ya' },
+                    { type: 'radio', header: 'Asesmen Formatif', text: 'Asesmen Formatif digunakan untuk memantau pemahaman murid selama pembelajaran berlangsung, secara rutin digunakan untuk memantau kemajuan belajar siswa selama proses pembelajaran.', options: ['Asesmen Formatif jarang dilakukan atau hanya di akhir unit/bab, dan tidak rutin memantau kemajuan belajar.', 'Melakukan Asesmen Formatif, tetapi belum rutin atau hanya sebatas memantau, bukan untuk mengukur kemajuan belajar secara berkelanjutan.', 'Melakukan Asesmen Formatif secara rutin untuk memantau pemahaman dan kemajuan belajar siswa selama proses pembelajaran.', 'Melakukan Asesmen Formatif secara rutin, terstruktur, dan berkelanjutan untuk memantau pemahaman dan kemajuan belajar siswa selama proses pembelajaran.'], mode: 'ya' },
+                    { type: 'radio', text: 'Guru menggunakan berbagai teknik asesmen formatif misalnya, diskusi kelas, feedback lisan, jurnal, exit ticket, penilaian kinerja atau projek kecil selama proses pembelajaran.', options: ['Guru hanya menggunakan satu atau dua teknik asesmen formatif yang sederhana (misalnya, tanya jawab lisan).', 'Guru menggunakan beberapa teknik asesmen formatif (3-4 jenis), tetapi belum bervariasi secara signifikan.', 'Guru menggunakan berbagai teknik asesmen formatif (misalnya, diskusi, feedback lisan, jurnal, exit ticket, penilaian kinerja) selama proses pembelajaran.', 'Guru menggunakan berbagai teknik asesmen formatif secara kreatif dan proporsional sesuai kebutuhan materi dan murid.'], mode: 'ya' },
+                    { type: 'radio', text: 'Guru memberikan umpan balik atau feedback yang spesifik dan konstruktif kepada murid berdasarkan hasil asesmen formatif.', options: ['Guru jarang memberikan umpan balik, atau hanya memberikan nilai/komentar yang sangat umum ("Bagus" atau "Perlu ditingkatkan").', 'Guru memberikan umpan balik, tetapi masih bersifat umum (tidak spesifik) atau kurang konstruktif.', 'Guru memberikan umpan balik yang spesifik (menunjukkan bagian yang benar/salah) dan konstruktif (memberikan saran perbaikan).', 'Guru memberikan umpan balik yang spesifik, konstruktif, tepat waktu, dan berdampak bagi peningkatan pemahaman murid.'], mode: 'ya' },
+                    { type: 'radio', text: 'Umpan balik tersebut digunakan oleh murid untuk refleksi diri atau memperbaiki pekerjaan atau pemahaman mereka (Asesmen as Learning).', options: ['Murid tidak diminta untuk menggunakan umpan balik sebagai alat refleksi diri atau perbaikan.', 'Murid diminta, tetapi kurang dimotivasi atau dibimbing untuk menggunakan umpan balik untuk refleksi diri atau perbaikan.', 'Murid menggunakan umpan balik untuk melakukan refleksi diri atau memperbaiki pekerjaan/pemahaman mereka (Asesmen as Learning).', 'Murid secara mandiri menggunakan umpan balik untuk refleksi diri dan secara aktif memperbaiki pekerjaan/pemahaman mereka.'], mode: 'ya' },
+                    { type: 'radio', header: 'Asesmen Sumatif', text: 'Asesmen Sumatif benar-benar mengukur Capaian Pembelajaran (CP) atau Tujuan Pembelajaran (TP) secara holistik.', options: ['Asesmen Sumatif hanya mengukur sebagian kecil dari CP/TP atau hanya berfokus pada aspek pengetahuan saja.', 'Asesmen Sumatif mengukur CP/TP, tetapi belum secara holistik (misalnya, hanya fokus pada pengetahuan dan keterampilan, bukan sikap).', 'Asesmen Sumatif mengukur Capaian Pembelajaran (CP) atau Tujuan Pembelajaran (TP) secara holistik (mencakup pengetahuan, keterampilan, dan/atau sikap yang relevan).', 'Asesmen Sumatif dirancang secara komprehensif untuk mengukur CP/TP secara holistik dan mendalam sesuai konteks.'], mode: 'ya' },
+                    { type: 'radio', text: 'Instrumen Asesmen Sumatif memiliki proporsi yang memadai untuk mengukur kemampuan berpikir tingkat tinggi (HOTS).', options: ['Instrumen Asesmen Sumatif didominasi oleh soal-soal tingkat rendah (LOTS) atau hanya mengingat/memahami.', 'Instrumen Asesmen Sumatif sudah memasukkan soal HOTS, tetapi proporsinya masih sangat kecil atau penempatannya kurang tepat.', 'Instrumen Asesmen Sumatif memiliki proporsi yang memadai (misalnya 30-50%) untuk mengukur kemampuan berpikir tingkat tinggi (HOTS).', 'Instrumen Asesmen Sumatif memiliki proporsi HOTS yang ideal dan instrumennya bervariasi (analisis, evaluasi, kreasi).'], mode: 'ya' },
+                    { type: 'radio', text: 'Hasil Asesmen Sumatif digunakan sekolah sebagai bahan evaluasi kurikulum dan program sekolah.', options: ['Hasil Asesmen Sumatif hanya digunakan untuk laporan nilai akhir murid dan tidak digunakan untuk evaluasi kurikulum/program sekolah.', 'Hasil Asesmen Sumatif digunakan sebatas informasi, tetapi belum secara sistematis dijadikan bahan evaluasi kurikulum atau program sekolah.', 'Hasil Asesmen Sumatif digunakan sekolah sebagai bahan evaluasi kurikulum atau program sekolah.', 'Hasil Asesmen Sumatif digunakan secara sistematis dan berkala sebagai bahan evaluasi dan perbaikan kurikulum dan program sekolah.'], mode: 'ya' },
+                    { type: 'radio', text: 'Asesmen sumatif yang dilaksanakan bervariasi (misalnya, proyek, portofolio, tes tertulis) dan tidak hanya tes pilihan ganda/esai.', options: ['Asesmen Sumatif hanya dilakukan dengan satu jenis instrumen (misalnya, tes pilihan ganda atau esai saja).', 'Asesmen Sumatif menggunakan dua jenis instrumen, tetapi keduanya masih berupa tes tertulis (misalnya, pilihan ganda dan esai).', 'Asesmen Sumatif yang dilaksanakan bervariasi, mencakup tes tertulis dan bentuk lain (misalnya, proyek, portofolio, atau penilaian kinerja).', 'Asesmen Sumatif yang dilaksanakan sangat bervariasi, disesuaikan dengan tujuan pembelajaran, dan mencakup berbagai bentuk (proyek, portofolio, tes tertulis, dll.).'], mode: 'ya' },
+                    { type: 'textarea', text: "Jelaskan alasan sekolah belum melaksanakan sistem asesmen pembelajaran yang komprehensif:", mode: 'tidak' }
+                ]
+            },
+            {
+                id: 'ksp', title: 'Kurikulum Sekolah', short: 'KSP', icon: 'fa-book',
+                desc: 'Implementasi & Relevansi KOSP sesuai Panduan Edisi Revisi Tahun 2025.',
+                keyQuestion: "Apakah sekolah telah menyusun KSP sesuai Panduan Pengembangan KSP Edisi Revisi Tahun 2025?",
+                questions: [
+                    { header: "1.1 Karakteristik Satuan Pendidikan", type: 'checkbox', text: "1.1.a Siapa saja yang terlibat dalam penyusunan Kurikulum Satuan Pendidikan di unit kerja Bapak/Ibu?", options: ["Pendidik", "Tenaga Kependidikan", "Murid", "Orang Tua", "Tokoh Masyarakat", "Lainnya"], customSlot: "1.1.a", mode: 'ya' },
+                    { type: 'number', text: "1.1.b Berapa jumlah rombel di Satuan Pendidikan Bapak/Ibu?", placeholder: "Masukkan angka...", customSlot: "1.1.b", mode: 'ya' },
+                    { type: 'number', text: "1.1.c Jumlah Guru PNS", placeholder: "0", indent: true, customSlot: "1.1.c.1", mode: 'ya' },
+                    { type: 'number', text: "1.1.c Jumlah Guru P3K", placeholder: "0", indent: true, customSlot: "1.1.c.2", mode: 'ya' },
+                    { type: 'number', text: "1.1.c Jumlah Guru KKI", placeholder: "0", indent: true, customSlot: "1.1.c.3", mode: 'ya' },
+                    { type: 'number', text: "1.1.c Jumlah Guru GTY", placeholder: "0", indent: true, customSlot: "1.1.c.4", mode: 'ya' },
+                    { type: 'number', text: "1.1.c Jumlah Guru GTT", placeholder: "0", indent: true, customSlot: "1.1.c.5", mode: 'ya' },
+                    { type: 'number', text: "1.1.d Berapa jumlah murid yang ada di Satuan Pendidikan Bapak/Ibu?", placeholder: "Masukkan angka...", customSlot: "1.1.d", mode: 'ya' },
+                    { header: "1.2 Visi, Misi, dan Tujuan", type: 'textarea', text: "1.2.a Tuliskan bunyi Visi sekolah Bapak/Ibu", customSlot: "1.2.a", mode: 'ya' },
+                    { type: 'textarea', text: "1.2.b Tuliskan bunyi Misi sekolah Bapak/Ibu", customSlot: "1.2.b", mode: 'ya' },
+                    { type: 'textarea', text: "1.2.c Tuliskan bunyi Tujuan sekolah Bapak/Ibu", customSlot: "1.2.c", mode: 'ya' },
+                    { header: "1.3 Pengorganisasian Pembelajaran", type: 'checkbox', text: "1.3.a Pilih mata pelajaran yang dilaksanakan pada kelas 1", options: mapelOptions, customSlot: "1.3.a", mode: 'ya' },
+                    { type: 'checkbox', text: "1.3.b Pilih mata pelajaran yang dilaksanakan pada kelas 2", options: mapelOptions, customSlot: "1.3.b", mode: 'ya' },
+                    { type: 'checkbox', text: "1.3.c Pilih mata pelajaran yang dilaksanakan pada kelas 3", options: mapelOptions, customSlot: "1.3.c", mode: 'ya' },
+                    { type: 'checkbox', text: "1.3.d Pilih mata pelajaran yang dilaksanakan pada kelas 4", options: mapelOptions, customSlot: "1.3.d", mode: 'ya' },
+                    { type: 'checkbox', text: "1.3.e Pilih mata pelajaran yang dilaksanakan pada kelas 5", options: mapelOptions, customSlot: "1.3.e", mode: 'ya' },
+                    { type: 'checkbox', text: "1.3.f Pilih mata pelajaran yang dilaksanakan pada kelas 6", options: mapelOptions, customSlot: "1.3.f", mode: 'ya' },
+                    { type: 'textarea', text: "1.3.g Tuliskan Kegiatan Ekstrakurikuler (Format Tabel: No | Nama Ekskul | Jadwal)", placeholder: "Contoh:\n1 | Pramuka | Jumat Sore\n2 | Futsal | Sabtu Pagi", customSlot: "1.3.g", mode: 'ya' },
+                    { type: 'text', text: "Unggah Program Ekstrakurikuler (Link)", placeholder: "Tempelkan Link Google Drive...", isAttachment: true, customSlot: "Link 1.3.g", mode: 'ya' },
+                    { type: 'textarea', text: "1.3.h Tuliskan Budaya Sekolah yang ada di Satuan Pendidikan Bapak/Ibu", customSlot: "1.3.h", mode: 'ya' },
+                    { type: 'text', text: "Unggah Program Pengembangan Budaya Sekolah (Link)", isAttachment: true, customSlot: "Link 1.3.h", mode: 'ya' },
+                    { type: 'textarea', text: "1.3.i Tuliskan Mekanisme Kenaikan Kelas di Satuan Pendidikan Bapak/Ibu", customSlot: "1.3.i", mode: 'ya' },
+                    { type: 'text', text: "Unggah SK Kepala Sekolah tentang Mekanisme Kenaikan Kelas (Link)", isAttachment: true, customSlot: "Link 1.3.i", mode: 'ya' },
+                    { type: 'textarea', text: "1.3.j Tuliskan Mekanisme Kelulusan di Satuan Pendidikan Bapak/Ibu", customSlot: "1.3.j", mode: 'ya' },
+                    { type: 'text', text: "Unggah SK Kepala Sekolah tentang Mekanisme Kelulusan (Link)", isAttachment: true, customSlot: "Link 1.3.j", mode: 'ya' },
+                    { header: "1.4 Perencanaan Pembelajaran", type: 'text', text: "1.4.a Unggah Tautan Dokumen ATP (Alur Tujuan Pembelajaran)", isAttachment: true, customSlot: "1.4.a", mode: 'ya' },
+                    { type: 'text', text: "1.4.b Unggah Tautan Dokumen Perencanaan Pembelajaran Intrakurikuler", isAttachment: true, customSlot: "1.4.b", mode: 'ya' },
+                    { header: "1.5 Monitoring Implementasi Kurikulum", type: 'textarea', text: "Bagaimana Evaluasi, Pengembangan Profesional, dan Pendampingan pelaksanaan Kurikulum di sekolah Anda?", customSlot: "1.5", mode: 'ya' },
+                    { header: "2. Dokumen KSP", type: 'text', text: "Unggah Dokumen Kurikulum Satuan Pendidikan (Link Lengkap)", isAttachment: true, customSlot: "2", mode: 'ya' },
+                    { type: 'textarea', text: "Jelaskan alasan sekolah belum menyusun KSP sesuai panduan:", mode: 'tidak' }
+                ]
+            }
+        ];
+
+        let currentSectionIndex = 0;
+
+        // --- GLOBAL FUNCTION EXPORTS (FIX REFERENCE ERROR) ---
+        window.navigate = navigate;
+        window.switchSection = switchSection;
+        window.toggleMobileMenu = toggleMobileMenu;
+        window.toggleQuestions = toggleQuestions;
+        window.handleConditional = handleConditional;
+        window.handleSelectWithOther = handleSelectWithOther;
+        window.updateCheckboxValue = updateCheckboxValue;
+        window.calculateProgress = calculateProgress;
+        window.logout = logout;
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Cek Session saat Load
+            if (!checkSession()) {
+                runIntroSequence();
+            } else {
+                // Jika sudah login, hilangkan intro
+                document.getElementById('intro-layer').style.display = 'none';
+                document.getElementById('login-overlay').style.display = 'none';
+            }
+
+            renderSidebar();
+            renderContent();
+            
+            // Load Draft/Data setelah render
+            setTimeout(() => {
+                const npsn = localStorage.getItem('sakti_npsn');
+                if(npsn) {
+                    loadEvaluationData(npsn);
+                }
+                updateNavButtons();
+                calculateProgress();
+            }, 100);
+        });
+
+        // --- CORE FUNCTIONS (COPY PASTE FROM ORIGINAL) ---
+        function renderSidebar() {
+            const menu = document.getElementById('sidebar-menu');
+            const mobileMenu = document.getElementById('mobile-sidebar-menu');
+            let html = '';
+            sections.forEach((sec, idx) => {
+                html += `
+                    <div onclick="switchSection(${idx})" id="menu-item-${idx}" class="sidebar-item cursor-pointer px-6 py-3 flex items-center justify-between text-sm font-medium text-gray-600">
+                        <div class="flex items-center gap-3"><i class="fas ${sec.icon} w-5 text-center"></i><span class="hidden md:inline">${sec.title}</span><span class="md:hidden">${sec.title}</span></div>
+                        <i id="check-${idx}" class="fas fa-check-circle text-green-500 opacity-0 transition"></i>
+                    </div>`;
+            });
+            menu.innerHTML = html;
+            mobileMenu.innerHTML = html;
+            highlightMenu(0);
+        }
+
+        function renderContent() {
+            const container = document.getElementById('content-area');
+            container.innerHTML = '';
+            sections.forEach((sec, idx) => {
+                const hiddenClass = idx === 0 ? '' : 'hidden';
+                let qHtml = '';
+                sec.questions.forEach((q, qIdx) => {
+                    let qObj = typeof q === 'string' ? { type: 'textarea', text: q } : q;
+                    const slotNum = qIdx + 1;
+                    const inputName = `${sec.id}_${slotNum}`;
+                    
+                    if (qObj.header) { qHtml += `<div class="mt-6 mb-4 pb-2 border-b border-gray-200"><h3 class="text-md font-bold text-gray-700 flex items-center gap-2"><i class="fas fa-list-ul text-blue-500"></i> ${qObj.header}</h3></div>`; }
+
+                    let wrapperClass = "mb-6 pb-6 border-b border-gray-100 last:border-0 transition-all duration-300";
+                    if (qObj.hiddenBy) wrapperClass += " hidden bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500";
+                    if (qObj.indent) { wrapperClass += " ml-8 pl-4 border-l-2 border-gray-200"; wrapperClass = wrapperClass.replace("mb-6 pb-6", "mb-4 pb-2"); }
+                    if (qObj.isAttachment) { wrapperClass = wrapperClass.replace("border-b border-gray-100", ""); wrapperClass += " mt-[-10px] bg-gray-50 rounded-r-lg rounded-b-lg pr-4"; }
+                    if (['koku', 'kka', 'pm', 'tka', 'dp', 'asesmen', 'ksp'].includes(sec.id)) {
+                        if (qObj.mode === 'tidak') wrapperClass += " mode-tidak hidden";
+                        else if (qObj.mode === 'ya') wrapperClass += " mode-ya";
+                    }
+
+                    let inputElement = '';
+                    const optionalAttr = qObj.optional ? 'data-optional="true"' : '';
+                    const commonClass = "child-input w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-blue-500 outline-none";
+
+                    if (qObj.type === 'checkbox') {
+                        let checks = '<div class="grid grid-cols-2 md:grid-cols-3 gap-2">';
+                        qObj.options.forEach(opt => {
+                            checks += `<label class="flex items-center space-x-2 cursor-pointer bg-white p-2 rounded border border-gray-200 hover:border-blue-400"><input type="checkbox" class="form-checkbox text-blue-600 rounded focus:ring-blue-500" value="${opt}" onchange="updateCheckboxValue('${inputName}', this, '${qObj.triggerId || ''}')"><span class="text-sm text-gray-700">${opt}</span></label>`;
+                        });
+                        checks += '</div>';
+                        if(qObj.options.includes("Lainnya")) checks += `<input type="text" id="other_text_${inputName}" class="mt-2 w-full bg-gray-50 border border-blue-300 rounded-lg px-3 py-2 text-sm hidden" placeholder="Sebutkan lainnya..." oninput="updateCheckboxValue('${inputName}', null, '${qObj.triggerId || ''}')">`;
+                        inputElement = `<input type="hidden" name="${inputName}" id="${inputName}" class="child-input" ${optionalAttr}>${checks}`;
+                    } else if (qObj.type === 'radio') {
+                        let triggerAttr = qObj.triggerId ? `onchange="handleConditional('${qObj.triggerId}', this.value)"` : `onchange="calculateProgress()"`;
+                        const radioOptions = qObj.options || ["Ya", "Tidak"];
+                        let containerClass = radioOptions.length > 2 ? "grid grid-cols-1 gap-2" : "flex gap-4";
+                        let radiosHtml = `<div class="${containerClass}">`;
+                        radioOptions.forEach(opt => { radiosHtml += `<label class="flex items-start gap-3 cursor-pointer bg-white px-4 py-3 rounded-lg border border-gray-300 hover:border-blue-500 transition shadow-sm"><input type="radio" name="${inputName}" value="${opt}" class="child-input text-blue-600 mt-1" ${triggerAttr} ${optionalAttr}><span class="text-sm font-medium text-gray-700 leading-relaxed">${opt}</span></label>`; });
+                        radiosHtml += `</div>`;
+                        inputElement = radiosHtml;
+                    } else if (qObj.type === 'select') {
+                        let opts = `<option value="">- Pilih -</option>`;
+                        qObj.options.forEach(opt => { opts += `<option value="${opt}">${opt}</option>`; });
+                        let onChange = qObj.triggerId ? `onchange="handleConditional('${qObj.triggerId}', this.value)"` : 'oninput="calculateProgress()"';
+                        inputElement = `<select name="${inputName}" class="${commonClass} h-10" ${onChange} ${optionalAttr}>${opts}</select>`;
+                    } else if (qObj.type === 'select_with_other') {
+                        let opts = `<option value="">- Pilih -</option>`;
+                        qObj.options.forEach(opt => { opts += `<option value="${opt}">${opt}</option>`; });
+                        inputElement = `<select id="sel_${inputName}" class="${commonClass} h-10 mb-2" onchange="handleSelectWithOther('${inputName}', this.value)">${opts}</select><input type="text" id="other_${inputName}" class="w-full bg-gray-50 border border-blue-300 rounded-lg px-3 py-2 text-sm focus:bg-white focus:ring-1 focus:ring-blue-500 outline-none hidden" placeholder="${qObj.placeholder || 'Tuliskan lainnya...'}" oninput="document.getElementById('${inputName}').value = this.value"><input type="hidden" name="${inputName}" id="${inputName}" class="child-input" ${optionalAttr}>`;
+                    } else if (qObj.type === 'textarea') {
+                        inputElement = `<textarea name="${inputName}" class="${commonClass} h-20 resize-none" placeholder="${qObj.placeholder || 'Deskripsi jawaban...'}" oninput="calculateProgress()"></textarea>`;
+                    } else { 
+                        let icon = qObj.isAttachment ? '<i class="fas fa-paperclip absolute right-3 top-3 text-gray-400"></i>' : '';
+                        let inputType = qObj.type === 'number' ? 'number' : 'text';
+                        inputElement = `<div class="relative">${icon}<input type="${inputType}" name="${inputName}" id="${inputName}" class="${commonClass}" placeholder="${qObj.placeholder || 'Jawaban singkat...'}" oninput="calculateProgress()" ${optionalAttr}></div>`;
+                    }
+
+                    let badge = !qObj.isAttachment ? `<span class="bg-gray-100 text-gray-600 font-bold text-xs px-2 py-1 rounded h-fit shadow-sm min-w-[24px] text-center">${qObj.customSlot ? qObj.customSlot : slotNum}</span>` : '';
+                    qHtml += `<div id="wrapper_${inputName}" class="${wrapperClass}" data-trigger-source="${qObj.hiddenBy || ''}" data-show-if="${qObj.showIf || ''}"><div class="flex gap-3 mb-2">${badge}<p class="text-gray-800 font-medium text-sm flex-1">${qObj.text}</p></div><div class="${qObj.isAttachment ? '' : 'pl-0 md:pl-9'}">${inputElement}</div></div>`;
+                });
+
+                const buktiDisplay = (['ksp','pm','kka','tka','dp'].includes(sec.id)) ? 'hidden' : '';
+                qHtml += `<div id="bukti-wrapper-${sec.id}" class="mt-8 pt-6 border-t-2 border-gray-100 ${buktiDisplay}"><h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2"><i class="fas fa-link text-blue-500"></i> Bukti Dukung & Dokumentasi (Maksimal 3 Link)</h3><div class="grid grid-cols-1 gap-3"><div class="relative"><i class="fas fa-link absolute left-3 top-3 text-gray-400 text-xs"></i><input type="url" name="link_${sec.id}_1" class="child-input-opt w-full bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-sm focus:bg-white focus:border-blue-400 outline-none" placeholder="Link Bukti 1 (Google Drive/PDF/Youtube)"></div><div class="relative"><i class="fas fa-link absolute left-3 top-3 text-gray-400 text-xs"></i><input type="url" name="link_${sec.id}_2" class="child-input-opt w-full bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-sm focus:bg-white focus:border-blue-400 outline-none" placeholder="Link Bukti 2 (Opsional)"></div><div class="relative"><i class="fas fa-link absolute left-3 top-3 text-gray-400 text-xs"></i><input type="url" name="link_${sec.id}_3" class="child-input-opt w-full bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-sm focus:bg-white focus:border-blue-400 outline-none" placeholder="Link Bukti 3 (Opsional)"></div></div></div>`;
+                
+                const docDisplay = (['ksp','pm','kka','tka','dp'].includes(sec.id)) ? 'hidden' : '';
+                qHtml += `<div id="doc-wrapper-${sec.id}" class="mt-4 pt-4 border-t border-gray-100 bg-yellow-50 rounded-lg p-4 ${docDisplay}"><label class="block text-sm font-bold text-gray-700 mb-2 flex items-center"><i class="fas fa-folder-open text-yellow-600 mr-2"></i>Unggah Dokumen Program Utama</label><input type="url" name="doc_link_${sec.id}" class="child-input-opt w-full bg-white border border-yellow-300 rounded-lg px-4 py-2 text-sm focus:ring-1 focus:ring-yellow-500 outline-none" placeholder="Link Folder/Dokumen Program (Google Drive)..."></div>`;
+
+                container.innerHTML += `
+                    <div id="section-${idx}" class="${hiddenClass} fade-in">
+                        <div class="mb-6 border-b border-gray-200 pb-4"><h2 class="text-2xl font-bold text-blue-800 flex items-center gap-2"><i class="fas ${sec.icon}"></i> ${sec.title}</h2><p class="text-gray-500 text-sm mt-1">${sec.desc}</p></div>
+                        <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-5 mb-6"><p class="text-indigo-800 text-sm mb-4">${sec.keyQuestion}</p><div class="flex gap-4"><label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-indigo-200 hover:border-blue-500 transition shadow-sm"><input type="radio" name="key_${sec.id}" value="Ya" class="text-blue-600" onchange="toggleQuestions(${idx}, this.value)"><span class="text-sm font-medium text-gray-700">Ya</span></label><label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-indigo-200 hover:border-blue-500 transition shadow-sm"><input type="radio" name="key_${sec.id}" value="Tidak" class="text-blue-600" onchange="toggleQuestions(${idx}, this.value)"><span class="text-sm font-medium text-gray-700">Tidak</span></label></div></div>
+                        <div id="q-wrapper-${idx}" class="hidden transition-all duration-500 ease-in-out overflow-hidden max-h-0"><div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">${qHtml}</div></div>
+                    </div>`;
+            });
+        }
+
+        function updateCheckboxValue(inputName, el, triggerId) {
+            const checkboxes = document.querySelectorAll(`input[onchange^="updateCheckboxValue('${inputName}'"]:checked`);
+            const values = Array.from(checkboxes).map(cb => cb.value);
+            const otherInput = document.getElementById(`other_text_${inputName}`);
+            
+            if(otherInput) {
+                if(values.includes('Lainnya')) { otherInput.classList.remove('hidden'); otherInput.setAttribute('required', 'true'); }
+                else { otherInput.classList.add('hidden'); otherInput.removeAttribute('required'); otherInput.value = ''; }
+            }
+
+            let finalVal = values.join(", ");
+            if(otherInput && !otherInput.classList.contains('hidden') && otherInput.value.trim()) { finalVal = finalVal.replace("Lainnya", "Lainnya: " + otherInput.value); }
+            document.getElementById(inputName).value = finalVal;
+
+            if (triggerId && triggerId !== 'undefined' && triggerId !== '') {
+                const targets = document.querySelectorAll(`[data-trigger-source="${triggerId}"]`);
+                targets.forEach(target => {
+                    if (target.getAttribute('data-show-if') === 'any_checked') {
+                        if (values.length > 0) target.classList.remove('hidden'); else target.classList.add('hidden');
+                    }
+                });
+            }
+            calculateProgress();
+        }
+
+        function handleSelectWithOther(inputName, value) {
+            const otherInput = document.getElementById(`other_${inputName}`);
+            const hiddenInput = document.getElementById(inputName);
+            if (value === 'Lainnya') { otherInput.classList.remove('hidden'); otherInput.setAttribute('required', 'true'); otherInput.focus(); hiddenInput.value = otherInput.value; }
+            else { otherInput.classList.add('hidden'); otherInput.removeAttribute('required'); hiddenInput.value = value; }
+            calculateProgress();
+        }
+
+        function handleConditional(triggerId, value) {
+            const targets = document.querySelectorAll(`[data-trigger-source="${triggerId}"]`);
+            targets.forEach(target => {
+                const showValue = target.getAttribute('data-show-if');
+                const inputs = target.querySelectorAll('input, select, textarea');
+                if (value === showValue) {
+                    target.classList.remove('hidden');
+                } else {
+                    target.classList.add('hidden');
+                    inputs.forEach(input => {
+                        if(input.type === 'radio') input.checked = false; else input.value = '';
+                        if(input.id && input.id.startsWith('other_')) input.classList.add('hidden');
+                    });
+                    target.querySelectorAll('select').forEach(sel => sel.value = '');
+                }
+            });
+            calculateProgress();
+        }
+
+        function switchSection(index) {
+            sections.forEach((_, i) => document.getElementById(`section-${i}`).classList.add('hidden'));
+            document.getElementById(`section-${index}`).classList.remove('hidden');
+            currentSectionIndex = index;
+            highlightMenu(index);
+            updateNavButtons();
+            document.getElementById('main-scroll').scrollTop = 0;
+            document.getElementById('mobile-menu').classList.add('hidden');
+        }
+
+        function highlightMenu(index) {
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`menu-item-${index}`).classList.add('active');
+        }
+
+        function navigate(direction) {
+            const newIndex = currentSectionIndex + direction;
+            if (newIndex >= 0 && newIndex < sections.length) switchSection(newIndex);
+        }
+
+        function updateNavButtons() {
+            const prev = document.getElementById('btnPrev');
+            const next = document.getElementById('btnNext');
+            const submit = document.getElementById('btnSubmit');
+            if (currentSectionIndex === 0) prev.classList.add('hidden'); else prev.classList.remove('hidden');
+            if (currentSectionIndex === sections.length - 1) { next.classList.add('hidden'); submit.classList.remove('hidden'); } else { next.classList.remove('hidden'); submit.classList.add('hidden'); }
+        }
+
+        function toggleQuestions(idx, val) {
+            const wrapper = document.getElementById(`q-wrapper-${idx}`);
+            const sectionId = sections[idx].id;
+            const modeYaItems = wrapper.querySelectorAll('.mode-ya');
+            const modeTidakItems = wrapper.querySelectorAll('.mode-tidak');
+            const buktiWrapper = document.getElementById(`bukti-wrapper-${sectionId}`);
+            const docWrapper = document.getElementById(`doc-wrapper-${sectionId}`);
+
+            if (['koku', 'kka', 'pm', 'tka', 'dp', 'asesmen', 'ksp'].includes(sectionId)) {
+                wrapper.classList.remove('hidden'); wrapper.style.maxHeight = "8000px";
+                wrapper.querySelectorAll('.child-input').forEach(i => i.removeAttribute('required'));
+
+                if (val === 'Ya') {
+                    modeYaItems.forEach(el => { if (!el.getAttribute('data-trigger-source')) el.classList.remove('hidden'); });
+                    modeTidakItems.forEach(el => el.classList.add('hidden'));
+                    if(sectionId === 'koku' || sectionId === 'asesmen') { if(buktiWrapper) buktiWrapper.classList.remove('hidden'); if(docWrapper) docWrapper.classList.remove('hidden'); }
+                    else { if(buktiWrapper) buktiWrapper.classList.add('hidden'); if(docWrapper) docWrapper.classList.add('hidden'); }
+                    modeYaItems.forEach(g => { if(!g.classList.contains('hidden')) g.querySelectorAll('.child-input').forEach(i => i.setAttribute('required', 'true')); });
+                } else {
+                    modeYaItems.forEach(el => el.classList.add('hidden'));
+                    modeTidakItems.forEach(el => el.classList.remove('hidden'));
+                    if(buktiWrapper) { buktiWrapper.classList.add('hidden'); buktiWrapper.querySelectorAll('input').forEach(i => i.value = ''); }
+                    if(docWrapper) { docWrapper.classList.add('hidden'); docWrapper.querySelectorAll('input').forEach(i => i.value = ''); }
+                    modeTidakItems.forEach(g => g.querySelectorAll('.child-input').forEach(i => i.setAttribute('required', 'true')));
+                }
+            } else {
+                const inputs = wrapper.querySelectorAll('.child-input');
+                if (val === 'Ya') {
+                    wrapper.classList.remove('hidden'); wrapper.style.maxHeight = "8000px";
+                    inputs.forEach(inp => { if (!inp.closest('[data-trigger-source]')?.classList.contains('hidden') && !inp.hasAttribute('data-optional')) inp.setAttribute('required', 'true'); });
+                    if(document.getElementById(`bukti-wrapper-${sectionId}`)) document.getElementById(`bukti-wrapper-${sectionId}`).classList.add('hidden');
+                } else {
+                    wrapper.style.maxHeight = "0px"; setTimeout(() => wrapper.classList.add('hidden'), 500);
+                    inputs.forEach(inp => { inp.removeAttribute('required'); inp.value = ''; });
+                }
+            }
+            calculateProgress();
+        }
+
+        function toggleMobileMenu() { document.getElementById('mobile-menu').classList.toggle('hidden'); }
+
+        function calculateProgress() {
+            const form = document.getElementById('evalForm');
+            let totalItems = 2; let completedItems = 0;
+            if (form.nama_responden.value.trim()) completedItems++;
+            if (form.no_wa.value.trim()) completedItems++;
+
+            sections.forEach((sec, idx) => {
+                let sectionTotal = 1; let sectionFilled = 0;
+                let keyRadio = document.querySelector(`input[name="key_${sec.id}"]:checked`);
+                let keyVal = keyRadio ? keyRadio.value : null;
+                
+                if (keyVal) sectionFilled++;
+
+                if (['koku', 'kka', 'pm', 'tka', 'dp', 'asesmen', 'ksp'].includes(sec.id)) {
+                     if (keyVal === 'Ya') {
+                        if (sec.id === 'kka') sectionTotal += 10; else if (sec.id === 'pm') sectionTotal += 13; else if (sec.id === 'tka') sectionTotal += 12; else if (sec.id === 'dp') sectionTotal += 15; else if (sec.id === 'ksp') sectionTotal += 17; else sectionTotal += 11; 
+                     } else if (keyVal === 'Tidak') { if (sec.id === 'kka') sectionTotal += 6; else sectionTotal += 1; }
+                } else {
+                    if (keyVal === 'Ya') sectionTotal += 10; else if (keyVal === 'Tidak') { sectionTotal = 1; sectionFilled = 1; }
+                }
+
+                if (keyVal) {
+                    const container = document.getElementById(`section-${idx}`);
+                    const validInputs = container.querySelectorAll('input.child-input:not([type=hidden]), select.child-input, textarea.child-input, input[type=hidden].child-input');
+                    validInputs.forEach(el => {
+                         if(el.closest('.hidden')) return;
+                         if(el.type === 'radio') { if(el.checked) sectionFilled++; }
+                         else { if(el.value.trim()) sectionFilled++; }
+                    });
+                }
+
+                const checkIcon = document.getElementById(`check-${idx}`);
+                if (keyVal && sectionFilled > 1) checkIcon.classList.remove('opacity-0'); else checkIcon.classList.add('opacity-0');
+                totalItems += sectionTotal; completedItems += sectionFilled;
+            });
+
+            const percent = Math.round((completedItems / totalItems) * 100) || 0;
+            const finalPercent = percent > 100 ? 100 : percent;
+            document.getElementById('global-progress').style.width = `${finalPercent}%`;
+            document.getElementById('global-progress-text').innerText = `${finalPercent}%`;
+        }
+
+        function checkSession() {
+            const storedNPSN = localStorage.getItem('sakti_npsn');
+            if (storedNPSN) {
+                // Restore basic info for immediate UI feedback
+                document.getElementById('schoolNameDisplay').innerText = localStorage.getItem('sakti_nama_sekolah') || 'Loading...';
+                document.getElementById('npsnDisplay').innerText = `NPSN: ${storedNPSN}`;
+                document.getElementById('hidden_npsn').value = storedNPSN;
+                document.getElementById('hidden_nama_sekolah').value = localStorage.getItem('sakti_nama_sekolah') || '';
+                document.getElementById('hidden_sudin').value = localStorage.getItem('sakti_sudin') || '';
+                document.getElementById('wilayahInput').value = localStorage.getItem('sakti_sudin') || '';
+                return true;
+            }
+            return false;
+        }
+
+        function logout() {
+            if(confirm('Apakah Anda yakin ingin keluar?')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        function showModal(type, msg) {
+            const m = document.getElementById('modal'); m.classList.remove('hidden');
+            let html = '';
+            if(type == 'loading') html = '<i class="fas fa-circle-notch fa-spin text-4xl text-blue-500 mb-3"></i><p>'+msg+'</p>';
+            else if(type == 'success') html = '<i class="fas fa-check-circle text-4xl text-green-500 mb-3"></i><p>'+msg+'</p><button onclick="document.getElementById(\'modal\').classList.add(\'hidden\')" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">Tutup</button>';
+            else if(type == 'info') html = '<i class="fas fa-info-circle text-4xl text-blue-400 mb-3"></i><p>'+msg+'</p><button onclick="document.getElementById(\'modal\').classList.add(\'hidden\')" class="mt-4 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm">OK</button>';
+            else html = '<i class="fas fa-times-circle text-4xl text-red-500 mb-3"></i><p class="font-bold text-red-600">Error</p><p>'+msg+'</p><button onclick="document.getElementById(\'modal\').classList.add(\'hidden\')" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg text-sm">Tutup</button>';
+            document.getElementById('modal-content').innerHTML = html;
+        }
+        window.showModal = showModal; // Export showModal
+
+        // --- FIREBASE LOGIC ---
+        
+        // 1. LOGIN
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const npsn = document.getElementById('npsnInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+            const btn = document.getElementById('btnLogin');
+            const err = document.getElementById('loginError');
+
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; err.classList.add('hidden');
+
+            try {
+                const docRef = doc(db, "data_sekolah", npsn);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if(data.password == password) {
+                        // Success
+                        localStorage.setItem('sakti_npsn', data.NPSN);
+                        localStorage.setItem('sakti_nama_sekolah', data.Sekolah);
+                        localStorage.setItem('sakti_sudin', data.Sudin || '');
+                        
+                        document.getElementById('hidden_npsn').value = data.NPSN;
+                        document.getElementById('hidden_nama_sekolah').value = data.Sekolah;
+                        document.getElementById('schoolNameDisplay').innerText = data.Sekolah;
+                        document.getElementById('npsnDisplay').innerText = `NPSN: ${data.NPSN}`;
+                        document.getElementById('wilayahInput').value = data.Sudin || '';
+                        document.getElementById('hidden_sudin').value = data.Sudin || '';
+
+                        // Load data evaluasi yang sudah ada
+                        await loadEvaluationData(npsn);
+
+                        document.getElementById('login-overlay').style.opacity = 0;
+                        setTimeout(() => { document.getElementById('login-overlay').remove(); document.getElementById('intro-layer').remove(); }, 500);
+                    } else {
+                        throw new Error("Password salah");
+                    }
+                } else {
+                    throw new Error("NPSN tidak ditemukan");
+                }
+            } catch (error) {
+                console.error(error);
+                err.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${error.message}`;
+                err.classList.remove('hidden');
+                btn.disabled = false; btn.innerHTML = '<span>Masuk Dashboard</span> <i class="fas fa-arrow-right"></i>';
+            }
+        });
+
+        // 2. SUBMIT
+        document.getElementById('evalForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            showModal('loading', 'Menyimpan ke Database...');
+            const npsn = document.getElementById('hidden_npsn').value;
+            if(!npsn) { showModal('error', 'Sesi habis, silakan login ulang.'); return; }
+
+            const formData = {};
+            const elements = this.elements;
+            for (let i = 0; i < elements.length; i++) {
+                const el = elements[i];
+                if (el.name && !el.disabled) {
+                    if (el.type === 'radio') { if (el.checked) formData[el.name] = el.value; }
+                    else if (el.type === 'checkbox') { /* handled by hidden inputs mostly */ }
+                    else { formData[el.name] = el.value; }
+                }
+            }
+            formData.updatedAt = new Date().toISOString();
+
+            try {
+                await setDoc(doc(db, "evaluasi_sekolah", npsn), formData, { merge: true });
+                showModal('success', 'Data Berhasil Disimpan!');
+            } catch (error) {
+                console.error(error);
+                showModal('error', 'Gagal menyimpan: ' + error.message);
+            }
+        });
+
+        // 3. LOAD DATA
+        async function loadEvaluationData(npsn) {
+            try {
+                const docRef = doc(db, "evaluasi_sekolah", npsn);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    
+                    if(data.nama_responden) document.getElementById('nama_responden').value = data.nama_responden;
+                    if(data.no_wa) document.getElementById('no_wa').value = data.no_wa;
+
+                    // Restore Key Questions First
+                    Object.keys(data).forEach(key => {
+                        if(key.startsWith('key_')) {
+                            const radio = document.querySelector(`input[name="${key}"][value="${data[key]}"]`);
+                            if(radio) {
+                                radio.checked = true;
+                                // Cari index section
+                                const secIdx = sections.findIndex(s => s.id === key.replace('key_', ''));
+                                if(secIdx !== -1) toggleQuestions(secIdx, data[key]);
+                            }
+                        }
+                    });
+
+                    // Restore Others
+                    Object.keys(data).forEach(key => {
+                        if(key.startsWith('key_')) return;
+                        
+                        const el = document.getElementById(key) || document.querySelector(`[name="${key}"]`);
+                        if(el) {
+                            if(el.type === 'radio') {
+                                const radio = document.querySelector(`input[name="${key}"][value="${data[key]}"]`);
+                                if(radio) radio.checked = true;
+                            } else if (el.tagName === 'SELECT') {
+                                const selectEl = document.getElementById('sel_' + key); // Try finding "Select with Other" wrapper
+                                if(selectEl) {
+                                    // It is a select_with_other
+                                    let optExists = [...selectEl.options].some(o => o.value === data[key]);
+                                    if(optExists) {
+                                        selectEl.value = data[key];
+                                        handleSelectWithOther(key, data[key]);
+                                    } else {
+                                        selectEl.value = 'Lainnya';
+                                        handleSelectWithOther(key, 'Lainnya');
+                                        const otherInput = document.getElementById('other_' + key);
+                                        if(otherInput) otherInput.value = data[key];
+                                        document.getElementById(key).value = data[key];
+                                    }
+                                } else {
+                                    // Standard select
+                                    el.value = data[key];
+                                }
+                            } else if (el.type === 'hidden') {
+                                // Checkbox hidden input
+                                el.value = data[key];
+                                const parts = data[key].split(', ');
+                                const checkboxes = document.querySelectorAll(`input[onchange^="updateCheckboxValue('${key}'"]`);
+                                checkboxes.forEach(cb => {
+                                    // Basic check
+                                    if(parts.includes(cb.value)) cb.checked = true;
+                                    // Lainnya check logic
+                                    const otherPart = parts.find(p => p.startsWith('Lainnya: '));
+                                    if(otherPart && cb.value === 'Lainnya') {
+                                        cb.checked = true;
+                                        const otherText = otherPart.replace('Lainnya: ', '');
+                                        const otherInput = document.getElementById(`other_text_${key}`);
+                                        if(otherInput) { otherInput.classList.remove('hidden'); otherInput.value = otherText; }
+                                    }
+                                });
+                            } else {
+                                el.value = data[key];
+                            }
+                            
+                            // Trigger Conditionals based on loaded value
+                            // We do this manually for radio/selects that have triggers
+                            let triggerEl = el.type === 'radio' ? document.querySelector(`input[name="${key}"][value="${data[key]}"]`) : el;
+                            if(triggerEl && triggerEl.getAttribute('onchange') && triggerEl.getAttribute('onchange').includes('handleConditional')) {
+                                const match = triggerEl.getAttribute('onchange').match(/handleConditional\('([^']+)'/);
+                                if(match) handleConditional(match[1], data[key]);
+                            }
+                        }
+                    });
+                    
+                    showModal('info', 'Data sebelumnya berhasil dimuat.');
+                    calculateProgress();
+                }
+            } catch (e) {
+                console.error("Load Error", e);
+            }
+        }
+
+        // --- ANIMATION ---
+        function runIntroSequence() {
+            const introLayer = document.getElementById('intro-layer');
+            const flashLayer = document.getElementById('intro-flash');
+            const loginOverlay = document.getElementById('login-overlay');
+            const subTextContainer = document.getElementById('intro-sub-text');
+            const textToAnimate = "Sistem Asesmen dan Kurikulum Terintegrasi";
+            
+            subTextContainer.innerHTML = textToAnimate.split('').map(char => char === ' ' ? '<span class="intro-char mx-1">&nbsp;</span>' : `<span class="intro-char">${char}</span>`).join('');
+            setTimeout(() => introLayer.classList.add('intro-active'), 300);
+            setTimeout(() => { document.querySelectorAll('.intro-char').forEach((char, index) => setTimeout(() => char.classList.add('animate-bounce-in'), index * 35)); }, 1200);
+            setTimeout(() => {
+                flashLayer.style.opacity = '1';
+                setTimeout(() => {
+                    introLayer.style.display = 'none'; loginOverlay.style.opacity = '1';
+                    flashLayer.style.transition = 'opacity 1.5s ease-out'; flashLayer.style.opacity = '0';
+                    setTimeout(() => flashLayer.remove(), 1500);
+                }, 150);
+            }, 3800);
+        }
+    </script>
+</body>
+</html>
