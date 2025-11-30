@@ -351,10 +351,21 @@
         function renderSidebar() {
             const menu = document.getElementById('sidebar-menu');
             const mobileMenu = document.getElementById('mobile-sidebar-menu');
-            let html = '';
+            
+            // Tambahkan Link Home di sini
+            let html = `
+            <a href="./" class="sidebar-item cursor-pointer px-6 py-3 flex items-center justify-between text-sm font-medium text-gray-600 hover:bg-gray-50 decoration-transparent">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-home w-5 text-center"></i>
+                    <span class="hidden md:inline">Home</span>
+                    <span class="md:hidden">Home</span>
+                </div>
+            </a>`;
+
             sections.forEach((sec, idx) => {
                 html += `<div onclick="switchSection(${idx})" id="menu-item-${idx}" class="sidebar-item cursor-pointer px-6 py-3 flex items-center justify-between text-sm font-medium text-gray-600"><div class="flex items-center gap-3"><i class="fas ${sec.icon} w-5 text-center"></i><span class="hidden md:inline">${sec.title}</span><span class="md:hidden">${sec.title}</span></div><i id="check-${idx}" class="fas fa-check-circle text-green-500 opacity-0 transition"></i></div>`;
             });
+            
             menu.innerHTML = html;
             mobileMenu.innerHTML = html;
             highlightMenu(0);
