@@ -11,71 +11,136 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        
+        /* Scrollbar Halus */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        
+        /* Transisi Sidebar */
         .sidebar-item { transition: all 0.2s; border-left: 3px solid transparent; }
         .sidebar-item.active { background-color: #eff6ff; border-left-color: #2563eb; color: #1e40af; }
         .sidebar-item:hover:not(.active) { background-color: #f9fafb; }
+
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        #intro-layer { position: fixed; inset: 0; background-color: black; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; overflow: hidden; }
-        .intro-text-main { font-size: 6rem; font-weight: 900; letter-spacing: 0.5rem; opacity: 0; background: linear-gradient(to bottom, #ffffff 0%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: blur(10px); transform: scale(1.5); text-shadow: 0 0 30px rgba(255,255,255,0.3); }
-        .intro-active .intro-text-main { animation: cinematicReveal 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
-        @keyframes cinematicReveal { 0% { opacity: 0; filter: blur(20px); transform: scale(1.8); letter-spacing: 1.5rem; } 100% { opacity: 1; filter: blur(0); transform: scale(1); letter-spacing: 0.5rem; } }
-        .intro-text-sub { margin-top: 1.5rem; font-size: 1.25rem; font-weight: 400; color: #cbd5e1; text-align: center; min-height: 30px; display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; }
+
+        /* Intro Animation Layer */
+        #intro-layer {
+            position: fixed; inset: 0; background-color: black; z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: white; overflow: hidden;
+        }
+        .intro-text-main {
+            font-size: 6rem; font-weight: 900; letter-spacing: 0.5rem; opacity: 0;
+            background: linear-gradient(to bottom, #ffffff 0%, #94a3b8 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: blur(10px); transform: scale(1.5);
+            text-shadow: 0 0 30px rgba(255,255,255,0.3);
+        }
+        .intro-active .intro-text-main {
+            animation: cinematicReveal 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+        @keyframes cinematicReveal {
+            0% { opacity: 0; filter: blur(20px); transform: scale(1.8); letter-spacing: 1.5rem; }
+            100% { opacity: 1; filter: blur(0); transform: scale(1); letter-spacing: 0.5rem; }
+        }
+        .intro-text-sub {
+            margin-top: 1.5rem; font-size: 1.25rem; font-weight: 400; color: #cbd5e1;
+            text-align: center; min-height: 30px; display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;
+        }
         .intro-char { display: inline-block; opacity: 0; transform: translateY(20px); }
         .intro-char.animate-bounce-in { animation: bounceInChar 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        @keyframes bounceInChar { 0% { opacity: 0; transform: translateY(30px) scale(0.8); } 60% { opacity: 1; transform: translateY(-10px) scale(1.1); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes bounceInChar {
+            0% { opacity: 0; transform: translateY(30px) scale(0.8); }
+            60% { opacity: 1; transform: translateY(-10px) scale(1.1); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
         #intro-flash { position: fixed; inset: 0; background-color: white; z-index: 10000; opacity: 0; pointer-events: none; }
-        #login-overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background-image: url('https://lh3.googleusercontent.com/d/1k3NhekvpCpZofQOCerTrmx7lMXh-I93g'); background-size: cover; background-position: center; background-repeat: no-repeat; opacity: 0; transition: opacity 1.5s ease-in; }
+
+        /* Login Overlay */
+        #login-overlay { 
+            position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; 
+            background-image: url('https://lh3.googleusercontent.com/d/1k3NhekvpCpZofQOCerTrmx7lMXh-I93g');
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+            opacity: 0; transition: opacity 1.5s ease-in;
+        }
         @media (min-width: 768px) { #login-overlay { justify-content: flex-end; padding-right: 5%; } }
-        .login-card { background-color: rgba(255, 255, 255, 0.25); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.3); color: #1f2937; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); transform: scale(0.98); opacity: 0.9; }
-        .login-card:hover, .login-card:focus-within { background-color: rgba(255, 255, 255, 0.98); backdrop-filter: blur(0); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); transform: scale(1); opacity: 1; border-color: white; }
+        
+        .login-card {
+            background-color: rgba(255, 255, 255, 0.25); backdrop-filter: blur(8px); 
+            border: 1px solid rgba(255, 255, 255, 0.3); color: #1f2937;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: scale(0.98); opacity: 0.9;
+        }
+        .login-card:hover, .login-card:focus-within {
+            background-color: rgba(255, 255, 255, 0.98); backdrop-filter: blur(0);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: scale(1); opacity: 1; border-color: white;
+        }
         .login-input { background-color: rgba(255, 255, 255, 0.7) !important; transition: background-color 0.3s; }
         .login-card:hover .login-input { background-color: #fff !important; }
-        @media (max-width: 768px) { .intro-text-main { font-size: 3.5rem; letter-spacing: 0.2rem; } .intro-text-sub { font-size: 0.9rem; padding: 0 20px; } }
+
+        @media (max-width: 768px) {
+            .intro-text-main { font-size: 3.5rem; letter-spacing: 0.2rem; }
+            .intro-text-sub { font-size: 0.9rem; padding: 0 20px; }
+        }
         
         #draft-indicator {
             position: fixed; bottom: 20px; right: 20px; background-color: rgba(255, 255, 255, 0.9);
-            border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 8px; font-size: 0.75rem;
-            color: #64748b; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); display: flex; align-items: center;
-            gap: 6px; z-index: 50; opacity: 0; transition: opacity 0.5s; pointer-events: none;
+            border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 8px; font-size: 0.75rem; color: #64748b;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 6px; z-index: 50;
+            opacity: 0; transition: opacity 0.5s; pointer-events: none;
         }
         #draft-indicator.visible { opacity: 1; }
     </style>
 </head>
 <body class="h-screen flex overflow-hidden">
 
-    <!-- INTRO -->
+    <!-- INTRO LAYER -->
     <div id="intro-layer">
         <h1 class="intro-text-main">SAKTI</h1>
         <div id="intro-sub-text" class="intro-text-sub"></div>
     </div>
     <div id="intro-flash"></div>
 
-    <!-- LOGIN -->
+    <!-- LOGIN OVERLAY -->
     <div id="login-overlay">
         <div class="login-card p-8 rounded-2xl shadow-xl w-full max-w-sm mx-4 md:mx-0 text-center">
             <img src="https://disdik.jakarta.go.id/static/disdik/images/logo/logo.png" class="w-16 h-16 mx-auto mb-4 object-contain" alt="Logo Disdik">
             <h2 class="text-2xl font-bold text-gray-900 mb-1 drop-shadow-sm">Portal SAKTI</h2>
             <p class="text-gray-800 font-medium text-sm mb-6 drop-shadow-sm">Silakan masuk</p>
+            
             <form id="loginForm" class="space-y-4">
-                <div class="relative group"><input type="text" id="npsnInput" required class="login-input w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-center text-lg font-bold tracking-widest placeholder-gray-500" placeholder="NPSN (Username)"></div>
-                <div class="relative group"><input type="password" id="passwordInput" required class="login-input w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-center text-md font-medium placeholder-gray-500" placeholder="Password"></div>
-                <button type="submit" id="btnLogin" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-lg flex justify-center items-center gap-2 transform hover:scale-[1.02]"><span>Masuk Dashboard</span> <i class="fas fa-arrow-right"></i></button>
-                <div id="loginError" class="text-red-600 bg-red-100/90 p-2 rounded-lg text-sm hidden mt-2 font-semibold border border-red-200"><i class="fas fa-exclamation-circle"></i> NPSN atau Password salah.</div>
+                <div class="relative group">
+                    <input type="text" id="npsnInput" required class="login-input w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-center text-lg font-bold tracking-widest placeholder-gray-500" placeholder="NPSN (Username)">
+                </div>
+                <div class="relative group">
+                    <input type="password" id="passwordInput" required class="login-input w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-center text-md font-medium placeholder-gray-500" placeholder="Password">
+                </div>
+                <button type="submit" id="btnLogin" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-lg flex justify-center items-center gap-2 transform hover:scale-[1.02]">
+                    <span>Masuk Dashboard</span> <i class="fas fa-arrow-right"></i>
+                </button>
+                <div id="loginError" class="text-red-600 bg-red-100/90 p-2 rounded-lg text-sm hidden mt-2 font-semibold border border-red-200">
+                    <i class="fas fa-exclamation-circle"></i> NPSN atau Password salah.
+                </div>
             </form>
         </div>
     </div>
 
-    <!-- SIDEBAR -->
+    <!-- SIDEBAR (DESKTOP) -->
     <aside class="bg-white w-64 flex-shrink-0 border-r border-gray-200 flex flex-col hidden md:flex h-full">
-        <div class="h-16 flex items-center px-6 border-b border-gray-200"><div class="font-bold text-xl text-blue-700 flex items-center gap-2"><i class="fas fa-chart-pie"></i> SAKTI</div></div>
+        <div class="h-16 flex items-center px-6 border-b border-gray-200">
+            <div class="font-bold text-xl text-blue-700 flex items-center gap-2">
+                <i class="fas fa-chart-pie"></i> SAKTI
+            </div>
+        </div>
         <div class="flex-1 overflow-y-auto py-4 space-y-1" id="sidebar-menu"></div>
         <div class="p-4 border-t border-gray-200 bg-gray-50">
             <div class="text-xs font-semibold text-gray-500 uppercase mb-2">Progress Total</div>
-            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-1"><div id="global-progress" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div></div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+                <div id="global-progress" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
             <div class="text-right text-xs text-gray-600 font-bold" id="global-progress-text">0%</div>
         </div>
     </aside>
@@ -84,25 +149,49 @@
     <main class="flex-1 flex flex-col h-full overflow-hidden relative">
         <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:hidden z-10">
             <span class="font-bold text-gray-800">SAKTI Dashboard</span>
-            <button onclick="toggleMobileMenu()" class="text-gray-600 hover:text-blue-600"><i class="fas fa-bars text-xl"></i></button>
+            <button onclick="toggleMobileMenu()" class="text-gray-600 hover:text-blue-600">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
         </header>
 
         <div id="mobile-menu" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden md:hidden" onclick="toggleMobileMenu()">
-            <div class="bg-white w-64 h-full shadow-lg p-4" onclick="event.stopPropagation()"><div class="text-lg font-bold mb-4 border-b pb-2">Menu Evaluasi</div><div id="mobile-sidebar-menu" class="space-y-2"></div></div>
+            <div class="bg-white w-64 h-full shadow-lg p-4" onclick="event.stopPropagation()">
+                <div class="text-lg font-bold mb-4 border-b pb-2">Menu Evaluasi</div>
+                <div id="mobile-sidebar-menu" class="space-y-2"></div>
+            </div>
         </div>
 
         <div class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth" id="main-scroll">
             
+            <!-- STATUS BANNER (Locked/Request Edit) -->
+            <div id="status-banner" class="hidden max-w-4xl mx-auto mb-4 p-4 rounded-xl border flex items-center justify-between shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div id="status-icon" class="w-10 h-10 rounded-full flex items-center justify-center text-white text-lg"></div>
+                    <div>
+                        <h3 id="status-title" class="font-bold text-lg"></h3>
+                        <p id="status-desc" class="text-sm"></p>
+                    </div>
+                </div>
+                <button id="btn-request-edit" onclick="requestEdit()" class="hidden px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-bold text-sm shadow transition">
+                    <i class="fas fa-edit mr-2"></i> Ajukan Perubahan
+                </button>
+            </div>
+
             <form id="evalForm" class="max-w-4xl mx-auto pb-20">
-                <!-- HEADER INFO SEKOLAH SIMPLE -->
+                <!-- Header Info Sekolah -->
                 <div class="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-200 relative">
-                    <button type="button" onclick="logout()" class="absolute top-6 right-6 text-red-500 hover:text-red-700 text-sm font-semibold flex items-center gap-2 transition"><i class="fas fa-sign-out-alt"></i> Keluar</button>
+                    <button type="button" onclick="logout()" class="absolute top-6 right-6 text-red-500 hover:text-red-700 text-sm font-semibold flex items-center gap-2 transition">
+                        <i class="fas fa-sign-out-alt"></i> Keluar
+                    </button>
+
                     <div class="flex justify-between items-start pr-20">
                         <div>
                             <h1 id="schoolNameDisplay" class="text-2xl font-bold text-gray-900">Memuat Data...</h1>
                             <p id="npsnDisplay" class="text-gray-500 font-mono text-sm mt-1">NPSN: -</p>
                         </div>
-                        <div class="text-right hidden md:block"><span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-200">Tahun 2025</span></div>
+                        <div class="text-right hidden md:block">
+                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-200">Tahun 2025</span>
+                        </div>
                     </div>
                     
                     <div class="mt-4 pt-4 border-t border-gray-100">
@@ -121,19 +210,26 @@
                 <div id="content-area"></div>
 
                 <div class="flex justify-between mt-8">
-                    <button type="button" id="btnPrev" onclick="navigate(-1)" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium hidden"><i class="fas fa-arrow-left mr-2"></i> Sebelumnya</button>
-                    <button type="button" id="btnNext" onclick="navigate(1)" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium ml-auto">Selanjutnya <i class="fas fa-arrow-right ml-2"></i></button>
-                    <button type="submit" id="btnSubmit" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium shadow-lg ml-auto hidden"><i class="fas fa-save mr-2"></i> Simpan Permanen ke Database</button>
+                    <button type="button" id="btnPrev" onclick="navigate(-1)" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium hidden">
+                        <i class="fas fa-arrow-left mr-2"></i> Sebelumnya
+                    </button>
+                    <button type="button" id="btnNext" onclick="navigate(1)" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium ml-auto">
+                        Selanjutnya <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                    <button type="submit" id="btnSubmit" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium shadow-lg ml-auto hidden">
+                        <i class="fas fa-save mr-2"></i> Simpan Permanen ke Database
+                    </button>
                 </div>
             </form>
-        </main>
-    </div>
+        </div>
+    </main>
 
     <div id="draft-indicator">
         <i class="fas fa-check-circle text-green-500"></i>
         <span>Data tersimpan (Draft)</span>
     </div>
 
+    <!-- Modal Notifications -->
     <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 z-[100] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl">
             <div id="modal-content"></div>
@@ -144,6 +240,13 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // --- CRITICAL FIX: DEFINISIKAN FUNGSI UI GLOBAL DI AWAL ---
+        // Ini mencegah ReferenceError jika tombol diklik sebelum modul selesai dieksekusi
+        window.toggleMobileMenu = function() {
+            const menu = document.getElementById('mobile-menu');
+            if(menu) menu.classList.toggle('hidden');
+        };
 
         const firebaseConfig = {
             apiKey: "AIzaSyDOYIAjVph2Jwpb0xTSGad1Zlg0DdMlmfU",
@@ -176,7 +279,6 @@
         // GLOBAL EXPORTS
         window.navigate = navigate;
         window.switchSection = switchSection;
-        window.toggleMobileMenu = toggleMobileMenu;
         window.toggleQuestions = toggleQuestions;
         window.handleConditional = handleConditional;
         window.handleSelectWithOther = handleSelectWithOther;
@@ -184,6 +286,7 @@
         window.calculateProgress = calculateProgress;
         window.logout = logout;
         window.saveProfileData = saveProfileData;
+        window.requestEdit = requestEdit;
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!checkSession()) {
@@ -358,7 +461,27 @@
 
         function highlightMenu(index) { document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active')); document.getElementById(`menu-item-${index}`).classList.add('active'); }
         function navigate(direction) { const newIndex = currentSectionIndex + direction; if (newIndex >= 0 && newIndex < sections.length) switchSection(newIndex); }
-        function updateNavButtons() { const prev = document.getElementById('btnPrev'); const next = document.getElementById('btnNext'); const submit = document.getElementById('btnSubmit'); if (currentSectionIndex === 0) prev.classList.add('hidden'); else prev.classList.remove('hidden'); if (currentSectionIndex === sections.length - 1) { next.classList.add('hidden'); submit.classList.remove('hidden'); } else { next.classList.remove('hidden'); submit.classList.add('hidden'); } }
+        function updateNavButtons() { 
+            const prev = document.getElementById('btnPrev'); 
+            const next = document.getElementById('btnNext'); 
+            const submit = document.getElementById('btnSubmit'); 
+            
+            // Periksa status LOCKED
+            const banner = document.getElementById('status-banner');
+            const isLocked = !banner.classList.contains('hidden') && document.getElementById('status-title').innerText === 'Data Terkirim';
+
+            if (currentSectionIndex === 0) prev.classList.add('hidden'); else prev.classList.remove('hidden'); 
+            
+            if (currentSectionIndex === sections.length - 1) { 
+                next.classList.add('hidden'); 
+                // Jika TERKUNCI, sembunyikan tombol simpan
+                if(isLocked) submit.classList.add('hidden'); 
+                else submit.classList.remove('hidden'); 
+            } else { 
+                next.classList.remove('hidden'); 
+                submit.classList.add('hidden'); 
+            } 
+        }
         
         function toggleQuestions(idx, val) {
             const wrapper = document.getElementById(`q-wrapper-${idx}`);
@@ -378,8 +501,6 @@
             }
             calculateProgress();
         }
-
-        function toggleMobileMenu() { document.getElementById('mobile-menu').classList.toggle('hidden'); }
 
         function calculateProgress() {
             const form = document.getElementById('evalForm');
@@ -462,23 +583,72 @@
         // SUBMIT
         document.getElementById('evalForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            if(!confirm("Simpan Permanen? Data tidak dapat diubah kecuali dengan izin Supervisor.")) return;
+            
             showModal('loading', 'Menyimpan ke Database...');
             const npsn = document.getElementById('hidden_npsn').value;
             if(!npsn) { showModal('error', 'Sesi habis, silakan login ulang.'); return; }
             const formData = {};
             const elements = this.elements;
             for (let i = 0; i < elements.length; i++) { const el = elements[i]; if (el.name && !el.disabled) { if (el.type === 'radio') { if (el.checked) formData[el.name] = el.value; } else if (el.type === 'checkbox') { } else { formData[el.name] = el.value; } } }
+            
+            // LOGIKA PENGUNCIAN
+            formData.is_locked = true; 
+            formData.request_edit = false;
             formData.updatedAt = new Date().toISOString();
-            try { await setDoc(doc(db, "evaluasi_sekolah", npsn), formData, { merge: true }); showModal('success', 'Data Berhasil Disimpan!'); } catch (error) { console.error(error); showModal('error', 'Gagal menyimpan: ' + error.message); }
+            formData.submittedAt = new Date().toISOString();
+
+            try { 
+                await setDoc(doc(db, "evaluasi_sekolah", npsn), formData, { merge: true }); 
+                showModal('success', 'Data Berhasil Disimpan Permanen!');
+                loadEvaluationData(npsn); // Reload untuk update UI lock
+            } catch (error) { console.error(error); showModal('error', 'Gagal menyimpan: ' + error.message); }
         });
 
-        // LOAD DATA
+        // LOAD DATA & LOCK LOGIC
         async function loadEvaluationData(npsn) {
             try {
                 const docRef = doc(db, "evaluasi_sekolah", npsn);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     const data = docSnap.data();
+                    
+                    // STATUS BANNER LOGIC
+                    const banner = document.getElementById('status-banner');
+                    const icon = document.getElementById('status-icon');
+                    const title = document.getElementById('status-title');
+                    const desc = document.getElementById('status-desc');
+                    const btnEdit = document.getElementById('btn-request-edit');
+
+                    if (data.is_locked) {
+                        lockForm(true);
+                        banner.classList.remove('hidden');
+                        
+                        if (data.request_edit) {
+                            // Status: Menunggu Approval
+                            banner.className = "max-w-4xl mx-auto mb-4 p-4 rounded-xl border flex items-center justify-between shadow-sm bg-blue-50 border-blue-200";
+                            icon.className = "w-10 h-10 rounded-full flex items-center justify-center text-white text-lg bg-blue-500";
+                            icon.innerHTML = '<i class="fas fa-clock"></i>';
+                            title.innerText = "Menunggu Persetujuan";
+                            title.className = "font-bold text-lg text-blue-800";
+                            desc.innerText = "Pengajuan perubahan data sedang ditinjau oleh Supervisor.";
+                            btnEdit.classList.add('hidden');
+                        } else {
+                            // Status: Terkunci (Sudah Input)
+                            banner.className = "max-w-4xl mx-auto mb-4 p-4 rounded-xl border flex items-center justify-between shadow-sm bg-green-50 border-green-200";
+                            icon.className = "w-10 h-10 rounded-full flex items-center justify-center text-white text-lg bg-green-500";
+                            icon.innerHTML = '<i class="fas fa-check"></i>';
+                            title.innerText = "Data Terkirim";
+                            title.className = "font-bold text-lg text-green-800";
+                            desc.innerText = "Anda sudah melakukan input data. Klik tombol di kanan jika ingin merubah.";
+                            btnEdit.classList.remove('hidden');
+                        }
+                    } else {
+                        lockForm(false);
+                        banner.classList.add('hidden');
+                    }
+
+                    // FILL FORM
                     const nr = document.getElementById('nama_responden');
                     const nw = document.getElementById('no_wa');
                     if(data.nama_responden && nr) nr.value = data.nama_responden;
@@ -508,9 +678,50 @@
                             if(triggerEl && triggerEl.getAttribute('onchange') && triggerEl.getAttribute('onchange').includes('handleConditional')) { const match = triggerEl.getAttribute('onchange').match(/handleConditional\('([^']+)'/); if(match) handleConditional(match[1], data[key]); }
                         }
                     });
-                    showModal('info', 'Data sebelumnya berhasil dimuat.'); calculateProgress();
+                    
+                    if(!data.is_locked) showModal('info', 'Data draft sebelumnya berhasil dimuat.'); 
+                    calculateProgress();
+                    updateNavButtons(); // Update tombol navigasi sesuai status lock
                 }
             } catch (e) { console.error("Load Error", e); }
+        }
+
+        function lockForm(locked) {
+            const form = document.getElementById('evalForm');
+            // Disable all inputs except hidden ones needed for logic
+            const inputs = form.querySelectorAll('input:not([type=hidden]), select, textarea, button[type="submit"]');
+            
+            if (locked) {
+                inputs.forEach(el => {
+                    // Jangan disable tombol navigasi/keluar
+                    if(el.id !== 'btnPrev' && el.id !== 'btnNext' && !el.closest('.absolute')) {
+                        el.disabled = true;
+                        el.classList.add('bg-gray-100', 'cursor-not-allowed');
+                    }
+                });
+            } else {
+                inputs.forEach(el => {
+                    el.disabled = false;
+                    el.classList.remove('bg-gray-100', 'cursor-not-allowed');
+                });
+            }
+        }
+
+        async function requestEdit() {
+            if(!confirm("Apakah Anda yakin ingin mengajukan perubahan data ke Supervisor?")) return;
+            
+            const npsn = document.getElementById('hidden_npsn').value;
+            try {
+                // Update Firestore: request_edit = true
+                await updateDoc(doc(db, "evaluasi_sekolah", npsn), {
+                    request_edit: true
+                });
+                
+                showModal('success', 'Pengajuan berhasil dikirim. Menunggu persetujuan Supervisor.');
+                loadEvaluationData(npsn); // Reload UI
+            } catch(e) {
+                showModal('error', 'Gagal mengajukan: ' + e.message);
+            }
         }
 
         function runIntroSequence() {
