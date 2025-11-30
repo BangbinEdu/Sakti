@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-        <link rel="icon" type="image/x-icon" href="https://disdik.jakarta.go.id/static/disdik/images/logo/logo.png">
+    <link rel="icon" type="image/x-icon" href="https://disdik.jakarta.go.id/static/disdik/images/logo/logo.png">
 
     
     <style>
@@ -24,9 +24,11 @@
         }
 
         .gradient-text {
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            /* Fallback untuk bayangan teks pada gradient agar tetap terbaca */
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
 
         .glass-card {
@@ -48,18 +50,25 @@
             transition: width 1.5s cubic-bezier(0.65, 0, 0.35, 1);
         }
 
-        /* Hero Background Pattern */
+        /* Hero Background Parallax */
         .hero-bg {
-            background-color: #f8fafc;
-            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
-            background-size: 24px 24px;
+            /* Overlay dikurangi transparansinya (0.6 dan 0.8) agar gambar lebih jelas */
+            background-image: linear-gradient(to bottom, rgba(255,255,255,0.60), rgba(255,255,255,0.85)), url('https://disdik.jakarta.go.id/static/disdik/images/disdik/disdik.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed; /* Efek Parallax */
+        }
+        
+        .text-shadow-sm {
+            text-shadow: 0 1px 2px rgba(255,255,255,0.8);
         }
     </style>
 </head>
 <body class="text-gray-800 bg-gray-50">
 
     <!-- NAVBAR -->
-    <nav class="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
+    <nav class="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
                 <div class="flex items-center gap-3">
@@ -87,20 +96,22 @@
     <section id="beranda" class="hero-bg pt-32 pb-20 md:pt-40 md:pb-28 px-4 overflow-hidden relative">
         <div class="max-w-7xl mx-auto">
             <div class="text-center max-w-4xl mx-auto">
-                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider mb-6 fade-in-up">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 backdrop-blur-sm border border-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider mb-6 fade-in-up shadow-sm">
                     <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
                     Portal Evaluasi Pendidikan Dasar
                 </div>
                 
-                <h1 class="text-4xl md:text-6xl font-extrabold text-gray-900 mb-6 leading-tight fade-in-up fade-in-up-delay-1">
+                <h1 class="text-4xl md:text-6xl font-extrabold text-gray-900 mb-6 leading-tight fade-in-up fade-in-up-delay-1 drop-shadow-sm text-shadow-sm">
                     Sistem Asesmen & <br>
                     <span class="gradient-text">Kurikulum Terintegrasi</span>
                 </h1>
                 
                 <!-- MUKADIMAH -->
-                <p class="text-lg md:text-xl text-gray-600 mb-10 leading-relaxed fade-in-up fade-in-up-delay-2 px-4 md:px-12">
-                    Selamat datang di Portal SAKTI. Platform ini hadir sebagai wujud komitmen Dinas Pendidikan Provinsi DKI Jakarta untuk memastikan pemerataan standar kualitas pendidikan. Melalui integrasi data yang transparan, kita memantau implementasi kurikulum dan asesmen secara <i>real-time</i> demi mewujudkan pendidikan tuntas dan berkualitas bagi setiap peserta didik di Jakarta.
-                </p>
+                <div class="relative fade-in-up fade-in-up-delay-2">
+                    <p class="text-lg md:text-xl text-gray-800 mb-10 leading-relaxed px-4 md:px-12 drop-shadow-md font-medium">
+                        Selamat datang di Portal SAKTI. Platform ini hadir sebagai wujud komitmen Dinas Pendidikan Provinsi DKI Jakarta untuk memastikan pemerataan standar kualitas pendidikan. Melalui integrasi data yang transparan, kita memantau implementasi kurikulum dan asesmen secara <i>real-time</i> demi mewujudkan pendidikan tuntas dan berkualitas bagi setiap peserta didik di Jakarta.
+                    </p>
+                </div>
 
                 <div class="flex flex-col sm:flex-row justify-center gap-4 fade-in-up fade-in-up-delay-3" id="akses">
                     <a href="Sekolah2.html" class="group relative px-8 py-4 bg-blue-600 text-white font-bold rounded-xl shadow-xl hover:shadow-2xl hover:bg-blue-700 transition transform hover:-translate-y-1 overflow-hidden">
@@ -111,7 +122,7 @@
                         <div class="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition duration-700"></div>
                     </a>
                     
-                    <a href="Supervisor.html" class="px-8 py-4 bg-white text-gray-700 border border-gray-200 font-bold rounded-xl shadow-sm hover:shadow-md hover:border-blue-300 hover:text-blue-600 transition transform hover:-translate-y-1 flex items-center justify-center gap-3">
+                    <a href="Supervisor.html" class="px-8 py-4 bg-white/95 backdrop-blur-sm text-gray-700 border border-gray-200 font-bold rounded-xl shadow-sm hover:shadow-md hover:border-blue-300 hover:text-blue-600 transition transform hover:-translate-y-1 flex items-center justify-center gap-3">
                         <i class="fa-solid fa-user-tie text-xl"></i>
                         Supervisor
                     </a>
@@ -119,9 +130,9 @@
             </div>
         </div>
         
-        <!-- Decoration Circles -->
-        <div class="absolute top-1/4 left-0 w-64 h-64 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div class="absolute top-1/3 right-0 w-64 h-64 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <!-- Decoration Circles (Opacity dikurangi agar tidak menabrak gambar) -->
+        <div class="absolute top-1/4 left-0 w-64 h-64 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
+        <div class="absolute top-1/3 right-0 w-64 h-64 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
     </section>
 
     <!-- STATS SECTION -->
@@ -221,7 +232,7 @@
             "Jakarta Barat 1", "Jakarta Barat 2",
             "Jakarta Selatan 1", "Jakarta Selatan 2",
             "Jakarta Timur 1", "Jakarta Timur 2",
-            "Kepulauan Seribu Utara", "Kepulauan Seribu Selatan"
+            "Kepulauan Seribu"
         ];
 
         async function fetchStatistics() {
