@@ -20,6 +20,19 @@
         .status-perbaikan { background-color: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
         .status-invalid { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
         .status-waiting { background-color: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
+
+        /* Animasi Glowing untuk Pensil */
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px #fbbf24; transform: scale(1); }
+            50% { box-shadow: 0 0 20px #fbbf24, 0 0 10px #f59e0b; transform: scale(1.1); }
+            100% { box-shadow: 0 0 5px #fbbf24; transform: scale(1); }
+        }
+        .pencil-glow {
+            animation: glow 1.5s infinite;
+            background-color: #f59e0b !important; /* Orange-500 */
+            color: white !important;
+            border: 2px solid #fff;
+        }
     </style>
 </head>
 <body class="h-screen flex overflow-hidden">
@@ -153,7 +166,47 @@
             <!-- VIEW: SEKOLAH -->
             <div id="view-sekolah" class="hidden fade-in">
                 <h1 class="text-2xl font-bold text-gray-800 mb-6">Data Sekolah Binaan</h1>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                
+                <!-- FILTER BAR -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6">
+                    <h3 class="text-sm font-bold text-gray-700 mb-3"><i class="fa-solid fa-filter mr-2 text-blue-500"></i>Filter Data</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <!-- Dropdown Kecamatan -->
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1 font-semibold">Kecamatan</label>
+                            <select id="filter-kecamatan" onchange="resetPageAndRender()" class="w-full px-3 py-2 border rounded-lg text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="">Semua Kecamatan</option>
+                            </select>
+                        </div>
+
+                        <!-- Dropdown Status Input -->
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1 font-semibold">Status Input</label>
+                            <select id="filter-status" onchange="resetPageAndRender()" class="w-full px-3 py-2 border rounded-lg text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="">Semua Status</option>
+                                <option value="sudah">Sudah Input</option>
+                                <option value="belum">Belum Input</option>
+                            </select>
+                        </div>
+
+                        <!-- Dropdown NPSN -->
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1 font-semibold">NPSN</label>
+                            <select id="filter-npsn" onchange="resetPageAndRender()" class="w-full px-3 py-2 border rounded-lg text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="">Semua NPSN</option>
+                            </select>
+                        </div>
+
+                        <!-- Reset Button -->
+                        <div class="flex items-end">
+                            <button onclick="resetFilters()" class="w-full px-4 py-2 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-lg text-sm font-bold transition">
+                                <i class="fa-solid fa-rotate-left mr-1"></i> Reset Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-4">
                     <table class="w-full text-sm text-left">
                         <thead class="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200">
                             <tr>
@@ -161,10 +214,27 @@
                                 <th class="px-6 py-4">Nama Sekolah</th>
                                 <th class="px-6 py-4">Kecamatan</th>
                                 <th class="px-6 py-4">Status Input</th>
+                                <th class="px-6 py-4 text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="tbody-sekolah" class="divide-y divide-gray-100"></tbody>
                     </table>
+                    <div id="empty-sekolah" class="hidden text-center p-8 text-gray-400 italic">
+                        Tidak ada data sekolah yang sesuai filter.
+                    </div>
+                </div>
+
+                <!-- PAGINATION CONTROLS -->
+                <div id="pagination-controls" class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-200 hidden">
+                    <button id="btn-prev" onclick="prevPage()" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-chevron-left mr-1"></i> Sebelumnya
+                    </button>
+                    
+                    <span id="page-info" class="text-sm font-semibold text-gray-700">Halaman 1 dari 1</span>
+                    
+                    <button id="btn-next" onclick="nextPage()" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                        Selanjutnya <i class="fa-solid fa-chevron-right ml-1"></i>
+                    </button>
                 </div>
             </div>
 
@@ -249,6 +319,27 @@
             </div>
         </div>
     </div>
+    
+    <!-- MODAL APPROVAL EDIT (UNLOCK) -->
+    <div id="modal-approve" class="fixed inset-0 z-50 hidden" aria-hidden="true">
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity"></div>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-sm relative z-10 p-6 text-center transform transition-all scale-100">
+                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100 mb-4">
+                    <i class="fa-solid fa-lock-open text-yellow-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Izinkan Edit Data?</h3>
+                <p class="text-sm text-gray-500 mb-6">
+                    Sekolah dengan NPSN <span id="approve-npsn" class="font-bold text-gray-800"></span> meminta izin untuk mengubah data yang sudah disubmit.
+                    <br><br><span class="text-red-500 font-bold text-xs">*Data akan berstatus Draft kembali.</span>
+                </p>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="closeModal('modal-approve')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-bold transition">Batal</button>
+                    <button onclick="confirmUnlock()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-lg transition">Izinkan</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- MODAL NOTIFIKASI -->
     <div id="modal-notif" class="fixed inset-0 z-[60] hidden">
@@ -292,9 +383,13 @@
         let schoolDataCache = []; // Daftar sekolah di wilayah
         let evaluationDataCache = []; // Data inputan sekolah
         let currentDetailNpsn = null;
+        let targetUnlockNPSN = null; // Target untuk approval
+        
+        // --- PAGINATION STATE ---
+        let currentPage = 1;
+        const itemsPerPage = 10;
 
-        // --- KONFIGURASI PERTANYAAN (Disalin dari Sekolah2.html untuk mapping) ---
-        // Hanya structure ringkas untuk mapping ID ke Text
+        // --- KONFIGURASI PERTANYAAN (Simple Mapping) ---
         const sectionConfig = {
             'pm': { title: 'Pembelajaran Mendalam', questions: [
                 {id: '1.1', text: 'Regulasi pelaksanaan pembelajaran mendalam'},
@@ -461,21 +556,20 @@
         async function fetchData() {
             try {
                 // 1. Ambil Data Sekolah di Wilayah ini
-                // Pastikan nama field di database sesuai ('Sudin' dengan huruf besar S sesuai Sekolah2.html dan Admin.html)
                 const schoolsQ = query(collection(db, "data_sekolah"), where("Sudin", "==", currentUser.wilayah));
                 const schoolsSnap = await getDocs(schoolsQ);
                 schoolDataCache = [];
                 schoolsSnap.forEach(doc => schoolDataCache.push({id: doc.id, ...doc.data()}));
 
                 // 2. Ambil Data Evaluasi (Inputan Sekolah)
-                // Sekolah2.html menyimpan field 'sudin' (huruf kecil) di collection evaluasi_sekolah
                 const evalQ = query(collection(db, "evaluasi_sekolah"), where("sudin", "==", currentUser.wilayah));
                 const evalSnap = await getDocs(evalQ);
                 evaluationDataCache = [];
                 evalSnap.forEach(doc => evaluationDataCache.push({id: doc.id, ...doc.data()}));
 
                 updateStats();
-                renderSekolahTable();
+                populateFilters(); 
+                renderSekolahTable(); 
                 renderVerifikasiTable();
 
             } catch (error) {
@@ -486,7 +580,7 @@
 
         function updateStats() {
             const totalSekolah = schoolDataCache.length;
-            const alreadyInput = evaluationDataCache.length; // Jumlah dokumen di evaluasi_sekolah dengan sudin ini
+            const alreadyInput = evaluationDataCache.length; 
 
             let stats = { valid: 0, perbaikan: 0, invalid: 0, waiting: 0 };
             
@@ -508,17 +602,93 @@
             document.getElementById('stat-invalid').innerText = stats.invalid;
         }
 
-        // --- RENDER FUNCTIONS ---
+        // --- FILTER LOGIC ---
 
-        function renderSekolahTable() {
+        function populateFilters() {
+            const uniqueKecamatan = [...new Set(schoolDataCache.map(s => s.Kecamatan).filter(k => k))].sort();
+            
+            const kecSelect = document.getElementById('filter-kecamatan');
+            kecSelect.innerHTML = '<option value="">Semua Kecamatan</option>';
+            uniqueKecamatan.forEach(kec => {
+                const opt = document.createElement('option');
+                opt.value = kec;
+                opt.innerText = kec;
+                kecSelect.appendChild(opt);
+            });
+
+            const npsnSelect = document.getElementById('filter-npsn');
+            npsnSelect.innerHTML = '<option value="">Semua NPSN</option>';
+            const sortedSchools = [...schoolDataCache].sort((a, b) => (a.Sekolah || '').localeCompare(b.Sekolah || ''));
+            sortedSchools.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.NPSN;
+                opt.innerText = `${s.NPSN} - ${s.Sekolah}`;
+                npsnSelect.appendChild(opt);
+            });
+        }
+
+        window.resetPageAndRender = function() {
+            currentPage = 1;
+            renderSekolahTable();
+        }
+
+        window.resetFilters = function() {
+            document.getElementById('filter-kecamatan').value = '';
+            document.getElementById('filter-status').value = '';
+            document.getElementById('filter-npsn').value = '';
+            resetPageAndRender();
+        };
+
+        // --- RENDER TABLE (SEKOLAH + APPROVAL ACTION) ---
+
+        window.renderSekolahTable = function() {
             const tbody = document.getElementById('tbody-sekolah');
+            const emptyMsg = document.getElementById('empty-sekolah');
+            const paginationContainer = document.getElementById('pagination-controls');
             tbody.innerHTML = '';
 
-            schoolDataCache.forEach(sekolah => {
-                // Cek apakah sekolah ini sudah ada di data evaluasi
+            // Get Filter Values
+            const filterKec = document.getElementById('filter-kecamatan').value;
+            const filterStatus = document.getElementById('filter-status').value;
+            const filterNPSN = document.getElementById('filter-npsn').value;
+
+            // Apply Filters
+            const filteredData = schoolDataCache.filter(sekolah => {
+                const evalData = evaluationDataCache.find(e => e.id === sekolah.NPSN);
+                const isSudahInput = !!evalData;
+
+                if(filterKec && sekolah.Kecamatan !== filterKec) return false;
+                if(filterStatus === 'sudah' && !isSudahInput) return false;
+                if(filterStatus === 'belum' && isSudahInput) return false;
+                if(filterNPSN && sekolah.NPSN !== filterNPSN) return false;
+
+                return true;
+            });
+
+            if(filteredData.length === 0) {
+                emptyMsg.classList.remove('hidden');
+                paginationContainer.classList.add('hidden');
+                return;
+            } else {
+                emptyMsg.classList.add('hidden');
+                paginationContainer.classList.remove('hidden');
+            }
+
+            // --- PAGINATION LOGIC ---
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            if(currentPage > totalPages) currentPage = totalPages;
+            if(currentPage < 1) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageData = filteredData.slice(startIndex, endIndex);
+
+            // Render Rows
+            pageData.forEach(sekolah => {
                 const evalData = evaluationDataCache.find(e => e.id === sekolah.NPSN);
                 let statusBadge = '';
-                
+                let actionBtn = '';
+
                 if (evalData) {
                     const status = evalData.status_verifikasi || 'Menunggu Verifikasi';
                     let colorClass = 'bg-gray-100 text-gray-700';
@@ -527,8 +697,22 @@
                     else if(status === 'Tidak Valid') colorClass = 'bg-red-100 text-red-700 font-bold';
                     
                     statusBadge = `<span class="px-2 py-1 rounded text-xs ${colorClass}">${status}</span>`;
+
+                    // LOGIC ACTION BUTTON (Pencil)
+                    if (evalData.request_edit) {
+                        // Jika ada request edit -> Glowing Pencil + OnClick Approve
+                        actionBtn = `<button onclick="openApprovalModal('${sekolah.NPSN}')" class="w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-sm pencil-glow cursor-pointer" title="Permintaan Edit Data"><i class="fa-solid fa-pencil"></i></button>`;
+                    } else if (evalData.is_locked) {
+                        // Jika terkunci -> Grey Pencil
+                        actionBtn = `<button onclick="showNotification('Terkunci', 'Data sudah disubmit final. Tidak ada permintaan edit.', false)" class="w-8 h-8 rounded-full flex items-center justify-center transition-all bg-gray-100 text-gray-400 cursor-not-allowed" title="Data Final"><i class="fa-solid fa-lock"></i></button>`;
+                    } else {
+                        // Jika Draft (belum locked) -> Blue Pencil
+                        actionBtn = `<button onclick="showNotification('Mode Draft', 'Sekolah sedang dalam mode pengisian/draft.', false)" class="w-8 h-8 rounded-full flex items-center justify-center transition-all bg-blue-50 text-blue-500" title="Mode Draft"><i class="fa-solid fa-pen"></i></button>`;
+                    }
+
                 } else {
                     statusBadge = `<span class="px-2 py-1 rounded text-xs bg-red-50 text-red-500 italic">Belum Input</span>`;
+                    actionBtn = `<button class="w-8 h-8 rounded-full flex items-center justify-center bg-gray-50 text-gray-300 cursor-default"><i class="fa-solid fa-minus"></i></button>`;
                 }
 
                 const tr = document.createElement('tr');
@@ -538,10 +722,54 @@
                     <td class="px-6 py-4">${sekolah.Sekolah}</td>
                     <td class="px-6 py-4 text-gray-500">${sekolah.Kecamatan || '-'}</td>
                     <td class="px-6 py-4">${statusBadge}</td>
+                    <td class="px-6 py-4 text-center flex justify-center">${actionBtn}</td>
                 `;
                 tbody.appendChild(tr);
             });
+
+            document.getElementById('page-info').innerText = `Halaman ${currentPage} dari ${totalPages} (Total ${filteredData.length} Data)`;
+            document.getElementById('btn-prev').disabled = currentPage === 1;
+            document.getElementById('btn-next').disabled = currentPage === totalPages;
         }
+
+        window.prevPage = function() {
+            if(currentPage > 1) {
+                currentPage--;
+                renderSekolahTable();
+            }
+        }
+
+        window.nextPage = function() {
+            currentPage++;
+            renderSekolahTable();
+        }
+
+        // --- APPROVAL LOGIC (Request Edit) ---
+        
+        window.openApprovalModal = function(npsn) {
+            targetUnlockNPSN = npsn;
+            document.getElementById('approve-npsn').innerText = npsn;
+            document.getElementById('modal-approve').classList.remove('hidden');
+        };
+
+        window.confirmUnlock = async function() {
+            if(!targetUnlockNPSN) return;
+            
+            try {
+                // UPDATE DB: Unlock Data (Set locked & request to false)
+                await updateDoc(doc(db, "evaluasi_sekolah", targetUnlockNPSN), {
+                    is_locked: false,
+                    request_edit: false
+                });
+                
+                closeModal('modal-approve');
+                showNotification('Berhasil', "Akses edit telah diberikan kepada sekolah.");
+                fetchData(); // Refresh data to update table UI
+            } catch(e) {
+                showNotification('Error', "Gagal melakukan unlock: " + e.message, true);
+            }
+        };
+
 
         window.renderVerifikasiTable = function() {
             const container = document.getElementById('grid-verifikasi');
@@ -603,12 +831,11 @@
             const contentDiv = document.getElementById('detail-content');
             contentDiv.innerHTML = '';
 
-            // Render Questions based on Config
             const sectionKeys = ['pm', 'kka', 'koku', 'tka', 'dp', 'asesmen', 'ksp'];
 
             sectionKeys.forEach(secKey => {
                 const config = sectionConfig[secKey];
-                const keyAnswer = data[`key_${secKey}`]; // Ya / Tidak for the whole section
+                const keyAnswer = data[`key_${secKey}`]; 
                 
                 let html = `
                     <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
@@ -625,21 +852,10 @@
                 `;
 
                 if (keyAnswer === 'Ya') {
-                    // Loop details
                     config.questions.forEach(q => {
-                        // Construct key used in DB (e.g., pm_1, kka_1.2)
-                        // Note: Sekolah2.html uses IDs like 'pm_1', 'pm_1.1' etc. 
-                        // The config IDs above need to match the saved keys mostly.
-                        // Let's try to map dynamically. The saved keys are usually `${secKey}_${q.id}`
-                        
                         let dbKey = `${secKey}_${q.id}`;
-                        // Handling special cases if ID has dots but saving logic uses underscore or raw
-                        // Based on Sekolah2.html logic: name="${sec.id}_${slotNum}" or customSlot.
-                        
-                        // Fallback logic: Try to find value directly
                         let val = data[dbKey];
                         
-                        // Formatting value
                         if(!val) val = '<span class="text-gray-400 italic">- Tidak diisi -</span>';
                         else if(val.startsWith('http')) val = `<a href="${val}" target="_blank" class="text-blue-600 hover:underline truncate block"><i class="fa-solid fa-link mr-1"></i> Buka Tautan</a>`;
 
@@ -680,7 +896,7 @@
 
                 showNotification('Berhasil', 'Penilaian berhasil disimpan.');
                 closeModal('modal-detail');
-                fetchData(); // Refresh table
+                fetchData(); 
             } catch (error) {
                 console.error("Save Error", error);
                 showNotification('Error', 'Gagal menyimpan penilaian: ' + error.message, true);
@@ -695,7 +911,6 @@
                 await updateDoc(doc(db, "users", currentUser.id), { password: newPass });
                 showNotification('Sukses', 'Password berhasil diubah.');
                 document.getElementById('prof-new-pass').value = '';
-                // Update local session
                 currentUser.password = newPass;
                 localStorage.setItem('spv_user', JSON.stringify(currentUser));
             } catch(e) {
@@ -711,13 +926,12 @@
             });
             document.getElementById(`view-${tab}`).classList.remove('hidden');
             document.getElementById(`nav-${tab}`).className = "w-full flex items-center px-4 py-3 text-left rounded-lg transition-all hover:bg-blue-50 bg-blue-50 text-blue-700 font-semibold border-l-4 border-blue-600";
-            
-            // Close mobile menu if open
             document.getElementById('mobile-menu').classList.add('hidden');
         };
 
         window.closeModal = function(id) {
             document.getElementById(id).classList.add('hidden');
+            if(id === 'modal-approve') targetUnlockNPSN = null;
         };
 
         function showNotification(title, msg, isError = false) {
