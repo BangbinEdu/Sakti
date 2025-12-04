@@ -86,13 +86,14 @@
             .intro-text-sub { font-size: 0.9rem; padding: 0 20px; }
         }
         
+        /* CSS INDIKATOR DRAFT */
         #draft-indicator {
-            position: fixed; bottom: 20px; right: 20px; background-color: rgba(255, 255, 255, 0.9);
-            border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 8px; font-size: 0.75rem; color: #64748b;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 6px; z-index: 50;
-            opacity: 0; transition: opacity 0.5s; pointer-events: none;
+            position: fixed; bottom: 20px; right: 20px; background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid #e2e8f0; padding: 10px 16px; border-radius: 50px; font-size: 0.8rem; font-weight: 600; color: #475569;
+            box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 8px; z-index: 50;
+            opacity: 0; transform: translateY(20px); transition: all 0.3s ease-out; pointer-events: none;
         }
-        #draft-indicator.visible { opacity: 1; }
+        #draft-indicator.visible { opacity: 1; transform: translateY(0); }
     </style>
 </head>
 <body class="h-screen flex overflow-hidden">
@@ -131,11 +132,22 @@
     <!-- SIDEBAR (DESKTOP) -->
     <aside class="bg-white w-64 flex-shrink-0 border-r border-gray-200 flex flex-col hidden md:flex h-full">
         <div class="h-16 flex items-center px-6 border-b border-gray-200">
-            <div class="font-bold text-xl text-blue-700 flex items-center gap-2">
+            <a href="./" class="font-bold text-xl text-blue-700 flex items-center gap-2 hover:text-blue-800 transition">
                 <i class="fas fa-chart-pie"></i> SAKTI
-            </div>
+            </a>
         </div>
-        <div class="flex-1 overflow-y-auto py-4 space-y-1" id="sidebar-menu"></div>
+        
+        <!-- MENU HOME ADDED HERE -->
+        <div class="px-3 pt-4">
+             <a href="./" class="sidebar-item cursor-pointer px-6 py-3 flex items-center justify-between text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg decoration-transparent">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-home w-5 text-center"></i>
+                    <span>Home</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="flex-1 overflow-y-auto py-2 space-y-1" id="sidebar-menu"></div>
         <div class="p-4 border-t border-gray-200 bg-gray-50">
             <div class="text-xs font-semibold text-gray-500 uppercase mb-2">Progress Total</div>
             <div class="w-full bg-gray-200 rounded-full h-2.5 mb-1">
@@ -224,6 +236,7 @@
         </div>
     </main>
 
+    <!-- INDIKATOR DRAFT -->
     <div id="draft-indicator">
         <i class="fas fa-check-circle text-green-500"></i>
         <span>Data tersimpan (Draft)</span>
@@ -242,7 +255,6 @@
         import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // --- CRITICAL FIX: DEFINISIKAN FUNGSI UI GLOBAL DI AWAL ---
-        // Ini mencegah ReferenceError jika tombol diklik sebelum modul selesai dieksekusi
         window.toggleMobileMenu = function() {
             const menu = document.getElementById('mobile-menu');
             if(menu) menu.classList.toggle('hidden');
@@ -260,6 +272,67 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         let currentSchoolData = {};
+
+        // --- FITUR AUTO SAVE (DRAFT) ---
+        function debounce(func, timeout = 1500) {
+            let timer;
+            return (...args) => {
+                clearTimeout(timer);
+                timer = setTimeout(() => { func.apply(this, args); }, timeout);
+            };
+        }
+
+        const runAutoSave = debounce(async () => {
+            const npsn = document.getElementById('hidden_npsn').value;
+            // Jangan simpan jika belum login atau jika mode locked aktif
+            const banner = document.getElementById('status-banner');
+            const isLocked = !banner.classList.contains('hidden') && document.getElementById('status-title').innerText === 'Data Terkirim';
+            
+            if (!npsn || isLocked) return;
+
+            const indicator = document.getElementById('draft-indicator');
+            if(indicator) {
+                indicator.innerHTML = '<i class="fas fa-circle-notch fa-spin text-blue-500"></i> <span>Menyimpan Draft...</span>';
+                indicator.classList.add('visible');
+            }
+
+            const formData = {};
+            const form = document.getElementById('evalForm');
+            const elements = form.elements;
+            
+            for (let i = 0; i < elements.length; i++) {
+                const el = elements[i];
+                if (el.name && !el.disabled) {
+                    if (el.type === 'radio') {
+                        if (el.checked) formData[el.name] = el.value;
+                    } else if (el.type === 'checkbox') {
+                        // Value checkbox ditangani logic updateCheckboxValue yg mengisi hidden input,
+                        // kita ambil value dari hidden inputnya saja, bukan checkbox element langsung.
+                    } else {
+                        formData[el.name] = el.value;
+                    }
+                }
+            }
+
+            formData.updatedAt = new Date().toISOString();
+            // PENTING: Jangan set is_locked = true disini
+            
+            try {
+                await setDoc(doc(db, "evaluasi_sekolah", npsn), formData, { merge: true });
+                if(indicator) {
+                    indicator.innerHTML = '<i class="fas fa-check-circle text-green-500"></i> <span>Tersimpan (Draft)</span>';
+                    setTimeout(() => { 
+                        // Cek lagi apakah sedang loading agar tidak menghilangkan loading baru
+                        if(!indicator.innerHTML.includes('fa-spin')) {
+                            indicator.classList.remove('visible'); 
+                        }
+                    }, 3000);
+                }
+            } catch (error) {
+                console.error("Auto-save failed:", error);
+                if(indicator) indicator.innerHTML = '<i class="fas fa-exclamation-circle text-red-500"></i> <span>Gagal Simpan</span>';
+            }
+        });
 
         const mapelOptions = ["Pendidikan Agama Islam dan Budi Pekerti", "Pendidikan Agama Kristen dan Budi Pekerti", "Pendidikan Agama Katolik dan Budi Pekerti", "Pendidikan Agama Buddha dan Budi Pekerti", "Pendidikan Agama Hindu dan Budi Pekerti", "Pendidikan Agama Konghucu dan Budi Pekerti", "Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "Ilmu Pengetahuan Alam dan Sosial", "Pendidikan Jasmani Olahraga dan Kesehatan", "Seni Musik", "Seni Rupa", "Seni Teater", "Seni Tari", "Bahasa Inggris", "Koding dan Kercerdasan Artifisial", "Pendidikan Lingkungan dan Budaya Jakarta", "Lainnya"];
 
@@ -351,21 +424,10 @@
         function renderSidebar() {
             const menu = document.getElementById('sidebar-menu');
             const mobileMenu = document.getElementById('mobile-sidebar-menu');
-            
-            // Tambahkan Link Home di sini
-            let html = `
-            <a href="./" class="sidebar-item cursor-pointer px-6 py-3 flex items-center justify-between text-sm font-medium text-gray-600 hover:bg-gray-50 decoration-transparent">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-home w-5 text-center"></i>
-                    <span class="hidden md:inline">Home</span>
-                    <span class="md:hidden">Home</span>
-                </div>
-            </a>`;
-
+            let html = '';
             sections.forEach((sec, idx) => {
                 html += `<div onclick="switchSection(${idx})" id="menu-item-${idx}" class="sidebar-item cursor-pointer px-6 py-3 flex items-center justify-between text-sm font-medium text-gray-600"><div class="flex items-center gap-3"><i class="fas ${sec.icon} w-5 text-center"></i><span class="hidden md:inline">${sec.title}</span><span class="md:hidden">${sec.title}</span></div><i id="check-${idx}" class="fas fa-check-circle text-green-500 opacity-0 transition"></i></div>`;
             });
-            
             menu.innerHTML = html;
             mobileMenu.innerHTML = html;
             highlightMenu(0);
@@ -424,9 +486,9 @@
                     qHtml += `<div id="wrapper_${inputName}" class="${wrapperClass}" data-trigger-source="${qObj.hiddenBy || ''}" data-show-if="${qObj.showIf || ''}"><div class="flex gap-3 mb-2">${badge}<p class="text-gray-800 font-medium text-sm flex-1">${qObj.text}</p></div><div class="${qObj.isAttachment ? '' : 'pl-0 md:pl-9'}">${inputElement}</div></div>`;
                 });
                 const buktiDisplay = (['ksp','pm','kka','tka','dp'].includes(sec.id)) ? 'hidden' : '';
-                qHtml += `<div id="bukti-wrapper-${sec.id}" class="mt-8 pt-6 border-t-2 border-gray-100 ${buktiDisplay}"><h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2"><i class="fas fa-link text-blue-500"></i> Bukti Dukung & Dokumentasi (Maksimal 3 Link)</h3><div class="grid grid-cols-1 gap-3"><div class="relative"><i class="fas fa-link absolute left-3 top-3 text-gray-400 text-xs"></i><input type="url" name="link_${sec.id}_1" class="child-input-opt w-full bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-sm focus:bg-white focus:border-blue-400 outline-none" placeholder="Link Bukti 1 (Google Drive/PDF/Youtube)"></div><div class="relative"><i class="fas fa-link absolute left-3 top-3 text-gray-400 text-xs"></i><input type="url" name="link_${sec.id}_2" class="child-input-opt w-full bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-sm focus:bg-white focus:border-blue-400 outline-none" placeholder="Link Bukti 2 (Opsional)"></div><div class="relative"><i class="fas fa-link absolute left-3 top-3 text-gray-400 text-xs"></i><input type="url" name="link_${sec.id}_3" class="child-input-opt w-full bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-sm focus:bg-white focus:border-blue-400 outline-none" placeholder="Link Bukti 3 (Opsional)"></div></div></div>`;
+                qHtml += `<div id="bukti-wrapper-${sec.id}" class="mt-8 pt-6 border-t-2 border-gray-100 ${buktiDisplay}"><h3 class="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2"><i class="fas fa-link text-blue-500"></i> Bukti Dukung & Dokumentasi (Maksimal 3 Link)</h3><div class="grid grid-cols-1 gap-3"><div class="relative"><i class="fas fa-link absolute left-3 top-3 text-gray-400 text-xs"></i><input type="url" name="link_${sec.id}_1" class="child-input-opt w-full bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-sm focus:bg-white focus:border-blue-400 outline-none" placeholder="Link Bukti 1 (Google Drive/PDF/Youtube)" oninput="calculateProgress()"></div><div class="relative"><i class="fas fa-link absolute left-3 top-3 text-gray-400 text-xs"></i><input type="url" name="link_${sec.id}_2" class="child-input-opt w-full bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-sm focus:bg-white focus:border-blue-400 outline-none" placeholder="Link Bukti 2 (Opsional)" oninput="calculateProgress()"></div><div class="relative"><i class="fas fa-link absolute left-3 top-3 text-gray-400 text-xs"></i><input type="url" name="link_${sec.id}_3" class="child-input-opt w-full bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-sm focus:bg-white focus:border-blue-400 outline-none" placeholder="Link Bukti 3 (Opsional)" oninput="calculateProgress()"></div></div></div>`;
                 const docDisplay = (['ksp','pm','kka','tka','dp'].includes(sec.id)) ? 'hidden' : '';
-                qHtml += `<div id="doc-wrapper-${sec.id}" class="mt-4 pt-4 border-t border-gray-100 bg-yellow-50 rounded-lg p-4 ${docDisplay}"><label class="block text-sm font-bold text-gray-700 mb-2 flex items-center"><i class="fas fa-folder-open text-yellow-600 mr-2"></i>Unggah Dokumen Program Utama</label><input type="url" name="doc_link_${sec.id}" class="child-input-opt w-full bg-white border border-yellow-300 rounded-lg px-4 py-2 text-sm focus:ring-1 focus:ring-yellow-500 outline-none" placeholder="Link Folder/Dokumen Program (Google Drive)..."></div>`;
+                qHtml += `<div id="doc-wrapper-${sec.id}" class="mt-4 pt-4 border-t border-gray-100 bg-yellow-50 rounded-lg p-4 ${docDisplay}"><label class="block text-sm font-bold text-gray-700 mb-2 flex items-center"><i class="fas fa-folder-open text-yellow-600 mr-2"></i>Unggah Dokumen Program Utama</label><input type="url" name="doc_link_${sec.id}" class="child-input-opt w-full bg-white border border-yellow-300 rounded-lg px-4 py-2 text-sm focus:ring-1 focus:ring-yellow-500 outline-none" placeholder="Link Folder/Dokumen Program (Google Drive)..." oninput="calculateProgress()"></div>`;
                 container.innerHTML += `<div id="section-${idx}" class="${hiddenClass} fade-in"><div class="mb-6 border-b border-gray-200 pb-4"><h2 class="text-2xl font-bold text-blue-800 flex items-center gap-2"><i class="fas ${sec.icon}"></i> ${sec.title}</h2><p class="text-gray-500 text-sm mt-1">${sec.desc}</p></div><div class="bg-indigo-50 border border-indigo-100 rounded-xl p-5 mb-6"><p class="text-indigo-800 text-sm mb-4">${sec.keyQuestion}</p><div class="flex gap-4"><label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-indigo-200 hover:border-blue-500 transition shadow-sm"><input type="radio" name="key_${sec.id}" value="Ya" class="text-blue-600" onchange="toggleQuestions(${idx}, this.value)"><span class="text-sm font-medium text-gray-700">Ya</span></label><label class="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-indigo-200 hover:border-blue-500 transition shadow-sm"><input type="radio" name="key_${sec.id}" value="Tidak" class="text-blue-600" onchange="toggleQuestions(${idx}, this.value)"><span class="text-sm font-medium text-gray-700">Tidak</span></label></div></div><div id="q-wrapper-${idx}" class="hidden transition-all duration-500 ease-in-out overflow-hidden max-h-0"><div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">${qHtml}</div></div></div>`;
             });
         }
@@ -514,6 +576,9 @@
         }
 
         function calculateProgress() {
+            // TRIGGER AUTO SAVE
+            runAutoSave();
+
             const form = document.getElementById('evalForm');
             let totalItems = 2; let completedItems = 0;
             const nr = document.getElementById('nama_responden'); const nw = document.getElementById('no_wa');
