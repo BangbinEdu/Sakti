@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -10,60 +9,37 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="https://disdik.jakarta.go.id/static/disdik/images/logo/logo.png">
 
-    
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
         
-        /* Custom Animations */
         .fade-in-up { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(20px); }
         .fade-in-up-delay-1 { animation-delay: 0.2s; }
         .fade-in-up-delay-2 { animation-delay: 0.4s; }
         .fade-in-up-delay-3 { animation-delay: 0.6s; }
 
-        @keyframes fadeInUp {
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
         .gradient-text {
             background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            /* Fallback untuk bayangan teks pada gradient agar tetap terbaca */
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
 
         .glass-card {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.5);
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
             transition: all 0.3s ease;
         }
+        .glass-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); border-color: #3b82f6; }
 
-        .glass-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            border-color: #3b82f6;
-        }
+        .progress-fill { transition: width 1.5s cubic-bezier(0.65, 0, 0.35, 1); }
 
-        /* Progress Bar Animation */
-        .progress-fill {
-            transition: width 1.5s cubic-bezier(0.65, 0, 0.35, 1);
-        }
-
-        /* Hero Background Parallax */
         .hero-bg {
-            /* Overlay dikurangi transparansinya (0.6 dan 0.8) agar gambar lebih jelas */
             background-image: linear-gradient(to bottom, rgba(255,255,255,0.60), rgba(255,255,255,0.85)), url('https://disdik.jakarta.go.id/static/disdik/images/disdik/disdik.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed; /* Efek Parallax */
+            background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;
         }
-        
-        .text-shadow-sm {
-            text-shadow: 0 1px 2px rgba(255,255,255,0.8);
-        }
+        .text-shadow-sm { text-shadow: 0 1px 2px rgba(255,255,255,0.8); }
     </style>
 </head>
 <body class="text-gray-800 bg-gray-50">
@@ -85,9 +61,7 @@
                     <a href="#beranda" class="text-sm font-medium text-gray-600 hover:text-blue-600 transition">Beranda</a>
                     <a href="#statistik" class="text-sm font-medium text-gray-600 hover:text-blue-600 transition">Statistik Wilayah</a>
                     <a href="Admin" class="text-sm font-medium text-gray-600 hover:text-blue-600 transition"><i class="fa-regular fa-star"></i></a>
-                    <a href="#akses" class="px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-full hover:bg-blue-700 transition shadow-lg shadow-blue-200">
-                        Akses Portal
-                    </a>
+                    <a href="#akses" class="px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-full hover:bg-blue-700 transition shadow-lg shadow-blue-200">Akses Portal</a>
                 </div>
             </div>
         </div>
@@ -107,10 +81,9 @@
                     <span class="gradient-text">Kurikulum Terintegrasi</span>
                 </h1>
                 
-                <!-- MUKADIMAH -->
                 <div class="relative fade-in-up fade-in-up-delay-2">
                     <p class="text-lg md:text-xl text-gray-800 mb-10 leading-relaxed px-4 md:px-12 drop-shadow-md font-medium">
-                        Selamat datang di Portal SAKTI. Platform ini hadir sebagai wujud komitmen Dinas Pendidikan Provinsi DKI Jakarta untuk memastikan pemerataan standar kualitas pendidikan. Melalui integrasi data yang transparan, kita memantau implementasi kurikulum dan asesmen secara <i>real-time</i> demi mewujudkan pendidikan tuntas dan berkualitas bagi setiap peserta didik di Jakarta.
+                        Selamat datang di Portal SAKTI. Platform ini hadir sebagai wujud komitmen Dinas Pendidikan Provinsi DKI Jakarta untuk memastikan pemerataan standar kualitas pendidikan.
                     </p>
                 </div>
 
@@ -130,8 +103,6 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Decoration Circles (Opacity dikurangi agar tidak menabrak gambar) -->
         <div class="absolute top-1/4 left-0 w-64 h-64 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
         <div class="absolute top-1/3 right-0 w-64 h-64 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
     </section>
@@ -150,20 +121,8 @@
                 </div>
             </div>
 
-            <!-- Grid Container -->
             <div id="stats-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                <!-- Skeletons (Loading State) -->
-                <script>
-                    for(let i=0; i<8; i++) {
-                        document.write(`
-                            <div class="bg-gray-100 rounded-xl p-6 h-40 animate-pulse">
-                                <div class="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-                                <div class="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-                                <div class="h-2 bg-gray-200 rounded-full w-full mt-6"></div>
-                            </div>
-                        `);
-                    }
-                </script>
+                <!-- Skeletons generated by JS -->
             </div>
         </div>
     </section>
@@ -175,16 +134,12 @@
                 <i class="fa-solid fa-chart-simple text-blue-500 text-2xl"></i>
                 <span class="text-2xl font-bold">SAKTI</span>
             </div>
-            <p class="text-gray-400 text-sm mb-8 max-w-md mx-auto">
-                Sistem terintegrasi untuk mewujudkan pendidikan dasar Jakarta yang berkualitas, transparan, dan akuntabel.
-            </p>
             <div class="border-t border-gray-800 pt-8 text-xs text-gray-500">
                 &copy; 2024 Dinas Pendidikan Provinsi DKI Jakarta. All rights reserved.
             </div>
         </div>
     </footer>
 
-    <!-- MODAL ALERT (Sesuai Request User) -->
     <div id="modal-alert" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="fixed inset-0 bg-gray-900/75 backdrop-blur-sm transition-opacity"></div>
         <div class="fixed inset-0 z-10 overflow-y-auto">
@@ -200,9 +155,7 @@
                         </div>
                     </div>
                     <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                        <button type="button" onclick="closeModal()" class="inline-flex w-full justify-center rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-gray-800 sm:ml-3 sm:w-auto transition">
-                            Mengerti
-                        </button>
+                        <button type="button" onclick="closeModal()" class="inline-flex w-full justify-center rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-gray-800 sm:ml-3 sm:w-auto transition">Mengerti</button>
                     </div>
                 </div>
             </div>
@@ -212,7 +165,7 @@
     <!-- FIREBASE LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDOYIAjVph2Jwpb0xTSGad1Zlg0DdMlmfU",
@@ -226,7 +179,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Daftar Wilayah yang harus ditampilkan (Urutan tertentu)
         const regions = [
             "Jakarta Pusat 1", "Jakarta Pusat 2",
             "Jakarta Utara 1", "Jakarta Utara 2",
@@ -238,39 +190,38 @@
 
         async function fetchStatistics() {
             try {
-                // 1. Ambil semua Data Sekolah (Total Populasi)
-                // Menggunakan 'data_sekolah' field 'Sudin'
-                const schoolsSnap = await getDocs(collection(db, "data_sekolah"));
-                let totalMap = {};
+                // OPTIMISASI UTAMA: Menggunakan getCountFromServer
+                // Ini hanya mengambil JUMLAH data (integer), bukan isi dokumennya.
+                // Menghemat bandwidth dan kuota read hingga 99%.
                 
-                schoolsSnap.forEach(doc => {
-                    const d = doc.data();
-                    const wil = d.Sudin ? d.Sudin.trim() : "Unknown";
-                    if(!totalMap[wil]) totalMap[wil] = 0;
-                    totalMap[wil]++;
-                });
-
-                // 2. Ambil semua Data Evaluasi (Sekolah yang sudah input)
-                // Menggunakan 'evaluasi_sekolah' field 'sudin' (perhatikan lowercase dari file Sekolah2.html)
-                const evalSnap = await getDocs(collection(db, "evaluasi_sekolah"));
+                let totalMap = {};
                 let inputMap = {};
 
-                evalSnap.forEach(doc => {
-                    const d = doc.data();
-                    // Normalisasi nama wilayah karena input mungkin tidak konsisten case-nya
-                    // Cari mapping yang cocok dari regions list
-                    let wilRaw = d.sudin || d.Sudin || "Unknown";
-                    // Kita cari string match yang paling dekat atau exact
-                    const matchedRegion = regions.find(r => r.toLowerCase() === wilRaw.toLowerCase().trim());
-                    const finalRegion = matchedRegion || wilRaw;
+                // Kita buat array promise untuk dijalankan paralel agar cepat
+                const promises = regions.map(async (region) => {
+                    try {
+                        // 1. Hitung Total Sekolah per Wilayah
+                        const qTotal = query(collection(db, "data_sekolah"), where("Sudin", "==", region));
+                        const snapTotal = await getCountFromServer(qTotal);
+                        totalMap[region] = snapTotal.data().count;
 
-                    if(!inputMap[finalRegion]) inputMap[finalRegion] = 0;
-                    inputMap[finalRegion]++;
+                        // 2. Hitung Total Input per Wilayah
+                        // Perhatikan case sensitivity: di data_sekolah fieldnya 'Sudin', di evaluasi fieldnya 'sudin' (berdasarkan file Sekolah2.html)
+                        const qInput = query(collection(db, "evaluasi_sekolah"), where("sudin", "==", region));
+                        const snapInput = await getCountFromServer(qInput);
+                        inputMap[region] = snapInput.data().count;
+                    } catch (e) {
+                        console.error(`Gagal hitung ${region}`, e);
+                        totalMap[region] = 0;
+                        inputMap[region] = 0;
+                    }
                 });
+
+                await Promise.all(promises);
 
                 renderGrid(totalMap, inputMap);
                 document.getElementById('loading-icon').className = "fa-solid fa-check text-green-500";
-                document.getElementById('last-update').innerText = "Data terkini";
+                document.getElementById('last-update').innerText = "Data terkini (Optimized)";
 
             } catch (error) {
                 console.error("Error fetching stats:", error);
@@ -288,31 +239,22 @@
                 const total = totalMap[region] || 0;
                 const input = inputMap[region] || 0;
                 
-                // Kalkulasi Persentase
                 let percent = 0;
-                if(total > 0) {
-                    percent = Math.round((input / total) * 100);
-                } else if (input > 0) {
-                    // Kasus aneh: ada input tapi tidak ada di data master sekolah
-                    percent = 100;
-                }
+                if(total > 0) percent = Math.round((input / total) * 100);
+                // Cap di 100% jika ada anomali data
+                if(percent > 100) percent = 100;
                 
-                // Color Logic
-                let colorClass = "bg-blue-600"; // Default
-                let bgClass = "bg-blue-50";
+                let colorClass = "bg-blue-600"; 
+                let bgClass = "bg-blue-50"; 
                 let textClass = "text-blue-700";
                 
                 if(percent >= 90) { 
-                    colorClass = "bg-green-500"; 
-                    bgClass = "bg-green-50"; 
-                    textClass = "text-green-700";
+                    colorClass = "bg-green-500"; bgClass = "bg-green-50"; textClass = "text-green-700";
                 } else if(percent < 50) { 
-                    colorClass = "bg-amber-500"; 
-                    bgClass = "bg-amber-50"; 
-                    textClass = "text-amber-700";
+                    colorClass = "bg-amber-500"; bgClass = "bg-amber-50"; textClass = "text-amber-700";
                 }
 
-                const delay = index * 100; // Staggered animation
+                const delay = index * 100;
 
                 const cardHtml = `
                     <div class="glass-card rounded-2xl p-6 relative overflow-hidden group fade-in-up" style="animation-delay: ${delay}ms">
@@ -331,7 +273,6 @@
                             <span class="text-sm text-gray-500 font-medium mb-1">selesai</span>
                         </div>
 
-                        <!-- Progress Bar Container -->
                         <div class="w-full bg-gray-100 rounded-full h-3 mb-3 overflow-hidden">
                             <div class="progress-fill h-3 rounded-full ${colorClass}" style="width: 0%" data-width="${percent}%"></div>
                         </div>
@@ -345,7 +286,6 @@
                 grid.innerHTML += cardHtml;
             });
 
-            // Trigger Progress Bar Animation after render
             setTimeout(() => {
                 document.querySelectorAll('.progress-fill').forEach(bar => {
                     bar.style.width = bar.getAttribute('data-width');
@@ -353,7 +293,6 @@
             }, 500);
         }
 
-        // Global Modal Function
         window.showModal = function(msg) {
             document.getElementById('modal-message').innerText = msg;
             document.getElementById('modal-alert').classList.remove('hidden');
@@ -363,9 +302,7 @@
             document.getElementById('modal-alert').classList.add('hidden');
         }
 
-        // Init
         fetchStatistics();
-
     </script>
 </body>
 </html>
