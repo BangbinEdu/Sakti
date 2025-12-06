@@ -10,19 +10,19 @@
     <link rel="icon" type="image/x-icon" href="https://disdik.jakarta.go.id/static/disdik/images/logo/logo.png">    
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Status Badge Colors */
         .status-valid { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
         .status-perbaikan { background-color: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
         .status-invalid { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
         .status-waiting { background-color: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
 
-        /* Animasi Glowing untuk Pensil */
         @keyframes glow {
             0% { box-shadow: 0 0 5px #fbbf24; transform: scale(1); }
             50% { box-shadow: 0 0 20px #fbbf24, 0 0 10px #f59e0b; transform: scale(1.1); }
@@ -30,7 +30,7 @@
         }
         .pencil-glow {
             animation: glow 1.5s infinite;
-            background-color: #f59e0b !important; /* Orange-500 */
+            background-color: #f59e0b !important;
             color: white !important;
             border: 2px solid #fff;
         }
@@ -137,16 +137,20 @@
                     </div>
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-indigo-100">
                         <div class="text-sm text-gray-500 font-medium uppercase mb-1">Total Sekolah</div>
-                        <div id="dash-total-sekolah" class="text-4xl font-bold text-indigo-600">0</div>
+                        <div id="dash-total-sekolah" class="text-4xl font-bold text-indigo-600">
+                            <i class="fa-solid fa-spinner fa-spin text-2xl"></i>
+                        </div>
                     </div>
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-green-100">
                         <div class="text-sm text-gray-500 font-medium uppercase mb-1">Sudah Input Data</div>
-                        <div id="dash-total-input" class="text-4xl font-bold text-green-600">0</div>
+                        <div id="dash-total-input" class="text-4xl font-bold text-green-600">
+                            <i class="fa-solid fa-spinner fa-spin text-2xl"></i>
+                        </div>
                     </div>
                 </div>
 
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h3 class="font-bold text-gray-800 mb-4">Statistik Verifikasi</h3>
+                    <h3 class="font-bold text-gray-800 mb-4">Statistik Verifikasi (Realtime Count)</h3>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                         <div class="p-4 bg-gray-50 rounded-lg">
                             <div id="stat-waiting" class="text-2xl font-bold text-gray-600">0</div>
@@ -170,43 +174,28 @@
 
             <!-- VIEW: SEKOLAH -->
             <div id="view-sekolah" class="hidden fade-in">
-                <h1 class="text-2xl font-bold text-gray-800 mb-6">Data Sekolah Binaan</h1>
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold text-gray-800">Data Sekolah Binaan</h1>
+                    <button onclick="forceRefreshData()" class="text-sm bg-blue-50 text-blue-600 px-3 py-1.5 rounded hover:bg-blue-100 transition"><i class="fa-solid fa-sync mr-1"></i> Refresh Data</button>
+                </div>
                 
-                <!-- FILTER BAR -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6">
                     <h3 class="text-sm font-bold text-gray-700 mb-3"><i class="fa-solid fa-filter mr-2 text-blue-500"></i>Filter Data</h3>
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <!-- Dropdown Kecamatan -->
                         <div>
                             <label class="block text-xs text-gray-500 mb-1 font-semibold">Kecamatan</label>
-                            <select id="filter-kecamatan" onchange="resetPageAndRender()" class="w-full px-3 py-2 border rounded-lg text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="">Semua Kecamatan</option>
-                            </select>
+                            <select id="filter-kecamatan" onchange="resetPageAndRender()" class="w-full px-3 py-2 border rounded-lg text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"><option value="">Semua Kecamatan</option></select>
                         </div>
-
-                        <!-- Dropdown Status Input -->
                         <div>
                             <label class="block text-xs text-gray-500 mb-1 font-semibold">Status Input</label>
-                            <select id="filter-status" onchange="resetPageAndRender()" class="w-full px-3 py-2 border rounded-lg text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="">Semua Status</option>
-                                <option value="sudah">Sudah Input</option>
-                                <option value="belum">Belum Input</option>
-                            </select>
+                            <select id="filter-status" onchange="resetPageAndRender()" class="w-full px-3 py-2 border rounded-lg text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"><option value="">Semua Status</option><option value="sudah">Sudah Input</option><option value="belum">Belum Input</option></select>
                         </div>
-
-                        <!-- Dropdown NPSN -->
                         <div>
                             <label class="block text-xs text-gray-500 mb-1 font-semibold">NPSN</label>
-                            <select id="filter-npsn" onchange="resetPageAndRender()" class="w-full px-3 py-2 border rounded-lg text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="">Semua NPSN</option>
-                            </select>
+                            <select id="filter-npsn" onchange="resetPageAndRender()" class="w-full px-3 py-2 border rounded-lg text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none"><option value="">Semua NPSN</option></select>
                         </div>
-
-                        <!-- Reset Button -->
                         <div class="flex items-end">
-                            <button onclick="resetFilters()" class="w-full px-4 py-2 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-lg text-sm font-bold transition">
-                                <i class="fa-solid fa-rotate-left mr-1"></i> Reset Filter
-                            </button>
+                            <button onclick="resetFilters()" class="w-full px-4 py-2 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-lg text-sm font-bold transition"><i class="fa-solid fa-rotate-left mr-1"></i> Reset Filter</button>
                         </div>
                     </div>
                 </div>
@@ -214,32 +203,18 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-4">
                     <table class="w-full text-sm text-left">
                         <thead class="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200">
-                            <tr>
-                                <th class="px-6 py-4">NPSN</th>
-                                <th class="px-6 py-4">Nama Sekolah</th>
-                                <th class="px-6 py-4">Kecamatan</th>
-                                <th class="px-6 py-4">Status Input</th>
-                                <th class="px-6 py-4 text-center">Aksi</th>
-                            </tr>
+                            <tr><th class="px-6 py-4">NPSN</th><th class="px-6 py-4">Nama Sekolah</th><th class="px-6 py-4">Kecamatan</th><th class="px-6 py-4">Status Input</th><th class="px-6 py-4 text-center">Aksi</th></tr>
                         </thead>
                         <tbody id="tbody-sekolah" class="divide-y divide-gray-100"></tbody>
                     </table>
-                    <div id="empty-sekolah" class="hidden text-center p-8 text-gray-400 italic">
-                        Tidak ada data sekolah yang sesuai filter.
-                    </div>
+                    <div id="empty-sekolah" class="hidden text-center p-8 text-gray-400 italic">Tidak ada data sekolah yang sesuai filter.</div>
+                    <div id="loading-table" class="hidden text-center p-8 text-blue-500"><i class="fa-solid fa-circle-notch fa-spin text-2xl"></i><p class="mt-2">Memuat data sekolah...</p></div>
                 </div>
 
-                <!-- PAGINATION CONTROLS -->
                 <div id="pagination-controls" class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-200 hidden">
-                    <button id="btn-prev" onclick="prevPage()" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">
-                        <i class="fa-solid fa-chevron-left mr-1"></i> Sebelumnya
-                    </button>
-                    
+                    <button id="btn-prev" onclick="prevPage()" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"><i class="fa-solid fa-chevron-left mr-1"></i> Sebelumnya</button>
                     <span id="page-info" class="text-sm font-semibold text-gray-700">Halaman 1 dari 1</span>
-                    
-                    <button id="btn-next" onclick="nextPage()" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">
-                        Selanjutnya <i class="fa-solid fa-chevron-right ml-1"></i>
-                    </button>
+                    <button id="btn-next" onclick="nextPage()" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">Selanjutnya <i class="fa-solid fa-chevron-right ml-1"></i></button>
                 </div>
             </div>
 
@@ -249,29 +224,18 @@
                 <div class="mb-4">
                     <input type="text" id="search-verif" onkeyup="renderVerifikasiTable()" placeholder="Cari Nama Sekolah..." class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
-                <div class="grid grid-cols-1 gap-4" id="grid-verifikasi">
-                    <!-- Cards injected via JS -->
-                </div>
+                <div class="grid grid-cols-1 gap-4" id="grid-verifikasi"></div>
             </div>
 
             <!-- VIEW: PROFIL -->
             <div id="view-profil" class="hidden fade-in">
                 <h1 class="text-2xl font-bold text-gray-800 mb-6">Profil Supervisor</h1>
                 <div class="max-w-xl bg-white p-8 rounded-xl shadow-sm border border-gray-200">
-                    <div class="mb-6">
-                        <label class="block text-sm font-semibold text-gray-600 mb-1">Username</label>
-                        <input type="text" id="prof-username" readonly class="w-full px-4 py-2 bg-gray-100 border rounded-lg text-gray-500 cursor-not-allowed">
-                    </div>
-                    <div class="mb-6">
-                        <label class="block text-sm font-semibold text-gray-600 mb-1">Wilayah Tugas</label>
-                        <input type="text" id="prof-wilayah" readonly class="w-full px-4 py-2 bg-gray-100 border rounded-lg text-gray-500 cursor-not-allowed">
-                    </div>
+                    <div class="mb-6"><label class="block text-sm font-semibold text-gray-600 mb-1">Username</label><input type="text" id="prof-username" readonly class="w-full px-4 py-2 bg-gray-100 border rounded-lg text-gray-500 cursor-not-allowed"></div>
+                    <div class="mb-6"><label class="block text-sm font-semibold text-gray-600 mb-1">Wilayah Tugas</label><input type="text" id="prof-wilayah" readonly class="w-full px-4 py-2 bg-gray-100 border rounded-lg text-gray-500 cursor-not-allowed"></div>
                     <hr class="border-gray-100 my-6">
                     <h3 class="font-bold text-gray-800 mb-4">Ganti Password</h3>
-                    <div class="mb-4">
-                        <label class="block text-sm font-semibold text-gray-600 mb-1">Password Baru</label>
-                        <input type="password" id="prof-new-pass" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
+                    <div class="mb-4"><label class="block text-sm font-semibold text-gray-600 mb-1">Password Baru</label><input type="password" id="prof-new-pass" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></div>
                     <button onclick="updatePassword()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition">Simpan Perubahan</button>
                 </div>
             </div>
@@ -279,86 +243,47 @@
         </div>
     </main>
 
-    <!-- MODAL DETAIL PENILAIAN -->
+    <!-- MODAL DETAIL & APPROVAL -->
     <div id="modal-detail" class="fixed inset-0 z-50 hidden" aria-hidden="true">
         <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="closeModal('modal-detail')"></div>
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl relative z-10 flex flex-col max-h-[90vh]">
-                <!-- Header -->
                 <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-xl">
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-800" id="detail-sekolah-nama">Nama Sekolah</h3>
-                        <p class="text-xs text-gray-500" id="detail-sekolah-npsn">NPSN: -</p>
-                    </div>
+                    <div><h3 class="text-lg font-bold text-gray-800" id="detail-sekolah-nama">Nama Sekolah</h3><p class="text-xs text-gray-500" id="detail-sekolah-npsn">NPSN: -</p></div>
                     <button onclick="closeModal('modal-detail')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-2xl"></i></button>
                 </div>
-                
-                <!-- Content (Scrollable) -->
-                <div class="flex-1 overflow-y-auto p-6 bg-gray-50 custom-scrollbar">
-                    <div id="detail-content" class="space-y-6">
-                        <!-- Questions & Answers injected here -->
-                    </div>
-                </div>
-
-                <!-- Footer (Actions) -->
+                <div class="flex-1 overflow-y-auto p-6 bg-gray-50 custom-scrollbar"><div id="detail-content" class="space-y-6"></div></div>
                 <div class="px-6 py-4 border-t border-gray-200 bg-white rounded-b-xl shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
                     <div class="flex flex-col md:flex-row gap-4 items-end md:items-center justify-between">
-                        <div class="w-full md:w-2/3">
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Catatan Supervisor</label>
-                            <textarea id="penilaian-catatan" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Tuliskan catatan perbaikan atau apresiasi..."></textarea>
-                        </div>
-                        <div class="w-full md:w-1/3 flex flex-col gap-2">
-                            <label class="block text-xs font-bold text-gray-500 uppercase">Keputusan</label>
-                            <select id="penilaian-status" class="w-full px-4 py-2 border border-gray-300 rounded-lg font-bold text-sm outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="">-- Pilih Status --</option>
-                                <option value="Valid" class="text-green-600">Valid (Disetujui)</option>
-                                <option value="Perlu Perbaikan" class="text-yellow-600">Perlu Perbaikan</option>
-                                <option value="Tidak Valid" class="text-red-600">Tidak Valid</option>
-                            </select>
-                            <button onclick="savePenilaian()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg shadow-sm">
-                                <i class="fa-solid fa-save mr-2"></i> Simpan Penilaian
-                            </button>
-                        </div>
+                        <div class="w-full md:w-2/3"><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Catatan Supervisor</label><textarea id="penilaian-catatan" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Tuliskan catatan perbaikan atau apresiasi..."></textarea></div>
+                        <div class="w-full md:w-1/3 flex flex-col gap-2"><label class="block text-xs font-bold text-gray-500 uppercase">Keputusan</label><select id="penilaian-status" class="w-full px-4 py-2 border border-gray-300 rounded-lg font-bold text-sm outline-none focus:ring-2 focus:ring-blue-500"><option value="">-- Pilih Status --</option><option value="Valid" class="text-green-600">Valid (Disetujui)</option><option value="Perlu Perbaikan" class="text-yellow-600">Perlu Perbaikan</option><option value="Tidak Valid" class="text-red-600">Tidak Valid</option></select><button onclick="savePenilaian()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg shadow-sm"><i class="fa-solid fa-save mr-2"></i> Simpan Penilaian</button></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- MODAL APPROVAL EDIT (UNLOCK) -->
     <div id="modal-approve" class="fixed inset-0 z-50 hidden" aria-hidden="true">
         <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity"></div>
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="bg-white rounded-xl shadow-xl w-full max-w-sm relative z-10 p-6 text-center transform transition-all scale-100">
-                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100 mb-4">
-                    <i class="fa-solid fa-lock-open text-yellow-600 text-2xl"></i>
-                </div>
+                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100 mb-4"><i class="fa-solid fa-lock-open text-yellow-600 text-2xl"></i></div>
                 <h3 class="text-lg font-bold text-gray-900 mb-2">Izinkan Edit Data?</h3>
-                <p class="text-sm text-gray-500 mb-6">
-                    Sekolah dengan NPSN <span id="approve-npsn" class="font-bold text-gray-800"></span> meminta izin untuk mengubah data yang sudah disubmit.
-                    <br><br><span class="text-red-500 font-bold text-xs">*Data akan berstatus Draft kembali.</span>
-                </p>
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="closeModal('modal-approve')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-bold transition">Batal</button>
-                    <button onclick="confirmUnlock()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-lg transition">Izinkan</button>
-                </div>
+                <p class="text-sm text-gray-500 mb-6">Sekolah dengan NPSN <span id="approve-npsn" class="font-bold text-gray-800"></span> meminta izin untuk mengubah data.<br><span class="text-red-500 font-bold text-xs">*Data akan berstatus Draft kembali.</span></p>
+                <div class="grid grid-cols-2 gap-3"><button onclick="closeModal('modal-approve')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-bold transition">Batal</button><button onclick="confirmUnlock()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-lg transition">Izinkan</button></div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL NOTIFIKASI -->
+    <!-- NOTIFICATION MODAL (REPLACEMENT FOR ALERT) -->
     <div id="modal-notif" class="fixed inset-0 z-[60] hidden">
         <div class="fixed inset-0 bg-gray-500/75 transition-opacity"></div>
         <div class="flex min-h-full items-center justify-center p-4 text-center">
             <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:w-full sm:max-w-sm">
                 <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4 text-center">
-                    <div id="notif-icon-bg" class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mb-4">
-                        <i id="notif-icon" class="fa-solid fa-check text-green-600 text-lg"></i>
-                    </div>
+                    <div id="notif-icon-bg" class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mb-4"><i id="notif-icon" class="fa-solid fa-check text-green-600 text-lg"></i></div>
                     <h3 class="text-base font-semibold leading-6 text-gray-900" id="notif-title">Berhasil</h3>
-                    <div class="mt-2">
-                        <p class="text-sm text-gray-500" id="notif-message">Pesan notifikasi.</p>
-                    </div>
+                    <div class="mt-2"><p class="text-sm text-gray-500" id="notif-message">Pesan notifikasi.</p></div>
                 </div>
                 <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                     <button type="button" onclick="document.getElementById('modal-notif').classList.add('hidden')" class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto">OK</button>
@@ -369,7 +294,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // Import getCountFromServer, documentId untuk query ID
+        import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, getCountFromServer, documentId } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDOYIAjVph2Jwpb0xTSGad1Zlg0DdMlmfU",
@@ -383,112 +309,174 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- STATE MANAGEMENT ---
         let currentUser = null;
-        let schoolDataCache = []; // Daftar sekolah di wilayah
-        let evaluationDataCache = []; // Data inputan sekolah
+        let schoolDataCache = []; 
+        let evaluationDataCache = []; 
         let currentDetailNpsn = null;
-        let targetUnlockNPSN = null; // Target untuk approval
+        let targetUnlockNPSN = null; 
+        let isDataLoaded = false; 
         
-        // --- PAGINATION STATE ---
         let currentPage = 1;
         const itemsPerPage = 10;
 
-        // --- KONFIGURASI PERTANYAAN (Simple Mapping) ---
+        // FIXED CONFIG: ID Sequential dan Mode Display (Ya/Tidak) sesuai Sekolah2.html
+        // Mode: 'ya' -> Muncul jika Key=Ya, 'tidak' -> Muncul jika Key=Tidak
         const sectionConfig = {
-            'pm': { title: 'Pembelajaran Mendalam', questions: [
-                {id: '1.1', text: 'Regulasi pelaksanaan pembelajaran mendalam'},
-                {id: '1.2', text: 'Pelatihan Kepala Sekolah dan Guru'},
-                {id: '1.2.a', text: 'Penyelenggara Pelatihan'},
-                {id: '1.2.b', text: 'Sumber Pendanaan'},
-                {id: '1.3', text: 'Implementasi Kurikulum di Kelas'},
-                {id: '1.4', text: 'Implementasi pengalaman belajar'},
-                {id: '1.5', text: 'Implementasi asesmen'},
-                {id: '2', text: 'Monitoring pembelajaran'},
-                {id: '2.1', text: 'Frekuensi Monitoring'},
-                {id: '2.2', text: 'Pelaksana Monitoring'},
-                {id: '3', text: 'Penggunaan Buku Teks Utama'},
-                {id: '4', text: 'Kendala Pelaksanaan'},
-                {id: '5', text: 'Bukti Dukung (Link)'},
-                {id: '6', text: 'Dokumen Perencanaan (Link)'}
-            ]},
-            'kka': { title: 'Koding & Kecerdasan Artifisial', questions: [
-                {id: '1.1', text: 'Kelas Pelaksanaan KKA'},
-                {id: '1.2', text: 'Pengampu'},
-                {id: '1.3', text: 'Pelatihan Guru'},
-                {id: '1.4', text: 'Waktu Pelaksanaan & JP'},
-                {id: '1.5', text: 'Gambaran Kegiatan'},
-                {id: '1.6', text: 'Asesmen KKA'},
-                {id: '1.7', text: 'Buku Teks'},
-                {id: '1.8', text: 'Sumber Belajar Lain'},
-                {id: '1.9', text: 'Bukti Dokumentasi (Link)'},
-                {id: '1.10', text: 'Dokumen Program (Link)'}
-            ]},
-            'koku': { title: 'Kokurikuler', questions: [
-                 {id: '1', text: 'Tercantum dalam dokumen kurikulum?'},
-                 {id: '2', text: 'Bentuk kegiatan kokurikuler'},
-                 {id: '3', text: 'Tim kerja kokurikuler'},
-                 {id: '4', text: 'Peran tim'},
-                 {id: '5', text: 'SK Tim Pengembang'},
-                 {id: '6', text: 'Pelibatan orang tua/mitra'},
-                 {id: '7', text: 'Perencanaan khusus'},
-                 {id: '8', text: 'Penjelasan perencanaan'},
-                 {id: '9', text: 'Pemahaman alokasi waktu'},
-                 {id: '10', text: 'Jadwal sekolah'}
-            ]},
-            'tka': { title: 'Tes Kompetensi Akademik', questions: [
-                {id: '1', text: 'Pemahaman TKA'},
-                {id: '2', text: 'Regulasi TKA'},
-                {id: '3', text: 'Sosialisasi TKA'},
-                {id: '4', text: 'Program Pelaksanaan'},
-                {id: '5', text: 'Kisi-kisi dan Soal'},
-                {id: '5a', text: 'Link Dokumen Soal'},
-                {id: '6', text: 'Tim Khusus TKA'},
-                {id: '7', text: 'Lab Komputer'},
-                {id: '8', text: 'Jumlah Komputer'},
-                {id: '9', text: 'Bandwidth Internet'},
-                {id: '10', text: 'Provider Internet'}
-            ]},
-            'dp': { title: 'Digitalisasi Pembelajaran', questions: [
-                {id: '1', text: 'Pemanfaatan Digitalisasi'},
-                {id: '2', text: 'Platform yang digunakan'},
-                {id: '3', text: 'Penerimaan Panel Interaktif (PID)'},
-                {id: '3a', text: 'Lokasi PID'},
-                {id: '3b', text: 'Gambaran Pemanfaatan'},
-                {id: '3c', text: 'Tim Pengelola PID'},
-                {id: '3d', text: 'Jadwal Pemanfaatan'},
-                {id: '3e', text: 'SOP Pemanfaatan'},
-                {id: '3f', text: 'Anggaran Perawatan'},
-                {id: '3g', text: 'Fitur yang dimanfaatkan'},
-                {id: '3h', text: 'Akses Ruang Murid'}
-            ]},
-            'asesmen': { title: 'Asesmen Pembelajaran', questions: [
-                {id: '1', text: 'Frekuensi Asesmen Awal'},
-                {id: '2', text: 'Fokus Asesmen Awal'},
-                {id: '3', text: 'Pelaksanaan Asesmen Formatif'},
-                {id: '4', text: 'Teknik Asesmen Formatif'},
-                {id: '5', text: 'Pemberian Umpan Balik'},
-                {id: '6', text: 'Pemanfaatan Umpan Balik'},
-                {id: '7', text: 'Cakupan Asesmen Sumatif'},
-                {id: '8', text: 'Proporsi Soal HOTS'},
-                {id: '9', text: 'Pemanfaatan Hasil Sumatif'},
-                {id: '10', text: 'Variasi Instrumen Sumatif'}
-            ]},
-            'ksp': { title: 'Kurikulum Sekolah (KSP)', questions: [
-                {id: '1.1.a', text: 'Pihak Terlibat Penyusunan'},
-                {id: '1.1.b', text: 'Jumlah Rombel'},
-                {id: '1.1.d', text: 'Jumlah Murid'},
-                {id: '1.2.a', text: 'Visi Sekolah'},
-                {id: '1.2.b', text: 'Misi Sekolah'},
-                {id: '1.2.c', text: 'Tujuan Sekolah'},
-                {id: '1.3.g', text: 'Kegiatan Ekstrakurikuler'},
-                {id: '1.3.h', text: 'Budaya Sekolah'},
-                {id: '1.3.i', text: 'Mekanisme Kenaikan Kelas'},
-                {id: '1.3.j', text: 'Mekanisme Kelulusan'},
-                {id: '1.4.a', text: 'Link Dokumen ATP'},
-                {id: '1.5', text: 'Evaluasi Kurikulum'},
-                {id: '2', text: 'Link Dokumen KSP Lengkap'}
-            ]}
+            'pm': { 
+                title: 'Pembelajaran Mendalam', 
+                questions: [
+                    {id: '1', text: '1.1 Regulasi pelaksanaan pembelajaran mendalam', mode: 'ya'}, 
+                    {id: '2', text: '1.2 Pelatihan Kepala Sekolah dan Guru', mode: 'ya'}, 
+                    {id: '3', text: '1.2.a Penyelenggara Pelatihan', mode: 'ya'}, 
+                    {id: '4', text: '1.2.b Sumber Pendanaan', mode: 'ya'}, 
+                    {id: '5', text: '1.3 Implementasi Kurikulum di Kelas', mode: 'ya'}, 
+                    {id: '6', text: '1.4 Implementasi pengalaman belajar', mode: 'ya'}, 
+                    {id: '7', text: '1.5 Implementasi asesmen', mode: 'ya'}, 
+                    {id: '8', text: '2. Monitoring pembelajaran', mode: 'ya'}, 
+                    {id: '9', text: '2.1 Frekuensi Monitoring', mode: 'ya'}, 
+                    {id: '10', text: '2.2 Pelaksana Monitoring', mode: 'ya'}, 
+                    {id: '11', text: '3. Penggunaan Buku Teks Utama', mode: 'ya'}, 
+                    {id: '12', text: '4. Kendala Pelaksanaan', mode: 'ya'}, 
+                    {id: '13', text: '5. Bukti Dukung (Link)', mode: 'ya'}, 
+                    {id: '14', text: '6. Dokumen Perencanaan (Link)', mode: 'ya'},
+                    {id: '15', text: 'Alasan Belum Menerapkan', mode: 'tidak'}
+                ]
+            },
+            'kka': { 
+                title: 'Koding & Kecerdasan Artifisial', 
+                questions: [
+                    {id: '1', text: '1.1 Kelas Pelaksanaan KKA', mode: 'ya'}, 
+                    {id: '2', text: '1.2 Pengampu', mode: 'ya'}, 
+                    {id: '3', text: '1.3 Pelatihan Guru', mode: 'ya'}, 
+                    {id: '4', text: '1.3.a Siapa Penyelenggara', mode: 'ya'}, 
+                    {id: '5', text: '1.3.b Sumber Pendanaan', mode: 'ya'}, 
+                    {id: '6', text: '1.4 Waktu Pelaksanaan & JP', mode: 'ya'}, 
+                    {id: '7', text: '1.5 Gambaran Kegiatan', mode: 'ya'}, 
+                    {id: '8', text: '1.6 Asesmen KKA', mode: 'ya'}, 
+                    {id: '9', text: '1.7 Buku Teks', mode: 'ya'}, 
+                    {id: '10', text: '1.8 Sumber Belajar Lain', mode: 'ya'}, 
+                    {id: '11', text: '1.9 Bukti Dokumentasi (Link)', mode: 'ya'}, 
+                    {id: '12', text: '1.10 Dokumen Program (Link)', mode: 'ya'},
+                    
+                    // Mode TIDAK di KKA bercabang (Ekskul vs Tidak Sama Sekali)
+                    {id: '13', text: '1.1 Bentuk Kegiatan', mode: 'tidak'},
+                    {id: '14', text: '1.2 Gambaran Kegiatan', mode: 'tidak'},
+                    {id: '15', text: '1.3 Waktu Pelaksanaan', mode: 'tidak'},
+                    {id: '16', text: '1.4 Sumber Belajar', mode: 'tidak'},
+                    {id: '17', text: '1.5 Bukti Dokumentasi (Link)', mode: 'tidak'},
+                    {id: '18', text: '1.6 Dokumen Program (Link)', mode: 'tidak'},
+                    {id: '19', text: '1.7 Alasan Belum Melaksanakan', mode: 'tidak'} // ID 19 was missing
+                ]
+            },
+            'koku': { 
+                title: 'Kokurikuler', 
+                questions: [
+                    {id: '1', text: '1. Tercantum dalam dokumen kurikulum?', mode: 'ya'}, 
+                    {id: '2', text: '2. Alasan Belum Melaksanakan', mode: 'tidak'},
+                    {id: '3', text: '3. Bentuk kegiatan kokurikuler', mode: 'ya'}, 
+                    {id: '4', text: '4. Tim kerja kokurikuler', mode: 'ya'}, 
+                    {id: '5', text: '5. Peran tim', mode: 'ya'}, 
+                    {id: '6', text: '6. SK Tim Pengembang', mode: 'ya'}, 
+                    {id: '7', text: '7. Pelibatan orang tua/mitra', mode: 'ya'}, 
+                    {id: '8', text: '8. Perencanaan khusus', mode: 'ya'}, 
+                    {id: '9', text: '9. Penjelasan perencanaan', mode: 'ya'}, 
+                    {id: '10', text: '10. Pemahaman alokasi waktu', mode: 'ya'}, 
+                    {id: '11', text: '11. Jadwal sekolah', mode: 'ya'}
+                ]
+            },
+            'tka': { 
+                title: 'Tes Kompetensi Akademik', 
+                questions: [
+                    {id: '1', text: '1. Pemahaman TKA', mode: 'ya'}, 
+                    {id: '2', text: '2. Regulasi TKA', mode: 'ya'}, 
+                    {id: '3', text: '3. Sosialisasi TKA', mode: 'ya'}, 
+                    {id: '4', text: '3.a Penyelenggara Sosialisasi', mode: 'ya'}, 
+                    {id: '5', text: '4. Program Pelaksanaan', mode: 'ya'}, 
+                    {id: '6', text: '4.a Penjelasan Program', mode: 'ya'}, 
+                    {id: '7', text: '5. Kisi-kisi dan Soal', mode: 'ya'}, 
+                    {id: '8', text: '5.a Link Dokumen Soal', mode: 'ya'}, 
+                    {id: '9', text: '6. Tim Khusus TKA', mode: 'ya'}, 
+                    {id: '10', text: '7. Lab Komputer', mode: 'ya'}, 
+                    {id: '11', text: '8. Jumlah Komputer', mode: 'ya'}, 
+                    {id: '12', text: '9. Bandwidth Internet', mode: 'ya'}, 
+                    {id: '13', text: '10. Provider Internet', mode: 'ya'},
+                    {id: '14', text: 'Alasan Belum Melaksanakan', mode: 'tidak'}
+                ]
+            },
+            'dp': { 
+                title: 'Digitalisasi Pembelajaran', 
+                questions: [
+                    {id: '1', text: '1. Pemanfaatan Digitalisasi', mode: 'ya'}, 
+                    {id: '2', text: '2. Platform yang digunakan', mode: 'ya'}, 
+                    {id: '3', text: '2.g Penjelasan Pemanfaatan', mode: 'ya'}, 
+                    {id: '4', text: '3. Penerimaan Panel Interaktif (PID)', mode: 'ya'}, 
+                    {id: '5', text: '3.a Lokasi PID', mode: 'ya'}, 
+                    {id: '6', text: '3.b Gambaran Pemanfaatan', mode: 'ya'}, 
+                    {id: '7', text: '3.c Tim Pengelola PID', mode: 'ya'}, 
+                    {id: '8', text: '3.c.1 Anggota Tim', mode: 'ya'}, 
+                    {id: '9', text: 'Unggah SK Tim (Link)', mode: 'ya'}, 
+                    {id: '10', text: '3.d Jadwal Pemanfaatan', mode: 'ya'}, 
+                    {id: '11', text: 'Unggah Jadwal (Link)', mode: 'ya'}, 
+                    {id: '12', text: '3.e SOP Pemanfaatan', mode: 'ya'}, 
+                    {id: '13', text: 'Deskripsi SOP', mode: 'ya'}, 
+                    {id: '14', text: '3.f Anggaran Perawatan', mode: 'ya'}, 
+                    {id: '15', text: '3.g Fitur yang dimanfaatkan', mode: 'ya'}, 
+                    {id: '16', text: '3.h Akses Ruang Murid', mode: 'ya'}, 
+                    {id: '17', text: 'Fitur Ruang Murid', mode: 'ya'},
+                    {id: '18', text: 'Alasan Belum Memanfaatkan', mode: 'tidak'}
+                ]
+            },
+            'asesmen': { 
+                title: 'Asesmen Pembelajaran', 
+                questions: [
+                    {id: '1', text: '1. Frekuensi Asesmen Awal', mode: 'ya'}, 
+                    {id: '2', text: '2. Fokus Asesmen Awal', mode: 'ya'}, 
+                    {id: '3', text: '3. Pelaksanaan Asesmen Formatif', mode: 'ya'}, 
+                    {id: '4', text: '4. Teknik Asesmen Formatif', mode: 'ya'}, 
+                    {id: '5', text: '5. Pemberian Umpan Balik', mode: 'ya'}, 
+                    {id: '6', text: '6. Pemanfaatan Umpan Balik', mode: 'ya'}, 
+                    {id: '7', text: '7. Cakupan Asesmen Sumatif', mode: 'ya'}, 
+                    {id: '8', text: '8. Proporsi Soal HOTS', mode: 'ya'}, 
+                    {id: '9', text: '9. Pemanfaatan Hasil Sumatif', mode: 'ya'}, 
+                    {id: '10', text: '10. Variasi Instrumen Sumatif', mode: 'ya'},
+                    {id: '11', text: 'Alasan Belum Melaksanakan', mode: 'tidak'}
+                ]
+            },
+            'ksp': { 
+                title: 'Kurikulum Sekolah (KSP)', 
+                questions: [
+                    {id: '1', text: '1.1.a Pihak Terlibat Penyusunan', mode: 'ya'}, 
+                    {id: '2', text: '1.1.b Jumlah Rombel', mode: 'ya'}, 
+                    {id: '3', text: '1.1.c Guru PNS', mode: 'ya'}, 
+                    {id: '4', text: '1.1.c Guru P3K', mode: 'ya'}, 
+                    {id: '5', text: '1.1.c Guru KKI', mode: 'ya'}, 
+                    {id: '6', text: '1.1.c Guru GTY', mode: 'ya'}, 
+                    {id: '7', text: '1.1.c Guru GTT', mode: 'ya'}, 
+                    {id: '8', text: '1.1.d Jumlah Murid', mode: 'ya'}, 
+                    {id: '9', text: '1.2.a Visi Sekolah', mode: 'ya'}, 
+                    {id: '10', text: '1.2.b Misi Sekolah', mode: 'ya'}, 
+                    {id: '11', text: '1.2.c Tujuan Sekolah', mode: 'ya'}, 
+                    {id: '12', text: '1.3.a Mapel Kelas 1', mode: 'ya'}, 
+                    {id: '13', text: '1.3.b Mapel Kelas 2', mode: 'ya'}, 
+                    {id: '14', text: '1.3.c Mapel Kelas 3', mode: 'ya'}, 
+                    {id: '15', text: '1.3.d Mapel Kelas 4', mode: 'ya'}, 
+                    {id: '16', text: '1.3.e Mapel Kelas 5', mode: 'ya'}, 
+                    {id: '17', text: '1.3.f Mapel Kelas 6', mode: 'ya'}, 
+                    {id: '18', text: '1.3.g Kegiatan Ekstrakurikuler', mode: 'ya'}, 
+                    {id: '19', text: 'Link Program Ekskul', mode: 'ya'}, 
+                    {id: '20', text: '1.3.h Budaya Sekolah', mode: 'ya'}, 
+                    {id: '21', text: 'Link Program Budaya', mode: 'ya'}, 
+                    {id: '22', text: '1.3.i Mekanisme Kenaikan Kelas', mode: 'ya'}, 
+                    {id: '23', text: 'Link SK Kenaikan', mode: 'ya'}, 
+                    {id: '24', text: '1.3.j Mekanisme Kelulusan', mode: 'ya'}, 
+                    {id: '25', text: 'Link SK Kelulusan', mode: 'ya'}, 
+                    {id: '26', text: '1.4.a Link Dokumen ATP', mode: 'ya'}, 
+                    {id: '27', text: '1.4.b Link Perencanaan Intrakurikuler', mode: 'ya'}, 
+                    {id: '28', text: '1.5 Evaluasi Kurikulum', mode: 'ya'}, 
+                    {id: '29', text: '2. Link Dokumen KSP Lengkap', mode: 'ya'},
+                    {id: '30', text: 'Alasan Belum Menyusun', mode: 'tidak'}
+                ]
+            }
         };
 
         // --- AUTH LOGIC ---
@@ -498,153 +486,177 @@
             const username = document.getElementById('usernameInput').value.trim();
             const password = document.getElementById('passwordInput').value.trim();
             const btn = document.getElementById('btnLogin');
-
-            btn.disabled = true;
-            btn.innerText = "Memeriksa...";
+            btn.disabled = true; btn.innerText = "Memeriksa...";
 
             try {
-                // Query collection 'users'
                 const docRef = doc(db, 'users', username);
                 const docSnap = await getDoc(docRef);
-
                 if (docSnap.exists()) {
                     const userData = docSnap.data();
-                    if (userData.password === password) {
-                        if (userData.role === 'Supervisor') {
-                            // Login Success
-                            currentUser = { id: username, ...userData };
-                            localStorage.setItem('spv_user', JSON.stringify(currentUser));
-                            initDashboard();
-                        } else {
-                            showNotification('Akses Ditolak', 'Akun ini bukan akun Supervisor.', true);
-                        }
-                    } else {
-                        showNotification('Gagal', 'Password salah.', true);
-                    }
-                } else {
-                    showNotification('Gagal', 'Username tidak ditemukan.', true);
-                }
-            } catch (error) {
-                console.error("Login Error", error);
-                showNotification('Error', 'Terjadi kesalahan jaringan.', true);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Masuk";
-            }
+                    if (userData.password === password && userData.role === 'Supervisor') {
+                        currentUser = { id: username, ...userData };
+                        localStorage.setItem('spv_user', JSON.stringify(currentUser));
+                        initDashboard();
+                    } else { showNotification('Akses Ditolak', 'Kredensial salah.', true); }
+                } else { showNotification('Gagal', 'Username tidak ditemukan.', true); }
+            } catch (error) { console.error("Login Error", error); showNotification('Error', 'Terjadi kesalahan jaringan.', true); } 
+            finally { btn.disabled = false; btn.innerText = "Masuk"; }
         });
 
         function checkSession() {
             const stored = localStorage.getItem('spv_user');
-            if (stored) {
-                currentUser = JSON.parse(stored);
-                initDashboard();
-            }
+            if (stored) { currentUser = JSON.parse(stored); initDashboard(); }
         }
         checkSession();
 
-        window.logout = function() {
-            localStorage.removeItem('spv_user');
-            location.reload();
-        };
+        window.logout = function() { localStorage.removeItem('spv_user'); location.reload(); };
 
-        // --- DASHBOARD LOGIC ---
+        // --- DASHBOARD LOGIC (OPTIMIZED WITH COUNT & DUAL QUERY) ---
 
-        function initDashboard() {
+        async function initDashboard() {
             document.getElementById('login-overlay').classList.add('hidden');
             document.getElementById('sidebar-wilayah').innerText = currentUser.wilayah;
+            document.getElementById('dash-wilayah').innerText = currentUser.wilayah;
             document.getElementById('prof-username').value = currentUser.username;
             document.getElementById('prof-wilayah').value = currentUser.wilayah;
             
-            fetchData();
+            // HANYA LOAD STATISTIK (RINGAN)
+            await fetchDashboardStats();
         }
 
-        async function fetchData() {
+        async function fetchDashboardStats() {
             try {
-                // 1. Ambil Data Sekolah di Wilayah ini
+                // OPTIMISASI: Dual Query (Lowercase & Capitalized Field) agar data tidak miss
+                
+                // 1. Hitung Total Sekolah di Wilayah (Data Sekolah Master biasanya konsisten 'Sudin')
+                const qTotal = query(collection(db, "data_sekolah"), where("Sudin", "==", currentUser.wilayah));
+                const snapTotal = await getCountFromServer(qTotal);
+                document.getElementById('dash-total-sekolah').innerText = snapTotal.data().count;
+
+                // 2. Hitung Total Inputan (Query 'sudin' dan 'Sudin')
+                const qInputLow = query(collection(db, "evaluasi_sekolah"), where("sudin", "==", currentUser.wilayah));
+                const qInputCap = query(collection(db, "evaluasi_sekolah"), where("Sudin", "==", currentUser.wilayah));
+                
+                const [snapInputLow, snapInputCap] = await Promise.all([
+                    getCountFromServer(qInputLow),
+                    getCountFromServer(qInputCap)
+                ]);
+                
+                // Jumlahkan hasil (Asumsi tidak ada overlap ID untuk sederhanakan dashboard count)
+                const totalInput = snapInputLow.data().count + snapInputCap.data().count;
+                document.getElementById('dash-total-input').innerText = totalInput;
+
+                // 3. Hitung Status Validasi (Paralel Dual Query)
+                const statuses = ["Valid", "Perlu Perbaikan", "Tidak Valid"];
+                let counts = { "Valid": 0, "Perlu Perbaikan": 0, "Tidak Valid": 0 };
+
+                const promises = [];
+                statuses.forEach(st => {
+                    promises.push(getCountFromServer(query(collection(db, "evaluasi_sekolah"), where("sudin", "==", currentUser.wilayah), where("status_verifikasi", "==", st))));
+                    promises.push(getCountFromServer(query(collection(db, "evaluasi_sekolah"), where("Sudin", "==", currentUser.wilayah), where("status_verifikasi", "==", st))));
+                });
+
+                const results = await Promise.all(promises);
+                
+                // Aggregate Results (index 0+1=Valid, 2+3=Perbaikan, 4+5=Invalid)
+                counts["Valid"] = results[0].data().count + results[1].data().count;
+                counts["Perlu Perbaikan"] = results[2].data().count + results[3].data().count;
+                counts["Tidak Valid"] = results[4].data().count + results[5].data().count;
+
+                // Waiting = Total Input - Total Verified
+                const totalVerified = counts["Valid"] + counts["Perlu Perbaikan"] + counts["Tidak Valid"];
+                const totalWaiting = totalInput - totalVerified;
+
+                document.getElementById('stat-valid').innerText = counts["Valid"];
+                document.getElementById('stat-perbaikan').innerText = counts["Perlu Perbaikan"];
+                document.getElementById('stat-invalid').innerText = counts["Tidak Valid"];
+                document.getElementById('stat-waiting').innerText = totalWaiting < 0 ? 0 : totalWaiting;
+
+            } catch (e) {
+                console.error("Stats Error", e);
+            }
+        }
+
+        // --- LAZY LOADING TABLE DATA ---
+        window.forceRefreshData = function() {
+            isDataLoaded = false;
+            fetchFullData();
+        }
+
+        // PERBAIKAN UTAMA: FETCH DATA BERDASARKAN ID SEKOLAH (NPSN) BUKAN NAMA WILAYAH
+        // Ini menjamin data sekolah yg sudah submit tapi salah 'sudin' tetap muncul
+        async function fetchFullData() {
+            if(isDataLoaded) return; 
+
+            const loading = document.getElementById('loading-table');
+            const tbody = document.getElementById('tbody-sekolah');
+            
+            loading.classList.remove('hidden');
+            tbody.innerHTML = ''; 
+
+            try {
+                // 1. Ambil Data Sekolah (Master Data) di wilayah ini
                 const schoolsQ = query(collection(db, "data_sekolah"), where("Sudin", "==", currentUser.wilayah));
                 const schoolsSnap = await getDocs(schoolsQ);
+                
                 schoolDataCache = [];
-                schoolsSnap.forEach(doc => schoolDataCache.push({id: doc.id, ...doc.data()}));
+                const npsnList = [];
+                
+                schoolsSnap.forEach(doc => {
+                    schoolDataCache.push({id: doc.id, ...doc.data()});
+                    npsnList.push(doc.id); // Kumpulkan semua NPSN di wilayah ini
+                });
 
-                // 2. Ambil Data Evaluasi (Inputan Sekolah)
-                const evalQ = query(collection(db, "evaluasi_sekolah"), where("sudin", "==", currentUser.wilayah));
-                const evalSnap = await getDocs(evalQ);
+                // 2. Ambil Data Evaluasi berdasarkan ID (NPSN)
+                // Firestore 'in' query limit is 30. Kita harus batching.
                 evaluationDataCache = [];
-                evalSnap.forEach(doc => evaluationDataCache.push({id: doc.id, ...doc.data()}));
+                const chunkSize = 30;
+                const evalPromises = [];
 
-                updateStats();
+                for (let i = 0; i < npsnList.length; i += chunkSize) {
+                    const chunk = npsnList.slice(i, i + chunkSize);
+                    // Query dokumen evaluasi yang ID-nya ada di daftar NPSN wilayah ini
+                    const q = query(collection(db, "evaluasi_sekolah"), where(documentId(), "in", chunk));
+                    evalPromises.push(getDocs(q));
+                }
+
+                const snapshots = await Promise.all(evalPromises);
+                
+                snapshots.forEach(snap => {
+                    snap.forEach(doc => {
+                        evaluationDataCache.push({id: doc.id, ...doc.data()});
+                    });
+                });
+
+                isDataLoaded = true;
+                loading.classList.add('hidden');
+                
                 populateFilters(); 
                 renderSekolahTable(); 
                 renderVerifikasiTable();
 
             } catch (error) {
                 console.error("Fetch Data Error:", error);
+                loading.innerHTML = '<span class="text-red-500">Gagal memuat data. Periksa koneksi.</span>';
                 showNotification("Error", "Gagal memuat data: " + error.message, true);
             }
         }
 
-        function updateStats() {
-            const totalSekolah = schoolDataCache.length;
-            const alreadyInput = evaluationDataCache.length; 
-
-            let stats = { valid: 0, perbaikan: 0, invalid: 0, waiting: 0 };
-            
-            evaluationDataCache.forEach(item => {
-                const status = item.status_verifikasi || 'Menunggu';
-                if(status === 'Valid') stats.valid++;
-                else if(status === 'Perlu Perbaikan') stats.perbaikan++;
-                else if(status === 'Tidak Valid') stats.invalid++;
-                else stats.waiting++;
-            });
-
-            document.getElementById('dash-wilayah').innerText = currentUser.wilayah;
-            document.getElementById('dash-total-sekolah').innerText = totalSekolah;
-            document.getElementById('dash-total-input').innerText = alreadyInput;
-
-            document.getElementById('stat-waiting').innerText = stats.waiting;
-            document.getElementById('stat-valid').innerText = stats.valid;
-            document.getElementById('stat-perbaikan').innerText = stats.perbaikan;
-            document.getElementById('stat-invalid').innerText = stats.invalid;
-        }
-
-        // --- FILTER LOGIC ---
-
+        // --- FILTER & RENDER ---
         function populateFilters() {
             const uniqueKecamatan = [...new Set(schoolDataCache.map(s => s.Kecamatan).filter(k => k))].sort();
-            
             const kecSelect = document.getElementById('filter-kecamatan');
             kecSelect.innerHTML = '<option value="">Semua Kecamatan</option>';
-            uniqueKecamatan.forEach(kec => {
-                const opt = document.createElement('option');
-                opt.value = kec;
-                opt.innerText = kec;
-                kecSelect.appendChild(opt);
-            });
+            uniqueKecamatan.forEach(kec => { const opt = document.createElement('option'); opt.value = kec; opt.innerText = kec; kecSelect.appendChild(opt); });
 
             const npsnSelect = document.getElementById('filter-npsn');
             npsnSelect.innerHTML = '<option value="">Semua NPSN</option>';
             const sortedSchools = [...schoolDataCache].sort((a, b) => (a.Sekolah || '').localeCompare(b.Sekolah || ''));
-            sortedSchools.forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = s.NPSN;
-                opt.innerText = `${s.NPSN} - ${s.Sekolah}`;
-                npsnSelect.appendChild(opt);
-            });
+            sortedSchools.forEach(s => { const opt = document.createElement('option'); opt.value = s.NPSN; opt.innerText = `${s.NPSN} - ${s.Sekolah}`; npsnSelect.appendChild(opt); });
         }
 
-        window.resetPageAndRender = function() {
-            currentPage = 1;
-            renderSekolahTable();
-        }
-
-        window.resetFilters = function() {
-            document.getElementById('filter-kecamatan').value = '';
-            document.getElementById('filter-status').value = '';
-            document.getElementById('filter-npsn').value = '';
-            resetPageAndRender();
-        };
-
-        // --- RENDER TABLE (SEKOLAH + APPROVAL ACTION) ---
+        window.resetPageAndRender = function() { currentPage = 1; renderSekolahTable(); }
+        window.resetFilters = function() { document.getElementById('filter-kecamatan').value = ''; document.getElementById('filter-status').value = ''; document.getElementById('filter-npsn').value = ''; resetPageAndRender(); };
 
         window.renderSekolahTable = function() {
             const tbody = document.getElementById('tbody-sekolah');
@@ -652,47 +664,31 @@
             const paginationContainer = document.getElementById('pagination-controls');
             tbody.innerHTML = '';
 
-            // Get Filter Values
             const filterKec = document.getElementById('filter-kecamatan').value;
             const filterStatus = document.getElementById('filter-status').value;
             const filterNPSN = document.getElementById('filter-npsn').value;
 
-            // Apply Filters
             const filteredData = schoolDataCache.filter(sekolah => {
                 const evalData = evaluationDataCache.find(e => e.id === sekolah.NPSN);
                 const isSudahInput = !!evalData;
-
                 if(filterKec && sekolah.Kecamatan !== filterKec) return false;
                 if(filterStatus === 'sudah' && !isSudahInput) return false;
                 if(filterStatus === 'belum' && isSudahInput) return false;
                 if(filterNPSN && sekolah.NPSN !== filterNPSN) return false;
-
                 return true;
             });
 
-            if(filteredData.length === 0) {
-                emptyMsg.classList.remove('hidden');
-                paginationContainer.classList.add('hidden');
-                return;
-            } else {
-                emptyMsg.classList.add('hidden');
-                paginationContainer.classList.remove('hidden');
-            }
+            if(filteredData.length === 0) { emptyMsg.classList.remove('hidden'); paginationContainer.classList.add('hidden'); return; } 
+            else { emptyMsg.classList.add('hidden'); paginationContainer.classList.remove('hidden'); }
 
-            // --- PAGINATION LOGIC ---
             const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-            if(currentPage > totalPages) currentPage = totalPages;
-            if(currentPage < 1) currentPage = 1;
-
+            if(currentPage > totalPages) currentPage = totalPages; if(currentPage < 1) currentPage = 1;
             const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const pageData = filteredData.slice(startIndex, endIndex);
+            const pageData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
-            // Render Rows
             pageData.forEach(sekolah => {
                 const evalData = evaluationDataCache.find(e => e.id === sekolah.NPSN);
-                let statusBadge = '';
-                let actionBtn = '';
+                let statusBadge = '', actionBtn = '';
 
                 if (evalData) {
                     const status = evalData.status_verifikasi || 'Menunggu Verifikasi';
@@ -700,21 +696,15 @@
                     if(status === 'Valid') colorClass = 'bg-green-100 text-green-700 font-bold';
                     else if(status === 'Perlu Perbaikan') colorClass = 'bg-yellow-100 text-yellow-800 font-bold';
                     else if(status === 'Tidak Valid') colorClass = 'bg-red-100 text-red-700 font-bold';
-                    
                     statusBadge = `<span class="px-2 py-1 rounded text-xs ${colorClass}">${status}</span>`;
 
-                    // LOGIC ACTION BUTTON (Pencil)
                     if (evalData.request_edit) {
-                        // Jika ada request edit -> Glowing Pencil + OnClick Approve
                         actionBtn = `<button onclick="openApprovalModal('${sekolah.NPSN}')" class="w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-sm pencil-glow cursor-pointer" title="Permintaan Edit Data"><i class="fa-solid fa-pencil"></i></button>`;
                     } else if (evalData.is_locked) {
-                        // Jika terkunci -> Grey Pencil
-                        actionBtn = `<button onclick="showNotification('Terkunci', 'Data sudah disubmit final. Tidak ada permintaan edit.', false)" class="w-8 h-8 rounded-full flex items-center justify-center transition-all bg-gray-100 text-gray-400 cursor-not-allowed" title="Data Final"><i class="fa-solid fa-lock"></i></button>`;
+                        actionBtn = `<button onclick="showNotification('Terkunci', 'Data sudah disubmit final.', false)" class="w-8 h-8 rounded-full flex items-center justify-center transition-all bg-gray-100 text-gray-400 cursor-not-allowed" title="Data Final"><i class="fa-solid fa-lock"></i></button>`;
                     } else {
-                        // Jika Draft (belum locked) -> Blue Pencil
-                        actionBtn = `<button onclick="showNotification('Mode Draft', 'Sekolah sedang dalam mode pengisian/draft.', false)" class="w-8 h-8 rounded-full flex items-center justify-center transition-all bg-blue-50 text-blue-500" title="Mode Draft"><i class="fa-solid fa-pen"></i></button>`;
+                        actionBtn = `<button onclick="showNotification('Mode Draft', 'Sekolah sedang dalam mode pengisian.', false)" class="w-8 h-8 rounded-full flex items-center justify-center transition-all bg-blue-50 text-blue-500" title="Mode Draft"><i class="fa-solid fa-pen"></i></button>`;
                     }
-
                 } else {
                     statusBadge = `<span class="px-2 py-1 rounded text-xs bg-red-50 text-red-500 italic">Belum Input</span>`;
                     actionBtn = `<button class="w-8 h-8 rounded-full flex items-center justify-center bg-gray-50 text-gray-300 cursor-default"><i class="fa-solid fa-minus"></i></button>`;
@@ -722,108 +712,53 @@
 
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-gray-50 border-b border-gray-100";
-                tr.innerHTML = `
-                    <td class="px-6 py-4 font-bold text-gray-700">${sekolah.NPSN}</td>
-                    <td class="px-6 py-4">${sekolah.Sekolah}</td>
-                    <td class="px-6 py-4 text-gray-500">${sekolah.Kecamatan || '-'}</td>
-                    <td class="px-6 py-4">${statusBadge}</td>
-                    <td class="px-6 py-4 text-center flex justify-center">${actionBtn}</td>
-                `;
+                tr.innerHTML = `<td class="px-6 py-4 font-bold text-gray-700">${sekolah.NPSN}</td><td class="px-6 py-4">${sekolah.Sekolah}</td><td class="px-6 py-4 text-gray-500">${sekolah.Kecamatan || '-'}</td><td class="px-6 py-4">${statusBadge}</td><td class="px-6 py-4 text-center flex justify-center">${actionBtn}</td>`;
                 tbody.appendChild(tr);
             });
 
-            document.getElementById('page-info').innerText = `Halaman ${currentPage} dari ${totalPages} (Total ${filteredData.length} Data)`;
+            document.getElementById('page-info').innerText = `Halaman ${currentPage} dari ${totalPages}`;
             document.getElementById('btn-prev').disabled = currentPage === 1;
             document.getElementById('btn-next').disabled = currentPage === totalPages;
         }
 
-        window.prevPage = function() {
-            if(currentPage > 1) {
-                currentPage--;
-                renderSekolahTable();
-            }
-        }
+        window.prevPage = function() { if(currentPage > 1) { currentPage--; renderSekolahTable(); } }
+        window.nextPage = function() { currentPage++; renderSekolahTable(); }
 
-        window.nextPage = function() {
-            currentPage++;
-            renderSekolahTable();
-        }
-
-        // --- APPROVAL LOGIC (Request Edit) ---
-        
-        window.openApprovalModal = function(npsn) {
-            targetUnlockNPSN = npsn;
-            document.getElementById('approve-npsn').innerText = npsn;
-            document.getElementById('modal-approve').classList.remove('hidden');
-        };
-
+        // --- APPROVAL LOGIC ---
+        window.openApprovalModal = function(npsn) { targetUnlockNPSN = npsn; document.getElementById('approve-npsn').innerText = npsn; document.getElementById('modal-approve').classList.remove('hidden'); };
         window.confirmUnlock = async function() {
             if(!targetUnlockNPSN) return;
-            
             try {
-                // UPDATE DB: Unlock Data (Set locked & request to false)
-                await updateDoc(doc(db, "evaluasi_sekolah", targetUnlockNPSN), {
-                    is_locked: false,
-                    request_edit: false
-                });
-                
-                closeModal('modal-approve');
-                showNotification('Berhasil', "Akses edit telah diberikan kepada sekolah.");
-                fetchData(); // Refresh data to update table UI
-            } catch(e) {
-                showNotification('Error', "Gagal melakukan unlock: " + e.message, true);
-            }
+                await updateDoc(doc(db, "evaluasi_sekolah", targetUnlockNPSN), { is_locked: false, request_edit: false });
+                closeModal('modal-approve'); showNotification('Berhasil', "Akses edit diberikan.");
+                fetchFullData(); // Refresh untuk update icon
+            } catch(e) { showNotification('Error', "Gagal unlock: " + e.message, true); }
         };
-
 
         window.renderVerifikasiTable = function() {
             const container = document.getElementById('grid-verifikasi');
             const search = document.getElementById('search-verif').value.toLowerCase();
             container.innerHTML = '';
+            const filtered = evaluationDataCache.filter(item => (item.nama_sekolah || '').toLowerCase().includes(search));
 
-            const filtered = evaluationDataCache.filter(item => {
-                const name = (item.nama_sekolah || '').toLowerCase();
-                return name.includes(search);
-            });
-
-            if(filtered.length === 0) {
-                container.innerHTML = `<div class="text-center p-8 text-gray-400 italic">Belum ada data sekolah yang masuk untuk dinilai.</div>`;
-                return;
-            }
+            if(filtered.length === 0) { container.innerHTML = `<div class="text-center p-8 text-gray-400 italic">Belum ada data sekolah yang masuk.</div>`; return; }
 
             filtered.forEach(item => {
                 const status = item.status_verifikasi || 'Menunggu Verifikasi';
-                let statusClass = 'status-waiting';
-                let icon = 'fa-clock';
-                
+                let statusClass = 'status-waiting', icon = 'fa-clock';
                 if(status === 'Valid') { statusClass = 'status-valid'; icon = 'fa-check-circle'; }
                 else if(status === 'Perlu Perbaikan') { statusClass = 'status-perbaikan'; icon = 'fa-exclamation-triangle'; }
                 else if(status === 'Tidak Valid') { statusClass = 'status-invalid'; icon = 'fa-times-circle'; }
 
                 const card = document.createElement('div');
                 card.className = "bg-white p-5 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition flex flex-col md:flex-row justify-between items-start md:items-center gap-4";
-                card.innerHTML = `
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="font-bold text-lg text-gray-800">${item.nama_sekolah}</span>
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700">${item.id}</span>
-                        </div>
-                        <p class="text-sm text-gray-500 mb-2">Responden: ${item.nama_responden || '-'} (${item.no_wa || '-'})</p>
-                        <span class="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2 w-fit ${statusClass}">
-                            <i class="fa-solid ${icon}"></i> ${status}
-                        </span>
-                    </div>
-                    <button onclick="openDetail('${item.id}')" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm shadow-sm transition flex items-center gap-2">
-                        <i class="fa-solid fa-eye"></i> Periksa Data
-                    </button>
-                `;
+                card.innerHTML = `<div class="flex-1"><div class="flex items-center gap-2 mb-1"><span class="font-bold text-lg text-gray-800">${item.nama_sekolah}</span><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700">${item.id}</span></div><p class="text-sm text-gray-500 mb-2">Responden: ${item.nama_responden || '-'} (${item.no_wa || '-'})</p><span class="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2 w-fit ${statusClass}"><i class="fa-solid ${icon}"></i> ${status}</span></div><button onclick="openDetail('${item.id}')" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm shadow-sm transition flex items-center gap-2"><i class="fa-solid fa-eye"></i> Periksa Data</button>`;
                 container.appendChild(card);
             });
         };
 
-        // --- DETAIL & VERIFICATION LOGIC ---
-
-        window.openDetail = function(npsn) {
+        // --- DETAIL ---
+        window.openDetail = async function(npsn) {
             const data = evaluationDataCache.find(e => e.id === npsn);
             if(!data) return;
 
@@ -835,95 +770,84 @@
 
             const contentDiv = document.getElementById('detail-content');
             contentDiv.innerHTML = '';
-
             const sectionKeys = ['pm', 'kka', 'koku', 'tka', 'dp', 'asesmen', 'ksp'];
 
             sectionKeys.forEach(secKey => {
                 const config = sectionConfig[secKey];
                 const keyAnswer = data[`key_${secKey}`]; 
                 
-                let html = `
-                    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-                        <div class="bg-gray-100 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
-                            <h4 class="font-bold text-gray-700 flex items-center gap-2">
-                                <span class="bg-blue-600 text-white text-xs px-2 py-0.5 rounded uppercase">${secKey}</span>
-                                ${config.title}
-                            </h4>
-                            <span class="px-3 py-1 rounded text-xs font-bold ${keyAnswer === 'Ya' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
-                                ${keyAnswer || 'Belum Diisi'}
-                            </span>
-                        </div>
-                        <div class="p-4 space-y-4">
-                `;
+                // FILTERING LOGIC: Hanya tampilkan soal yang relevan dengan jawaban key (Ya/Tidak)
+                // Jika Key=Ya, hanya tampilkan soal mode='ya'
+                // Jika Key=Tidak, hanya tampilkan soal mode='tidak'
+                const relevantQuestions = config.questions.filter(q => {
+                    if (keyAnswer === 'Ya' && q.mode === 'ya') return true;
+                    if (keyAnswer === 'Tidak' && q.mode === 'tidak') return true;
+                    return false;
+                });
 
-                if (keyAnswer === 'Ya') {
-                    config.questions.forEach(q => {
-                        let dbKey = `${secKey}_${q.id}`;
-                        let val = data[dbKey];
-                        
-                        if(!val) val = '<span class="text-gray-400 italic">- Tidak diisi -</span>';
-                        else if(val.startsWith('http')) val = `<a href="${val}" target="_blank" class="text-blue-600 hover:underline truncate block"><i class="fa-solid fa-link mr-1"></i> Buka Tautan</a>`;
-
-                        html += `
-                            <div class="border-b border-gray-50 pb-2 last:border-0">
-                                <p class="text-xs font-bold text-gray-500 mb-1">${q.text}</p>
-                                <div class="text-sm text-gray-800">${val}</div>
-                            </div>
-                        `;
-                    });
-                } else {
-                    html += `<p class="text-sm text-gray-500 italic">Sekolah menyatakan tidak melaksanakan/menerapkan komponen ini.</p>`;
+                let html = `<div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm"><div class="bg-gray-100 px-4 py-3 border-b border-gray-200 flex justify-between items-center"><h4 class="font-bold text-gray-700 flex items-center gap-2"><span class="bg-blue-600 text-white text-xs px-2 py-0.5 rounded uppercase">${secKey}</span>${config.title}</h4><span class="px-3 py-1 rounded text-xs font-bold ${keyAnswer === 'Ya' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${keyAnswer || 'Belum Diisi'}</span></div><div class="p-4 space-y-4">`;
+                
+                if (keyAnswer) {
+                    if (relevantQuestions.length > 0) {
+                        relevantQuestions.forEach(q => {
+                            let dbKey = `${secKey}_${q.id}`; 
+                            let val = data[dbKey];
+                            
+                            // Handling khusus jika kosong atau undefined
+                            if(!val) val = '<span class="text-gray-400 italic">- Tidak diisi -</span>';
+                            else if(val.startsWith('http')) val = `<a href="${val}" target="_blank" class="text-blue-600 hover:underline truncate block"><i class="fa-solid fa-link mr-1"></i> Buka Tautan</a>`;
+                            
+                            // Styling khusus jika mode='tidak' (biasanya alasan)
+                            if (q.mode === 'tidak') {
+                                html += `<div class="bg-red-50 p-3 rounded border border-red-100"><p class="text-xs font-bold text-red-700 mb-1">${q.text}</p><p class="text-sm text-red-800">${val}</p></div>`;
+                            } else {
+                                html += `<div class="border-b border-gray-50 pb-2 last:border-0"><p class="text-xs font-bold text-gray-500 mb-1">${q.text}</p><div class="text-sm text-gray-800">${val}</div></div>`;
+                            }
+                        });
+                    } else {
+                         html += `<p class="text-sm text-gray-500 italic">Tidak ada detail tambahan untuk pilihan ini.</p>`; 
+                    }
+                } else { 
+                    html += `<p class="text-sm text-gray-500 italic">Sekolah belum mengisi bagian ini.</p>`; 
                 }
-
+                
                 html += `</div></div>`;
                 contentDiv.innerHTML += html;
             });
-
             document.getElementById('modal-detail').classList.remove('hidden');
         };
 
         window.savePenilaian = async function() {
             const status = document.getElementById('penilaian-status').value;
             const catatan = document.getElementById('penilaian-catatan').value;
-
-            if(!status) {
-                showNotification('Peringatan', 'Silakan pilih Status Keputusan terlebih dahulu.', true);
-                return;
-            }
-
+            if(!status) { showNotification('Peringatan', 'Silakan pilih Status Keputusan.', true); return; }
             try {
-                await updateDoc(doc(db, "evaluasi_sekolah", currentDetailNpsn), {
-                    status_verifikasi: status,
-                    catatan_supervisor: catatan,
-                    tanggal_verifikasi: new Date().toISOString(),
-                    verifikator: currentUser.username
-                });
-
-                showNotification('Berhasil', 'Penilaian berhasil disimpan.');
+                await updateDoc(doc(db, "evaluasi_sekolah", currentDetailNpsn), { status_verifikasi: status, catatan_supervisor: catatan, tanggal_verifikasi: new Date().toISOString(), verifikator: currentUser.username });
+                showNotification('Berhasil', 'Penilaian disimpan.');
                 closeModal('modal-detail');
-                fetchData(); 
-            } catch (error) {
-                console.error("Save Error", error);
-                showNotification('Error', 'Gagal menyimpan penilaian: ' + error.message, true);
-            }
+                
+                // Update Cache Lokal secara manual agar tidak perlu fetch ulang seluruh data
+                const idx = evaluationDataCache.findIndex(e => e.id === currentDetailNpsn);
+                if(idx !== -1) {
+                    evaluationDataCache[idx].status_verifikasi = status;
+                    evaluationDataCache[idx].catatan_supervisor = catatan;
+                }
+                fetchDashboardStats(); // Refresh angka dashboard
+                renderVerifikasiTable();
+                renderSekolahTable();
+            } catch (error) { showNotification('Error', 'Gagal menyimpan: ' + error.message, true); }
         };
 
         window.updatePassword = async function() {
             const newPass = document.getElementById('prof-new-pass').value;
             if(!newPass) return;
-
             try {
                 await updateDoc(doc(db, "users", currentUser.id), { password: newPass });
-                showNotification('Sukses', 'Password berhasil diubah.');
+                showNotification('Sukses', 'Password diubah.');
                 document.getElementById('prof-new-pass').value = '';
-                currentUser.password = newPass;
-                localStorage.setItem('spv_user', JSON.stringify(currentUser));
-            } catch(e) {
-                showNotification('Error', e.message, true);
-            }
+            } catch(e) { showNotification('Error', e.message, true); }
         };
 
-        // --- UTILS ---
         window.switchTab = function(tab) {
             ['dashboard', 'sekolah', 'verifikasi', 'profil'].forEach(t => {
                 document.getElementById(`view-${t}`).classList.add('hidden');
@@ -932,28 +856,20 @@
             document.getElementById(`view-${tab}`).classList.remove('hidden');
             document.getElementById(`nav-${tab}`).className = "w-full flex items-center px-4 py-3 text-left rounded-lg transition-all hover:bg-blue-50 bg-blue-50 text-blue-700 font-semibold border-l-4 border-blue-600";
             document.getElementById('mobile-menu').classList.add('hidden');
+
+            // LAZY LOADING TRIGGER
+            if ((tab === 'sekolah' || tab === 'verifikasi') && !isDataLoaded) {
+                fetchFullData();
+            }
         };
 
-        window.closeModal = function(id) {
-            document.getElementById(id).classList.add('hidden');
-            if(id === 'modal-approve') targetUnlockNPSN = null;
-        };
-
+        window.closeModal = function(id) { document.getElementById(id).classList.add('hidden'); if(id === 'modal-approve') targetUnlockNPSN = null; };
         function showNotification(title, msg, isError = false) {
             const m = document.getElementById('modal-notif');
-            document.getElementById('notif-title').innerText = title;
-            document.getElementById('notif-message').innerText = msg;
-            
-            const icon = document.getElementById('notif-icon');
-            const bg = document.getElementById('notif-icon-bg');
-            
-            if(isError) {
-                icon.className = "fa-solid fa-xmark text-red-600 text-lg";
-                bg.className = "mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-4";
-            } else {
-                icon.className = "fa-solid fa-check text-green-600 text-lg";
-                bg.className = "mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mb-4";
-            }
+            document.getElementById('notif-title').innerText = title; document.getElementById('notif-message').innerText = msg;
+            const icon = document.getElementById('notif-icon'); const bg = document.getElementById('notif-icon-bg');
+            if(isError) { icon.className = "fa-solid fa-xmark text-red-600 text-lg"; bg.className = "mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 mb-4"; } 
+            else { icon.className = "fa-solid fa-check text-green-600 text-lg"; bg.className = "mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mb-4"; }
             m.classList.remove('hidden');
         }
     </script>
