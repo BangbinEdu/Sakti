@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAKTI - Dashboard Evaluasi Sekolah</title>
+    <title>SAKTI - Sekolah</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="https://disdik.jakarta.go.id/static/disdik/images/logo/logo.png">
@@ -172,12 +172,29 @@
                         <p id="status-desc" class="text-sm"></p>
                     </div>
                 </div>
+                <!-- Button hanya untuk status locked -->
                 <button id="btn-request-edit" onclick="requestEdit()" class="hidden px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-bold text-sm shadow transition">
                     <i class="fas fa-edit mr-2"></i> Ajukan Perubahan
                 </button>
             </div>
+            
+            <!-- Banner Catatan Supervisor (Jika Perlu Perbaikan) -->
+            <div id="supervisor-note-banner" class="hidden max-w-4xl mx-auto mb-4 p-4 rounded-xl border border-red-200 bg-red-50 shadow-sm animate-pulse">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center bg-red-500 text-white text-lg flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-red-800">Data Dikembalikan (Perlu Perbaikan)</h3>
+                        <p class="text-sm text-red-700 font-semibold mt-1">Catatan Supervisor:</p>
+                        <p id="supervisor-note-text" class="text-sm text-gray-700 bg-white p-3 rounded border border-red-100 mt-2 italic"></p>
+                        <p class="text-xs text-red-500 mt-2">*Silakan perbaiki data sesuai catatan, lalu tekan Simpan kembali.</p>
+                    </div>
+                </div>
+            </div>
 
-            <form id="evalForm" class="max-w-4xl mx-auto pb-20">
+            <!-- ATTRIBUTE NOVALIDATE DITAMBAHKAN UNTUK MENCEGAH BROWSER ALERT -->
+            <form id="evalForm" novalidate class="max-w-4xl mx-auto pb-20">
                 <div class="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-200 relative">
                     <button type="button" onclick="logout()" class="absolute top-6 right-6 text-red-500 hover:text-red-700 text-sm font-semibold flex items-center gap-2 transition">
                         <i class="fas fa-sign-out-alt"></i> Keluar
@@ -195,7 +212,8 @@
                     
                     <div class="mt-4 pt-4 border-t border-gray-100">
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Wilayah / Suku Dinas</label>
-                        <input type="text" name="wilayah" id="wilayahInput" readonly class="w-full bg-gray-50 border-none text-sm text-gray-700 font-medium p-0 focus:ring-0" placeholder="-" required>
+                        <!-- PENTING: Ubah disabled jadi readonly agar terbaca saat form validation loop -->
+                        <input type="text" name="wilayah" id="wilayahInput" readonly class="w-full bg-gray-50 border-none text-sm text-gray-700 font-bold p-0 focus:ring-0 cursor-default" placeholder="-" required>
                     </div>
                 </div>
 
@@ -216,7 +234,7 @@
                         Selanjutnya <i class="fas fa-arrow-right ml-2"></i>
                     </button>
                     <button type="submit" id="btnSubmit" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium shadow-lg ml-auto hidden">
-                        <i class="fas fa-save mr-2"></i> Simpan Permanen ke Database
+                        <i class="fas fa-save mr-2"></i> Simpan
                     </button>
                 </div>
             </form>
@@ -230,7 +248,7 @@
 
     <!-- Modal Notifications -->
     <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 z-[100] hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full text-center shadow-2xl">
             <div id="modal-content"></div>
         </div>
     </div>
@@ -257,6 +275,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         let currentSchoolData = {};
+        let currentEvalData = {};
 
         // --- OPTIMISASI AUTO SAVE (LOCALSTORAGE) ---
         function debounce(func, timeout = 1000) {
@@ -318,40 +337,64 @@
             }
         });
 
-        // FUNGSI SYNC KE FIREBASE (HANYA DIPANGGIL SAAT NAVIGASI / SUBMIT)
-        async function syncToFirebase() {
-            const npsn = document.getElementById('hidden_npsn').value;
-            const draftKey = `sakti_draft_${npsn}`;
-            const draftData = localStorage.getItem(draftKey);
-            
-            if (!npsn || !draftData) return;
-
-            const indicator = document.getElementById('draft-indicator');
-            if(indicator) {
-                indicator.innerHTML = '<i class="fas fa-cloud-upload-alt fa-bounce text-blue-600"></i> <span>Sinkronisasi Cloud...</span>';
-                indicator.classList.add('visible');
-            }
-
-            try {
-                const data = JSON.parse(draftData);
-                await setDoc(doc(db, "evaluasi_sekolah", npsn), data, { merge: true });
-                
-                if(indicator) {
-                    indicator.innerHTML = '<i class="fas fa-check-double text-green-600"></i> <span>Tersimpan di Cloud</span>';
-                    setTimeout(() => indicator.classList.remove('visible'), 2000);
-                }
-            } catch (e) {
-                console.error("Sync failed:", e);
-                if(indicator) indicator.innerHTML = '<i class="fas fa-exclamation-triangle text-orange-500"></i> <span>Gagal Sync Cloud</span>';
-            }
-        }
+        // FUNGSI SYNC KE FIREBASE DIHAPUS - DATA HANYA DI LOCALSTORAGE HINGGA SUBMIT
+        // function syncToFirebase() { ... } 
 
         const mapelOptions = ["Pendidikan Agama Islam dan Budi Pekerti", "Pendidikan Agama Kristen dan Budi Pekerti", "Pendidikan Agama Katolik dan Budi Pekerti", "Pendidikan Agama Buddha dan Budi Pekerti", "Pendidikan Agama Hindu dan Budi Pekerti", "Pendidikan Agama Konghucu dan Budi Pekerti", "Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "Ilmu Pengetahuan Alam dan Sosial", "Pendidikan Jasmani Olahraga dan Kesehatan", "Seni Musik", "Seni Rupa", "Seni Teater", "Seni Tari", "Bahasa Inggris", "Koding dan Kercerdasan Artifisial", "Pendidikan Lingkungan dan Budaya Jakarta", "Lainnya"];
 
         const sections = [
             { id: 'profil', title: 'Profil Sekolah', short: 'Profil', icon: 'fa-id-card', desc: 'Perbarui data identitas sekolah dan password login.', keyQuestion: "Pastikan data sekolah Anda mutakhir.", isCustom: true },
             { id: 'pm', title: 'Pembelajaran Mendalam', short: 'PM', icon: 'fa-brain', desc: 'Fokus pada pemahaman konsep & berpikir kritis.', keyQuestion: "Apakah sekolah menerapkan pendekatan Pembelajaran Mendalam dalam KBM?", questions: [{ type: 'checkbox', text: "1.1 Apakah satuan pendidikan Bapak/Ibu telah mengunduh dan mencetak regulasi pelaksanaan pembelajaran medalam?", options: ["4 Standar Nasional Pendidikan", "Permendikdasmen No. 13 Tahun 2025", "Keputusan Kepala BSKAP 046/H/KR/2025 tentang CP", "Keputusan Kepala BSKAP 058/H/KR/2025 tentang Alur Perkembangan Kompetensi DPL","Panduan Pengembangan KSP","Panduan Pembelajaran dan Asesmen Edisi Revisi 2025","Panduan Kokurikuler Edisi Revisi 2025","Panduan Mata Pelajaran"], customSlot: "1.1", mode: 'ya' }, { type: 'radio', text: "1.2 Apakah Kepala Satuan Pendidikan dan Guru telah mengikuti pelatihan terkait Pembelajaran Mendalam?", options: ["Ya", "Tidak"], triggerId: 'pm_trigger_pelatihan', customSlot: "1.2", mode: 'ya' }, { type: 'checkbox', text: "1.2.a Siapa yang menyelenggarakan pelatihan tersebut?", options: ["Kemendikdasmen (BGTK)", "Dinas Pendidikan (P4TK)", "Komunitas Belajar di Luar Sekolah (KKG/K3S/Sejenisnya)", "Komunitas Belajar dalam Sekolah (IHT Mandiri)", "Lembaga Pelatihan", "Lainnya"], hiddenBy: 'pm_trigger_pelatihan', showIf: 'Ya', customSlot: "1.2.a", mode: 'ya' }, { type: 'checkbox', text: "1.2.b Sumber Pendanaan", options: ["BOS Reguler", "BOS Kinerja", "BOP", "Yayasan", "Biaya Mandiri", "Lainnya"], hiddenBy: 'pm_trigger_pelatihan', showIf: 'Ya', customSlot: "1.2.b", mode: 'ya' }, { type: 'checkbox', text: "1.3 Pada kelas berapa saja, satuan pendidikan Bapak/Ibu telah mengimplementasikan penerapan kurikulum sesuai regulasi terbaru (Permendikdasmen No. 13 Tahun 2025)?", options: ["Kelas 1", "Kelas 2", "Kelas 3", "Kelas 4", "Kelas 5", "Kelas 6"], customSlot: "1.3", mode: 'ya' }, { type: 'textarea', text: "1.4 Bagaimana implementasi pengalaman belajar memahami-mengaplikasi-merefleksi dalam pembelajaran yang telah berlangsung?", customSlot: "1.4", mode: 'ya' }, { type: 'textarea', text: "1.5 Bagaimana implementasi asesmen yang telah dilaksanakan dalam rangka mengukur ketercapaian tujuan pembelajaran?", customSlot: "1.5", mode: 'ya' }, { type: 'radio', text: "2. Apakah telah dilakukan monitoring terhadap pelaksanaan pembelajaran dengan pendekatan pembelajaran mendalam?", options: ["Ya", "Tidak"], triggerId: 'pm_trigger_monitoring', customSlot: "2", mode: 'ya' }, { type: 'select_with_other', text: "2.1 Berapa kali kegiatan monitoring dilakukan dalam 1 tahun?", hiddenBy: 'pm_trigger_monitoring', showIf: 'Ya', options: ["1", "2", "3", "4", "5", "6", "Lainnya"], placeholder: "Sebutkan jumlah lainnya...", customSlot: "2.1", mode: 'ya' }, { type: 'checkbox', text: "2.2 Siapa pihak yang melaksanakan monitoring?", options: ["Dinas Pendidikan", "Kepala Satuan Pendidikan", "Pengawas"], hiddenBy: 'pm_trigger_monitoring', showIf: 'Ya', customSlot: "2.2", mode: 'ya' }, { type: 'radio', text: "3. Apakah Satuan Pendidikan Bapak/Ibu telah menggunakan Buku Teks Utama Edisi Revisi (Tahun 2024 ke atas)?", options: ["Ya", "Tidak"], customSlot: "3", mode: 'ya' }, { type: 'textarea', text: "4. Kendala yang dihadapi dalam pelaksanaan Pembelajaran Mendalam", placeholder: "Tuliskan Kendalanya...", customSlot: "4", mode: 'ya' }, { type: 'text', text: "5. Unggah Bukti Dukung dan Dokumentasi Kegiatan Pembelajaran (Link)", isAttachment: true, customSlot: "5", mode: 'ya' }, { type: 'text', text: "6. Unggah Dokumen Perencanaan Pembelajaran dengan Pendekatan Pembelajaran Mendalam (Link)", isAttachment: true, customSlot: "6", mode: 'ya' }, { type: 'textarea', text: "Jelaskan alasan sekolah belum menerapkan pendekatan Pembelajaran Mendalam:", mode: 'tidak' }] },
-            { id: 'kka', title: 'Koding & AI', short: 'KKA', icon: 'fa-laptop-code', desc: 'Integrasi teknologi, koding, dan AI.', keyQuestion: "Apakah sekolah Bapak/Ibu melaksanakan kegiatan pembelajaran Koding dan Kecerdasan Artifisial (KKA)?", questions: [{ type: 'select', text: "1.1 Kelas berapa pembelajaran KKA dilaksanakan?", options: ["Kelas 1", "Kelas 2", "Kelas 3", "Kelas 4", "Kelas 5", "Kelas 6"], mode: 'ya', customSlot: "1.1" }, { type: 'select', text: "1.2 Siapa yang mengampu?", options: ["Guru kelas", "Guru mapel"], mode: 'ya', customSlot: "1.2" }, { type: 'radio', text: "1.3 Apakah guru pengampu sudah mengikuti pelatihan?", options: ["Ya", "Tidak"], triggerId: 'kka_trigger_pelatihan', mode: 'ya', customSlot: "1.3" }, { type: 'text', text: "1.3.a Siapa penyelenggara pelatihannya?", hiddenBy: 'kka_trigger_pelatihan', showIf: 'Ya', mode: 'ya', customSlot: "1.3.a" }, { type: 'select_with_other', text: "1.3.b Sumber pendanaan?", options: ["BOSP Reguler", "BOSP Kinerja", "BOP Alokasi Dasar", "BOP Kinerja", "Lainnya"], hiddenBy: 'kka_trigger_pelatihan', showIf: 'Ya', mode: 'ya', customSlot: "1.3.b" }, { type: 'textarea', text: "1.4 Kapan pelaksanaan mata pelajaran koding KA? Berapa JP per Minggu?", mode: 'ya', customSlot: "1.4" }, { type: 'textarea', text: "1.5 Bagaimana gambaran kegiatan pembelajaran koding dan KA?", mode: 'ya', customSlot: "1.5" }, { type: 'textarea', text: "1.6 Bagaimana gambaran kegiatan asesmen koding dan KA?", mode: 'ya', customSlot: "1.6" }, { type: 'textarea', text: "1.7 Buku teks yang digunakan", mode: 'ya', customSlot: "1.7" }, { type: 'textarea', text: "1.8 Tuliskan sumber belajar lain yang digunakan", mode: 'ya', customSlot: "1.8" }, { type: 'text', text: "1.9 Unggah bukti dokumentasi kegiatan (Link)", isAttachment: true, mode: 'ya', customSlot: "1.9" }, { type: 'text', text: "1.10 Unggah dokumen program pembelajaran (Link)", isAttachment: true, mode: 'ya', customSlot: "1.10" }, { type: 'select', text: "1.1 Bentuk kegiatan apa yang dilaksanakan?", options: ["Kokurikuler", "Ekstrakurikuler", "Tidak ada kegiatan sama sekali"], mode: 'tidak', customSlot: "1.1" }, { type: 'textarea', text: "1.2 Seperti apa gambaran kegiatannya?", mode: 'tidak', customSlot: "1.2" }, { type: 'textarea', text: "1.3 Kapan pelaksanaan kegiatan tersebut?", mode: 'tidak', customSlot: "1.3" }, { type: 'textarea', text: "1.4 Sumber belajar yang digunakan?", mode: 'tidak', customSlot: "1.4" }, { type: 'text', text: "1.5 Unggah bukti dokumentasi (Link)", isAttachment: true, mode: 'tidak', customSlot: "1.5" }, { type: 'text', text: "1.6 Unggah dokumen program (Link)", isAttachment: true, mode: 'tidak', customSlot: "1.6" }] },
+            { 
+                id: 'kka', 
+                title: 'Koding & AI', 
+                short: 'KKA', 
+                icon: 'fa-laptop-code', 
+                desc: 'Integrasi teknologi, koding, dan AI.', 
+                keyQuestion: "Apakah sekolah Bapak/Ibu melaksanakan kegiatan pembelajaran Koding dan Kecerdasan Artifisial (KKA)?", 
+                questions: [
+                    // Mode YA (Normal)
+                    // PERUBAHAN: type select menjadi checkbox agar bisa pilih lebih dari 1 kelas
+                    { type: 'checkbox', text: "1.1 Kelas berapa pembelajaran KKA dilaksanakan?", options: ["Kelas 1", "Kelas 2", "Kelas 3", "Kelas 4", "Kelas 5", "Kelas 6"], mode: 'ya', customSlot: "1.1" }, 
+                    { type: 'select', text: "1.2 Siapa yang mengampu?", options: ["Guru kelas", "Guru mapel"], mode: 'ya', customSlot: "1.2" }, 
+                    { type: 'radio', text: "1.3 Apakah guru pengampu sudah mengikuti pelatihan?", options: ["Ya", "Tidak"], triggerId: 'kka_trigger_pelatihan', mode: 'ya', customSlot: "1.3" }, 
+                    { type: 'text', text: "1.3.a Siapa penyelenggara pelatihannya?", hiddenBy: 'kka_trigger_pelatihan', showIf: 'Ya', mode: 'ya', customSlot: "1.3.a" }, 
+                    { type: 'select_with_other', text: "1.3.b Sumber pendanaan?", options: ["BOSP Reguler", "BOSP Kinerja", "BOP Alokasi Dasar", "BOP Kinerja", "Lainnya"], hiddenBy: 'kka_trigger_pelatihan', showIf: 'Ya', mode: 'ya', customSlot: "1.3.b" }, 
+                    { type: 'textarea', text: "1.4 Kapan pelaksanaan mata pelajaran koding KA? Berapa JP per Minggu?", mode: 'ya', customSlot: "1.4" }, 
+                    { type: 'textarea', text: "1.5 Bagaimana gambaran kegiatan pembelajaran koding dan KA?", mode: 'ya', customSlot: "1.5" }, 
+                    { type: 'textarea', text: "1.6 Bagaimana gambaran kegiatan asesmen koding dan KA?", mode: 'ya', customSlot: "1.6" }, 
+                    { type: 'textarea', text: "1.7 Buku teks yang digunakan", mode: 'ya', customSlot: "1.7" }, 
+                    { type: 'textarea', text: "1.8 Tuliskan sumber belajar lain yang digunakan", mode: 'ya', customSlot: "1.8" }, 
+                    { type: 'text', text: "1.9 Unggah bukti dokumentasi kegiatan (Link)", isAttachment: true, mode: 'ya', customSlot: "1.9" }, 
+                    { type: 'text', text: "1.10 Unggah dokumen program pembelajaran (Link)", isAttachment: true, mode: 'ya', customSlot: "1.10" }, 
+                    
+                    // Mode TIDAK (Logika Diperbaiki)
+                    { 
+                        type: 'select', 
+                        text: "1.1 Bentuk kegiatan apa yang dilaksanakan?", 
+                        options: ["Kokurikuler", "Ekstrakurikuler", "Tidak ada kegiatan sama sekali"], 
+                        mode: 'tidak', 
+                        customSlot: "1.1",
+                        triggerId: 'kka_bentuk_trigger' // Added trigger untuk kontrol pertanyaan selanjutnya
+                    }, 
+                    // Pertanyaan Detail (Hanya muncul jika Kokurikuler ATAU Ekstrakurikuler)
+                    { type: 'textarea', text: "1.2 Seperti apa gambaran kegiatannya?", mode: 'tidak', customSlot: "1.2", hiddenBy: 'kka_bentuk_trigger', showIf: 'Kokurikuler,Ekstrakurikuler' }, 
+                    { type: 'textarea', text: "1.3 Kapan pelaksanaan kegiatan tersebut?", mode: 'tidak', customSlot: "1.3", hiddenBy: 'kka_bentuk_trigger', showIf: 'Kokurikuler,Ekstrakurikuler' }, 
+                    { type: 'textarea', text: "1.4 Sumber belajar yang digunakan?", mode: 'tidak', customSlot: "1.4", hiddenBy: 'kka_bentuk_trigger', showIf: 'Kokurikuler,Ekstrakurikuler' }, 
+                    { type: 'text', text: "1.5 Unggah bukti dokumentasi (Link)", isAttachment: true, mode: 'tidak', customSlot: "1.5", hiddenBy: 'kka_bentuk_trigger', showIf: 'Kokurikuler,Ekstrakurikuler' }, 
+                    { type: 'text', text: "1.6 Unggah dokumen program (Link)", isAttachment: true, mode: 'tidak', customSlot: "1.6", hiddenBy: 'kka_bentuk_trigger', showIf: 'Kokurikuler,Ekstrakurikuler' },
+                    
+                    // Pertanyaan Alasan (Hanya muncul jika Tidak Ada Kegiatan)
+                    { 
+                        type: 'textarea', 
+                        text: "1.7 Jelaskan alasan sekolah belum melaksanakan kegiatan Koding & AI sama sekali:", 
+                        mode: 'tidak', 
+                        customSlot: "1.7",
+                        hiddenBy: 'kka_bentuk_trigger',
+                        showIf: 'Tidak ada kegiatan sama sekali'
+                    }
+                ] 
+            },
             { id: 'koku', title: 'Kokurikuler', short: 'Koku', icon: 'fa-users', desc: 'Penguatan karakter.', keyQuestion: "Apakah sekolah Anda melaksanakan kegiatan kokurikuler pada tahun ini?", questions: [{ text: "Apakah kegiatan kokurikuler tersebut sudah tercantum secara jelas dalam dokumen kurikulum sekolah?", mode: 'ya' }, { type: 'textarea', text: "Apa alasannya sekolah belum melaksanakan kegiatan kokurikuler?", mode: 'tidak' }, { type: 'select_with_other', text: "Bentuk kegiatan kokurikuler apa yang dipilih sekolah?", options: ["Pembelajaran kolaboratif lintas disiplin", "Gerakan 7 Kebiasaan Anak Indonesia Hebat", "Kegiatan khas sekolah berbasis konteks lokal", "Lainnya"], placeholder: "Sebutkan bentuk kegiatan lainnya...", mode: 'ya' }, { type: 'radio', text: "Apakah sekolah memiliki tim kerja kokurikuler?", options: ["Ya", "Tidak"], triggerId: 'koku_trigger_tim', mode: 'ya' }, { text: "Sejauh mana peran masing-masing berjalan sesuai panduan?", hiddenBy: 'koku_trigger_tim', showIf: 'Ya', mode: 'ya' }, { type: 'radio', text: "Apakah ada SK tim pengembang Kokurikuler?", options: ["Ya", "Tidak"], mode: 'ya' }, { type: 'radio', text: "Apakah sekolah melibatkan orang tua/komunitas/mitra?", options: ["Ya", "Tidak"], mode: 'ya' }, { type: 'radio', text: "Apakah sekolah menyusun perencanaan khusus untuk kegiatan kokurikuler?", options: ["Ya", "Tidak"], triggerId: 'koku_trigger_rencana', mode: 'ya' }, { type: 'textarea', text: "Jelaskan perencanaan khusus tersebut:", hiddenBy: 'koku_trigger_rencana', showIf: 'Ya', mode: 'ya' }, { type: 'radio', text: "Apakah sekolah memahami alokasi waktu kokurikuler resmi per tahun?", options: ["Ya", "Tidak"], triggerId: 'koku_trigger_alokasi', mode: 'ya' }, { text: "Apakah alokasi waktu tersebut disusun dalam jadwal sekolah?", hiddenBy: 'koku_trigger_alokasi', showIf: 'Ya', mode: 'ya' }] },
             { id: 'tka', title: 'Tes Kompetensi Akademik', short: 'TKA', icon: 'fa-file-signature', desc: 'Pengukuran standar kompetensi siswa.', keyQuestion: "Apakah sekolah melaksanakan pengukuran kompetensi akademik berkala?", questions: [{ type: 'textarea', text: "Apakah Anda memahami tentang TKA?", customSlot: "1", mode: 'ya' }, { type: 'textarea', text: "Regulasi apa saja yang berkaitan dengan TKA? Jelaskan!", customSlot: "2", mode: 'ya' }, { type: 'radio', text: "Apakah anda pernah mendapatkan sosialisasi terkait TKA?", options: ["Ya", "Tidak"], triggerId: 'tka_trigger_sosialisasi', customSlot: "3", mode: 'ya' }, { type: 'select_with_other', text: "Dari mana sosialisasi tersebut?", options: ["Sosialisasi Kemendikdasmen", "Sosialisasi Dinas", "Sosialisasi Pengawas", "Media Sosial", "Rekan Sejawat", "Lainnya"], hiddenBy: 'tka_trigger_sosialisasi', showIf: 'Ya', customSlot: "3a", mode: 'ya' }, { type: 'radio', text: "Apakah sekolah anda memiliki program pelaksanaan TKA?", options: ["Ya", "Tidak"], triggerId: 'tka_trigger_program', customSlot: "4", mode: 'ya' }, { type: 'textarea', text: "Jelaskan program TKA:", hiddenBy: 'tka_trigger_program', showIf: 'Ya', customSlot: "4a", mode: 'ya' }, { type: 'radio', text: "Apakah Sekolah ada memiliki Kisi-kisi dan pengembangan Soal TKA?", options: ["Ya", "Tidak"], triggerId: 'tka_trigger_kisi', customSlot: "5", mode: 'ya' }, { type: 'text', text: "Unggah Dokumen Kisi-kisi/Soal (Link)", isAttachment: true, hiddenBy: 'tka_trigger_kisi', showIf: 'Ya', customSlot: "5a", mode: 'ya' }, { type: 'radio', text: "Apakah sekolah anda memiliki Tim Khusus TKA?", options: ["Ya", "Tidak"], customSlot: "6", mode: 'ya' }, { type: 'radio', text: "Apakah sekolah anda memiliki Lab Komputer?", options: ["Ya", "Tidak"], triggerId: 'tka_trigger_lab', customSlot: "7", mode: 'ya' }, { type: 'text', text: "Berapa jumlah Komputer/Laptop di sekolah Anda?", hiddenBy: 'tka_trigger_lab', showIf: 'Ya', customSlot: "8", mode: 'ya' }, { type: 'text', text: "Berapa bandwit Internet di sekolah anda?", customSlot: "9", mode: 'ya' }, { type: 'text', text: "Apa profider Internet yang ada disekolah anda?", customSlot: "10", mode: 'ya' }, { type: 'textarea', text: "Jelaskan alasan sekolah belum melaksanakan Tes Kompetensi Akademik:", mode: 'tidak' }] },
             { id: 'dp', title: 'Digitalisasi Pembelajaran', short: 'DP', icon: 'fa-wifi', desc: 'Pemanfaatan platform digital.', keyQuestion: "Apakah sekolah memanfaatkan digitalisasi untuk pembelajaran?", questions: [{ type: 'textarea', text: "Bagaimana sekolah dalam memanfaatkan digitalisasi pada pembelajaran!", customSlot: "1", mode: 'ya' }, { type: 'checkbox', text: "Apakah sekolah memanfaatkan platform berikut:", options: ["Belajar.id", "Laman Ruang GTK", "Laman Ruang Murid", "Laman Buku Digital", "Laman Google Workspace", "Laman Canva.id", "Gemini.ai", "Lainnya"], customSlot: "2", triggerId: 'dp_trigger_platform', mode: 'ya' }, { type: 'textarea', text: "Sejauh mana pemanfaatan laman tersebut terhadap kegiatan pembelajaran!", customSlot: "2g", hiddenBy: 'dp_trigger_platform', showIf: 'any_checked', mode: 'ya' }, { header: "Panel Interaktif Digital (PID)", type: 'radio', text: "Apakah sekolah mendapatkan PID?", options: ["Ya", "Tidak"], triggerId: 'dp_trigger_pid', customSlot: "3", mode: 'ya' }, { type: 'select_with_other', text: "Dimana diletakan layar IFP/PID tersebut?", options: ["Ruang Kepala Sekolah", "Ruang Guru", "Ruang Operator", "Ruang Lab. Komputer", "Ruang Perpustakaan", "Ruang Kelas", "Gudang", "Lainnya"], hiddenBy: 'dp_trigger_pid', showIf: 'Ya', customSlot: "3a", mode: 'ya' }, { type: 'textarea', text: "Ceritakan gambaran pemanfaatan IFP/PID setelah menerima selama ini?", hiddenBy: 'dp_trigger_pid', showIf: 'Ya', customSlot: "3b", mode: 'ya' }, { type: 'radio', text: "Apakah ada Tim Khusus yang mengelola/menangani papan IFP/PID tersebut?", options: ["Ya", "Tidak"], triggerId: 'dp_trigger_tim', hiddenBy: 'dp_trigger_pid', showIf: 'Ya', customSlot: "3c", mode: 'ya' }, { type: 'checkbox', text: "Siapa yang terlibat dalam tim tersebut?", options: ["Guru Kelas", "Guru Olahraga", "Guru Agama", "Operator", "Penjaga Sekolah", "Orang Tua", "Lainnya"], hiddenBy: 'dp_trigger_tim', showIf: 'Ya', customSlot: "3c.1", mode: 'ya' }, { type: 'text', text: "Unggah SK TIM (Link Google Drive/PDF)", isAttachment: true, hiddenBy: 'dp_trigger_tim', showIf: 'Ya', mode: 'ya' }, { type: 'radio', text: "Apakah sekolah membuat jadwal pelaksanaan/pemanfaatan IFP?", options: ["Ya", "Tidak"], triggerId: 'dp_trigger_jadwal', hiddenBy: 'dp_trigger_pid', showIf: 'Ya', customSlot: "3d", mode: 'ya' }, { type: 'text', text: "Unggah Jadwal (Link)", isAttachment: true, hiddenBy: 'dp_trigger_jadwal', showIf: 'Ya', mode: 'ya' }, { type: 'radio', text: "Apakah sekolah membuat SOP Pemanfaatan IFP/PID?", options: ["Ya", "Tidak"], triggerId: 'dp_trigger_sop', hiddenBy: 'dp_trigger_pid', showIf: 'Ya', customSlot: "3e", mode: 'ya' }, { type: 'textarea', text: "Deskripsikan Program SOP tersebut:", hiddenBy: 'dp_trigger_sop', showIf: 'Ya', mode: 'ya' }, { type: 'radio', text: "Apakah sekolah telah menganggarkan perawatan IFP/PID tahun 2026?", options: ["Sudah", "Belum"], hiddenBy: 'dp_trigger_pid', showIf: 'Ya', customSlot: "3f", mode: 'ya' }, { type: 'textarea', text: "Fitur apa saja yang dimanfaatkan pada IFP/PID?", hiddenBy: 'dp_trigger_pid', showIf: 'Ya', customSlot: "3g", mode: 'ya' }, { type: 'radio', text: "Apakah Guru telah mengakses Ruang Murid untuk Pembelajaran?", options: ["Ya", "Tidak"], triggerId: 'dp_trigger_rm', hiddenBy: 'dp_trigger_pid', showIf: 'Ya', customSlot: "3h", mode: 'ya' }, { type: 'textarea', text: "Fitur Apa saja yang diakses? Jelaskan!", hiddenBy: 'dp_trigger_rm', showIf: 'Ya', mode: 'ya' }, { type: 'textarea', text: "Jelaskan alasan sekolah belum memanfaatkan digitalisasi dalam pembelajaran:", mode: 'tidak' }] },
@@ -372,6 +415,7 @@
         window.logout = logout;
         window.saveProfileData = saveProfileData;
         window.requestEdit = requestEdit;
+        window.submitFinalData = submitFinalData;
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!checkSession()) {
@@ -405,7 +449,13 @@
                     const nameDisplay = document.getElementById('schoolNameDisplay');
                     if(nameDisplay) nameDisplay.innerText = currentSchoolData.Sekolah;
                     const wilInput = document.getElementById('wilayahInput');
-                    if(wilInput) wilInput.value = currentSchoolData.Sudin || '';
+                    
+                    // Pastikan input wilayah terisi dan READONLY (bukan disabled) agar bisa disubmit
+                    if(wilInput) {
+                        wilInput.value = currentSchoolData.Sudin || '';
+                    }
+                    // Isi juga hidden field Sudin agar aman
+                    document.getElementById('hidden_sudin').value = currentSchoolData.Sudin || '';
                 }
             } catch(e) { console.error("Error fetching school data", e); }
         }
@@ -451,7 +501,8 @@
             sections.forEach((sec, idx) => {
                 const hiddenClass = idx === 0 ? '' : 'hidden';
                 if (sec.isCustom && sec.id === 'profil') {
-                    const profileHtml = `<div id="section-${idx}" class="${hiddenClass} fade-in"><div class="mb-6 border-b border-gray-200 pb-4"><h2 class="text-2xl font-bold text-blue-800 flex items-center gap-2"><i class="fas ${sec.icon}"></i> ${sec.title}</h2><p class="text-gray-500 text-sm mt-1">${sec.desc}</p></div><div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6"><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-gray-50 p-4 rounded-lg border border-gray-200"><label class="block text-xs font-bold text-gray-500 uppercase mb-1">NPSN (Tidak dapat diubah)</label><input type="text" value="${currentSchoolData.NPSN || ''}" disabled class="w-full bg-gray-200 border border-gray-300 rounded px-3 py-2 text-gray-600 font-mono"></div><div class="bg-gray-50 p-4 rounded-lg border border-gray-200"><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nama Sekolah</label><input type="text" value="${currentSchoolData.Sekolah || ''}" disabled class="w-full bg-gray-200 border border-gray-300 rounded px-3 py-2 text-gray-600"></div><div class="bg-gray-50 p-4 rounded-lg border border-gray-200 md:col-span-2"><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Wilayah / Suku Dinas</label><input type="text" value="${currentSchoolData.Sudin || ''}" disabled class="w-full bg-gray-200 border border-gray-300 rounded px-3 py-2 text-gray-600"></div><div class="md:col-span-2 border-t border-gray-100 my-2"></div><div><label class="block text-xs font-bold text-blue-600 uppercase mb-1"><i class="fas fa-map-marker-alt mr-1"></i> Kecamatan</label><input type="text" id="prof_kecamatan" value="${currentSchoolData.Kecamatan || ''}" class="w-full bg-white border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded px-3 py-2 outline-none transition"></div><div><label class="block text-xs font-bold text-blue-600 uppercase mb-1"><i class="fas fa-user-tie mr-1"></i> Nama Kepala Sekolah</label><input type="text" id="prof_kepsek" value="${currentSchoolData.KepSek || ''}" class="w-full bg-white border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded px-3 py-2 outline-none transition"></div><div><label class="block text-xs font-bold text-blue-600 uppercase mb-1"><i class="fas fa-phone mr-1"></i> Nomor Telepon Sekolah</label><input type="text" id="prof_telepon" value="${currentSchoolData.Telepon || ''}" class="w-full bg-white border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded px-3 py-2 outline-none transition"></div><div><label class="block text-xs font-bold text-red-500 uppercase mb-1"><i class="fas fa-key mr-1"></i> Password Login</label><div class="relative"><input type="text" id="prof_password" value="${currentSchoolData.password || ''}" class="w-full bg-yellow-50 border border-yellow-300 focus:border-yellow-500 rounded px-3 py-2 outline-none font-mono text-gray-700"><p class="text-[10px] text-gray-500 mt-1 italic">*Gunakan password ini untuk login berikutnya.</p></div></div></div><div class="pt-4 border-t border-gray-100 flex justify-end"><button type="button" onclick="saveProfileData()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-lg transition flex items-center transform hover:scale-[1.02]"><i class="fas fa-save mr-2"></i> Simpan Perubahan Profil</button></div></div><div class="bg-indigo-50 p-6 rounded-xl border border-indigo-100 shadow-sm mt-6"><h3 class="text-lg font-bold text-indigo-900 mb-4"><i class="fas fa-user-edit mr-2"></i>Data Responden (Pengisi Instrumen)</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><label class="block text-xs font-bold text-indigo-700 uppercase mb-1">Nama Lengkap Responden</label><input type="text" name="nama_responden" id="nama_responden" class="w-full bg-white border border-indigo-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded px-3 py-2 outline-none transition" placeholder="Nama Guru / Operator / Kepsek yang mengisi" oninput="calculateProgress()"></div><div><label class="block text-xs font-bold text-indigo-700 uppercase mb-1">Nomor WhatsApp Aktif</label><div class="relative"><span class="absolute inset-y-0 left-0 pl-3 flex items-center text-indigo-400"><i class="fab fa-whatsapp"></i></span><input type="tel" name="no_wa" id="no_wa" class="w-full pl-8 pr-3 py-2 bg-white border border-indigo-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded outline-none transition" placeholder="08xxxxxxxxxx" oninput="calculateProgress()"></div></div></div><p class="text-xs text-indigo-500 mt-3 italic">*Data responden akan tersimpan bersama hasil evaluasi saat Anda menekan tombol "Simpan Permanen".</p></div></div>`;
+                    // PENTING: Input Wilayah / Sudin diubah dari 'disabled' menjadi 'readonly' agar nilainya terkirim
+                    const profileHtml = `<div id="section-${idx}" class="${hiddenClass} fade-in"><div class="mb-6 border-b border-gray-200 pb-4"><h2 class="text-2xl font-bold text-blue-800 flex items-center gap-2"><i class="fas ${sec.icon}"></i> ${sec.title}</h2><p class="text-gray-500 text-sm mt-1">${sec.desc}</p></div><div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6"><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-gray-50 p-4 rounded-lg border border-gray-200"><label class="block text-xs font-bold text-gray-500 uppercase mb-1">NPSN (Tidak dapat diubah)</label><input type="text" value="${currentSchoolData.NPSN || ''}" disabled class="w-full bg-gray-200 border border-gray-300 rounded px-3 py-2 text-gray-600 font-mono"></div><div class="bg-gray-50 p-4 rounded-lg border border-gray-200"><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nama Sekolah</label><input type="text" value="${currentSchoolData.Sekolah || ''}" disabled class="w-full bg-gray-200 border border-gray-300 rounded px-3 py-2 text-gray-600"></div><div class="bg-gray-50 p-4 rounded-lg border border-gray-200 md:col-span-2"><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Wilayah / Suku Dinas</label><input type="text" value="${currentSchoolData.Sudin || ''}" readonly class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 text-gray-800 font-bold cursor-not-allowed"></div><div class="md:col-span-2 border-t border-gray-100 my-2"></div><div><label class="block text-xs font-bold text-blue-600 uppercase mb-1"><i class="fas fa-map-marker-alt mr-1"></i> Kecamatan</label><input type="text" id="prof_kecamatan" value="${currentSchoolData.Kecamatan || ''}" class="w-full bg-white border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded px-3 py-2 outline-none transition"></div><div><label class="block text-xs font-bold text-blue-600 uppercase mb-1"><i class="fas fa-user-tie mr-1"></i> Nama Kepala Sekolah</label><input type="text" id="prof_kepsek" value="${currentSchoolData.KepSek || ''}" class="w-full bg-white border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded px-3 py-2 outline-none transition"></div><div><label class="block text-xs font-bold text-blue-600 uppercase mb-1"><i class="fas fa-phone mr-1"></i> Nomor Telepon Sekolah</label><input type="text" id="prof_telepon" value="${currentSchoolData.Telepon || ''}" class="w-full bg-white border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded px-3 py-2 outline-none transition"></div><div><label class="block text-xs font-bold text-red-500 uppercase mb-1"><i class="fas fa-key mr-1"></i> Password Login</label><div class="relative"><input type="text" id="prof_password" value="${currentSchoolData.password || ''}" class="w-full bg-yellow-50 border border-yellow-300 focus:border-yellow-500 rounded px-3 py-2 outline-none font-mono text-gray-700"><p class="text-[10px] text-gray-500 mt-1 italic">*Gunakan password ini untuk login berikutnya.</p></div></div></div><div class="pt-4 border-t border-gray-100 flex justify-end"><button type="button" onclick="saveProfileData()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-lg transition flex items-center transform hover:scale-[1.02]"><i class="fas fa-save mr-2"></i> Simpan Perubahan Profil</button></div></div><div class="bg-indigo-50 p-6 rounded-xl border border-indigo-100 shadow-sm mt-6"><h3 class="text-lg font-bold text-indigo-900 mb-4"><i class="fas fa-user-edit mr-2"></i>Data Responden (Pengisi Instrumen)</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><label class="block text-xs font-bold text-indigo-700 uppercase mb-1">Nama Lengkap Responden</label><input type="text" name="nama_responden" id="nama_responden" class="w-full bg-white border border-indigo-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded px-3 py-2 outline-none transition" placeholder="Nama Guru / Operator / Kepsek yang mengisi" oninput="calculateProgress()"></div><div><label class="block text-xs font-bold text-indigo-700 uppercase mb-1">Nomor WhatsApp Aktif</label><div class="relative"><span class="absolute inset-y-0 left-0 pl-3 flex items-center text-indigo-400"><i class="fab fa-whatsapp"></i></span><input type="tel" name="no_wa" id="no_wa" class="w-full pl-8 pr-3 py-2 bg-white border border-indigo-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded outline-none transition" placeholder="08xxxxxxxxxx" oninput="calculateProgress()"></div></div></div><p class="text-xs text-indigo-500 mt-3 italic">*Data responden akan tersimpan bersama hasil evaluasi saat Anda menekan tombol "Simpan Permanen".</p></div></div>`;
                     container.innerHTML += profileHtml;
                     return;
                 }
@@ -527,9 +578,23 @@
         function handleConditional(triggerId, value) {
             const targets = document.querySelectorAll(`[data-trigger-source="${triggerId}"]`);
             targets.forEach(target => {
-                const showValue = target.getAttribute('data-show-if');
+                const showValueRaw = target.getAttribute('data-show-if');
                 const inputs = target.querySelectorAll('input, select, textarea');
-                if (value === showValue) { target.classList.remove('hidden'); } else { target.classList.add('hidden'); inputs.forEach(input => { if(input.type === 'radio') input.checked = false; else input.value = ''; if(input.id && input.id.startsWith('other_')) input.classList.add('hidden'); }); target.querySelectorAll('select').forEach(sel => sel.value = ''); }
+                
+                // LOGIC BARU: Support multiple values (comma separated)
+                const showValues = showValueRaw.split(','); 
+                
+                if (showValues.includes(value)) { 
+                    target.classList.remove('hidden'); 
+                } else { 
+                    target.classList.add('hidden'); 
+                    inputs.forEach(input => { 
+                        if(input.type === 'radio') input.checked = false; 
+                        else input.value = ''; 
+                        if(input.id && input.id.startsWith('other_')) input.classList.add('hidden'); 
+                    }); 
+                    target.querySelectorAll('select').forEach(sel => sel.value = ''); 
+                }
             });
             calculateProgress();
         }
@@ -546,10 +611,10 @@
 
         function highlightMenu(index) { document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active')); document.getElementById(`menu-item-${index}`).classList.add('active'); }
         
-        // MODIFIKASI NAVIGASI: PANGGIL SYNC
+        // MODIFIKASI NAVIGASI: SYNC DIHAPUS
         function navigate(direction) { 
-            // Trigger sync saat pindah halaman
-            syncToFirebase();
+            // Trigger sync dihapus dari sini agar tidak menyimpan ke cloud sebelum 100%
+            // syncToFirebase(); 
             
             const newIndex = currentSectionIndex + direction; 
             if (newIndex >= 0 && newIndex < sections.length) switchSection(newIndex); 
@@ -586,39 +651,200 @@
                 else { modeYaItems.forEach(el => el.classList.add('hidden')); modeTidakItems.forEach(el => el.classList.remove('hidden')); if(buktiWrapper) { buktiWrapper.classList.add('hidden'); buktiWrapper.querySelectorAll('input').forEach(i => i.value = ''); } if(docWrapper) { docWrapper.classList.add('hidden'); docWrapper.querySelectorAll('input').forEach(i => i.value = ''); } modeTidakItems.forEach(g => g.querySelectorAll('.child-input').forEach(i => i.setAttribute('required', 'true'))); }
             } else {
                 const inputs = wrapper.querySelectorAll('.child-input');
-                if (val === 'Ya') { wrapper.classList.remove('hidden'); wrapper.style.maxHeight = "8000px"; inputs.forEach(inp => { if (!inp.closest('[data-trigger-source]')?.classList.contains('hidden') && !inp.hasAttribute('data-optional')) inp.setAttribute('required', 'true'); }); if(document.getElementById(`bukti-wrapper-${sectionId}`)) document.getElementById(`bukti-wrapper-${sectionId}`).classList.add('hidden'); } 
+                if (val === 'Ya') { wrapper.classList.remove('hidden'); wrapper.style.maxHeight = "8000px"; inputs.forEach(inp => { if (!inp.closest('[data-trigger-source]')?.classList.contains('hidden') && !inp.hasAttribute('data-optional')) inp.setAttribute('required', 'true'); }); if(document.getElementById(`bukti-wrapper-${sectionId}`).classList.add('hidden')); } 
                 else { wrapper.style.maxHeight = "0px"; setTimeout(() => wrapper.classList.add('hidden'), 500); inputs.forEach(inp => { inp.removeAttribute('required'); inp.value = ''; }); }
             }
             calculateProgress();
+        }
+
+        // --- NEW VALIDATION FUNCTION ---
+        // Mencari field yang kosong dan mengembalikan array berisi pesan
+        function getMissingFields() {
+            let missingItems = [];
+
+            // 1. Data Responden (Wajib)
+            const nr = document.getElementById('nama_responden');
+            const nw = document.getElementById('no_wa');
+            if (!nr || !nr.value.trim()) missingItems.push("<b>Data Responden</b>: Nama Lengkap");
+            if (!nw || !nw.value.trim()) missingItems.push("<b>Data Responden</b>: Nomor WhatsApp");
+
+            // 2. Iterate Sections
+            sections.forEach((sec, idx) => {
+                if (sec.id === 'profil') return;
+
+                // A. Key Question
+                const keyName = `key_${sec.id}`;
+                const keyChecked = document.querySelector(`input[name="${keyName}"]:checked`);
+                
+                if (!keyChecked) {
+                    missingItems.push(`<b>${sec.title}</b>: Pertanyaan Utama (Ya/Tidak)`);
+                } else {
+                    // Jika Key Question terisi, cek anak-anaknya yang visible
+                    const sectionContainer = document.getElementById(`section-${idx}`);
+                    if (!sectionContainer) return;
+
+                    const wrappers = sectionContainer.querySelectorAll('div[id^="wrapper_"]');
+                    wrappers.forEach(wrapper => {
+                        // Skip jika hidden atau optional
+                        if (wrapper.offsetParent === null) return; 
+                        
+                        // Cek Optional Flag
+                        const hiddenInput = wrapper.querySelector('input[type="hidden"].child-input');
+                        const radios = wrapper.querySelectorAll('input[type="radio"].child-input');
+                        const simpleInputs = wrapper.querySelectorAll('input:not([type="hidden"]):not([type="radio"]):not([type="checkbox"]).child-input, select.child-input, textarea.child-input');
+
+                        let isOptional = false;
+                        if (hiddenInput && hiddenInput.hasAttribute('data-optional')) isOptional = true;
+                        else if (radios.length > 0 && radios[0].hasAttribute('data-optional')) isOptional = true;
+                        else if (simpleInputs.length > 0 && simpleInputs[0].hasAttribute('data-optional')) isOptional = true;
+
+                        if (isOptional) return;
+
+                        // Check if filled
+                        let isFilled = false;
+                        if (hiddenInput) {
+                            if (hiddenInput.value.trim()) isFilled = true;
+                        } else if (radios.length > 0) {
+                            if (Array.from(radios).some(r => r.checked)) isFilled = true;
+                        } else if (simpleInputs.length > 0) {
+                            if (simpleInputs[0].value.trim()) isFilled = true;
+                        }
+
+                        if (!isFilled) {
+                            // Ambil Label Pertanyaan
+                            let labelText = "Pertanyaan";
+                            const labelEl = wrapper.querySelector('p.text-gray-800');
+                            if (labelEl) labelText = labelEl.innerText.substring(0, 50) + (labelEl.innerText.length > 50 ? '...' : '');
+                            
+                            // Ambil Nomor Slot (badge)
+                            const badge = wrapper.querySelector('span.bg-gray-100');
+                            const num = badge ? badge.innerText : '';
+
+                            missingItems.push(`<b>${sec.short}</b> [${num}]: ${labelText}`);
+                        }
+                    });
+
+                    // C. Dokumen Pendukung Wajib (Jika visible)
+                    const docInput = sectionContainer.querySelector(`input[name="doc_link_${sec.id}"]`);
+                    if (docInput && docInput.offsetParent !== null) {
+                         if (!docInput.value.trim()) {
+                             missingItems.push(`<b>${sec.title}</b>: Link Dokumen Program Utama`);
+                         }
+                    }
+                }
+            });
+
+            return missingItems;
         }
 
         function calculateProgress() {
             // TRIGGER AUTO SAVE (LOCAL STORAGE)
             runAutoSave();
 
-            const form = document.getElementById('evalForm');
-            let totalItems = 2; let completedItems = 0;
-            const nr = document.getElementById('nama_responden'); const nw = document.getElementById('no_wa');
-            if (nr && nr.value.trim()) completedItems++;
-            if (nw && nw.value.trim()) completedItems++;
+            let totalPoints = 0;
+            let filledPoints = 0;
 
+            // 1. Data Responden (Wajib: 2 Poin)
+            const nr = document.getElementById('nama_responden');
+            const nw = document.getElementById('no_wa');
+            
+            totalPoints += 2;
+            if (nr && nr.value.trim()) filledPoints++;
+            if (nw && nw.value.trim()) filledPoints++;
+
+            // 2. Iterate Sections (Dinamis)
             sections.forEach((sec, idx) => {
-                if (sec.id === 'profil') return;
-                let sectionTotal = 1; let sectionFilled = 0;
-                let keyRadio = document.querySelector(`input[name="key_${sec.id}"]:checked`);
-                let keyVal = keyRadio ? keyRadio.value : null;
-                if (keyVal) sectionFilled++;
-                if (['koku', 'kka', 'pm', 'tka', 'dp', 'asesmen', 'ksp'].includes(sec.id)) { if (keyVal === 'Ya') { if (sec.id === 'kka') sectionTotal += 10; else if (sec.id === 'pm') sectionTotal += 13; else if (sec.id === 'tka') sectionTotal += 12; else if (sec.id === 'dp') sectionTotal += 15; else if (sec.id === 'ksp') sectionTotal += 17; else sectionTotal += 11; } else if (keyVal === 'Tidak') { if (sec.id === 'kka') sectionTotal += 6; else sectionTotal += 1; } } 
-                else { if (keyVal === 'Ya') sectionTotal += 10; else if (keyVal === 'Tidak') { sectionTotal = 1; sectionFilled = 1; } }
-                if (keyVal) { const container = document.getElementById(`section-${idx}`); const validInputs = container.querySelectorAll('input.child-input:not([type=hidden]), select.child-input, textarea.child-input, input[type=hidden].child-input'); validInputs.forEach(el => { if(el.closest('.hidden')) return; if(el.type === 'radio') { if(el.checked) sectionFilled++; } else { if(el.value.trim()) sectionFilled++; } }); }
+                if (sec.id === 'profil') return; // Profil tidak dihitung disini
+
+                // A. Key Question (Pertanyaan Kunci Ya/Tidak) - Selalu Wajib
+                totalPoints++; 
+                
+                const keyRadios = document.querySelectorAll(`input[name="key_${sec.id}"]`);
+                let isKeyAnswered = false;
+                
+                keyRadios.forEach(r => {
+                    if (r.checked) {
+                        isKeyAnswered = true;
+                    }
+                });
+
+                if (isKeyAnswered) {
+                    filledPoints++;
+                    
+                    // B. Child Questions (Hanya jika visible)
+                    const sectionContainer = document.getElementById(`section-${idx}`);
+                    
+                    if (sectionContainer) {
+                        // Cari semua wrapper pertanyaan (id="wrapper_...")
+                        // Ini memastikan kita menghitung per-pertanyaan, bukan per-input (menghindari duplikasi hitungan radio button)
+                        const wrappers = sectionContainer.querySelectorAll('div[id^="wrapper_"]');
+                        
+                        wrappers.forEach(wrapper => {
+                            // LOGIC INTI: Cek Visibility
+                            // offsetParent === null berarti elemen sedang hidden (display: none)
+                            if (wrapper.offsetParent === null) return; 
+
+                            // Ambil input di dalam wrapper ini
+                            const hiddenInput = wrapper.querySelector('input[type="hidden"].child-input'); // Untuk Checkbox/SelectWithOther
+                            const radios = wrapper.querySelectorAll('input[type="radio"].child-input'); // Untuk Radio Group
+                            const simpleInputs = wrapper.querySelectorAll('input:not([type="hidden"]):not([type="radio"]):not([type="checkbox"]).child-input, select.child-input, textarea.child-input'); // Text/Select/Textarea
+
+                            // Cek apakah pertanyaan ini Opsional?
+                            let isOptional = false;
+                            if (hiddenInput && hiddenInput.hasAttribute('data-optional')) isOptional = true;
+                            else if (radios.length > 0 && radios[0].hasAttribute('data-optional')) isOptional = true;
+                            else if (simpleInputs.length > 0 && simpleInputs[0].hasAttribute('data-optional')) isOptional = true;
+
+                            if (isOptional) return; // Skip jika opsional
+
+                            // Jika Visible & Wajib -> Tambah Target Poin
+                            totalPoints++;
+
+                            // Cek apakah terisi
+                            let isFilled = false;
+                            if (hiddenInput) {
+                                if (hiddenInput.value.trim()) isFilled = true;
+                            } else if (radios.length > 0) {
+                                if (Array.from(radios).some(r => r.checked)) isFilled = true;
+                            } else if (simpleInputs.length > 0) {
+                                if (simpleInputs[0].value.trim()) isFilled = true;
+                            }
+
+                            if (isFilled) filledPoints++;
+                        });
+                        
+                        // C. Dokumen Pendukung Wajib (Jika visible)
+                        const docInput = sectionContainer.querySelector(`input[name="doc_link_${sec.id}"]`);
+                        if (docInput && docInput.offsetParent !== null) {
+                             // Cek apakah wajib. Berdasarkan logika bisnis, dokumen program itu wajib jika metodenya "Ya"
+                             // Kecuali ada penanda khusus. Kita anggap wajib jika visible.
+                             totalPoints++;
+                             if (docInput.value.trim()) filledPoints++;
+                        }
+                    }
+                }
+                
+                // Update Icon Centang Sidebar
                 const checkIcon = document.getElementById(`check-${idx}`);
-                if (keyVal && sectionFilled > 1) checkIcon.classList.remove('opacity-0'); else checkIcon.classList.add('opacity-0');
-                totalItems += sectionTotal; completedItems += sectionFilled;
+                if (isKeyAnswered) {
+                     checkIcon.classList.remove('opacity-0');
+                } else {
+                     checkIcon.classList.add('opacity-0');
+                }
             });
-            const percent = Math.round((completedItems / totalItems) * 100) || 0;
+
+            // Kalkulasi Akhir
+            const percent = totalPoints === 0 ? 0 : Math.round((filledPoints / totalPoints) * 100);
             const finalPercent = percent > 100 ? 100 : percent;
-            document.getElementById('global-progress').style.width = `${finalPercent}%`;
-            document.getElementById('global-progress-text').innerText = `${finalPercent}%`;
+            
+            const bar = document.getElementById('global-progress');
+            const text = document.getElementById('global-progress-text');
+            
+            if(bar) bar.style.width = `${finalPercent}%`;
+            if(text) text.innerText = `${finalPercent}%`;
+            
+            // Return nilai untuk validasi submit
+            return finalPercent;
         }
 
         function checkSession() {
@@ -629,14 +855,64 @@
                 document.getElementById('hidden_npsn').value = storedNPSN;
                 document.getElementById('hidden_nama_sekolah').value = localStorage.getItem('sakti_nama_sekolah') || '';
                 document.getElementById('hidden_sudin').value = localStorage.getItem('sakti_sudin') || '';
-                document.getElementById('wilayahInput').value = localStorage.getItem('sakti_sudin') || '';
+                
+                // Pastikan input visible juga terisi (walaupun readonly)
+                const wilInput = document.getElementById('wilayahInput');
+                if(wilInput) wilInput.value = localStorage.getItem('sakti_sudin') || '';
+                
                 return true;
             }
             return false;
         }
 
-        function logout() { if(confirm('Apakah Anda yakin ingin keluar?')) { localStorage.clear(); location.reload(); } }
-        function showModal(type, msg) { const m = document.getElementById('modal'); m.classList.remove('hidden'); let html = ''; if(type == 'loading') html = '<i class="fas fa-circle-notch fa-spin text-4xl text-blue-500 mb-3"></i><p>'+msg+'</p>'; else if(type == 'success') html = '<i class="fas fa-check-circle text-4xl text-green-500 mb-3"></i><p>'+msg+'</p><button onclick="document.getElementById(\'modal\').classList.add(\'hidden\')" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">Tutup</button>'; else if(type == 'info') html = '<i class="fas fa-info-circle text-4xl text-blue-400 mb-3"></i><p>'+msg+'</p><button onclick="document.getElementById(\'modal\').classList.add(\'hidden\')" class="mt-4 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm">OK</button>'; else html = '<i class="fas fa-times-circle text-4xl text-red-500 mb-3"></i><p class="font-bold text-red-600">Error</p><p>'+msg+'</p><button onclick="document.getElementById(\'modal\').classList.add(\'hidden\')" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg text-sm">Tutup</button>'; document.getElementById('modal-content').innerHTML = html; }
+        function logout() { 
+            // GANTI ALERT CONFIRM BAWAAN DENGAN MODAL (Simplifikasi: langsung logout jika user klik tombol)
+            // Tapi untuk amannya, kita buat versi custom modal confirm nanti jika perlu.
+            // Untuk saat ini biar cepat, kita pakai confirm standar KHUSUS LOGOUT saja karena diluar flow submit.
+            // TAPI User benci alert/confirm. OK, kita gunakan showModal custom.
+            
+            const m = document.getElementById('modal');
+            m.classList.remove('hidden');
+            let html = '<i class="fas fa-sign-out-alt text-4xl text-red-500 mb-3"></i><p class="font-bold text-gray-800 mb-2">Konfirmasi Keluar</p><p class="text-sm text-gray-600 mb-4">Apakah Anda yakin ingin keluar dari aplikasi?</p><div class="flex gap-2 justify-center"><button onclick="document.getElementById(\'modal\').classList.add(\'hidden\')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300">Batal</button><button onclick="localStorage.clear(); location.reload();" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700">Ya, Keluar</button></div>';
+            document.getElementById('modal-content').innerHTML = html;
+        }
+
+        // UPDATE FUNGSI SHOWMODAL AGAR LEBIH FLEKSIBEL
+        function showModal(type, msg, confirmCallback) { 
+            const m = document.getElementById('modal'); 
+            m.classList.remove('hidden'); 
+            let html = ''; 
+            
+            if(type == 'loading') {
+                html = '<i class="fas fa-circle-notch fa-spin text-4xl text-blue-500 mb-3"></i><p>'+msg+'</p>'; 
+            } else if(type == 'success') {
+                html = '<i class="fas fa-check-circle text-4xl text-green-500 mb-3"></i><p>'+msg+'</p><button onclick="document.getElementById(\'modal\').classList.add(\'hidden\')" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">Tutup</button>'; 
+            } else if(type == 'info') {
+                html = '<i class="fas fa-info-circle text-4xl text-blue-400 mb-3"></i><p>'+msg+'</p><button onclick="document.getElementById(\'modal\').classList.add(\'hidden\')" class="mt-4 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm">OK</button>'; 
+            } else if(type == 'confirm') {
+                // MODAL KONFIRMASI CUSTOM (PENGGANTI WINDOW.CONFIRM)
+                html = `<i class="fas fa-question-circle text-4xl text-blue-500 mb-3"></i>
+                        <p class="font-bold text-gray-800 mb-2">Konfirmasi Simpan</p>
+                        <div class="text-sm text-gray-600 mb-4 text-left bg-blue-50 p-3 rounded border border-blue-100">${msg}</div>
+                        <div class="flex gap-2 justify-center">
+                            <button onclick="document.getElementById('modal').classList.add('hidden')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300 font-bold">Batal</button>
+                            <button id="btnModalConfirm" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 font-bold shadow-lg">Ya, Simpan Permanen</button>
+                        </div>`;
+            } else { 
+                // Error
+                html = '<i class="fas fa-times-circle text-4xl text-red-500 mb-3"></i><p class="font-bold text-red-600 mb-2">Data Belum Lengkap!</p><div class="text-left text-xs text-gray-700 bg-red-50 p-3 rounded border border-red-100 max-h-60 overflow-y-auto mb-4">'+msg+'</div><button onclick="document.getElementById(\'modal\').classList.add(\'hidden\')" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm shadow hover:bg-red-700">Tutup & Lengkapi</button>'; 
+            } 
+            
+            document.getElementById('modal-content').innerHTML = html;
+            
+            // Attach event listener for confirm button explicitly to avoid inline JS issues with functions
+            if(type === 'confirm' && confirmCallback) {
+                document.getElementById('btnModalConfirm').onclick = () => {
+                    document.getElementById('modal').classList.add('hidden');
+                    confirmCallback();
+                };
+            }
+        }
         window.showModal = showModal;
 
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
@@ -674,19 +950,51 @@
 
         document.getElementById('evalForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            if(!confirm("Simpan Permanen? Data tidak dapat diubah kecuali dengan izin Supervisor.")) return;
+
+            // 1. VALIDASI PROGRESS DENGAN MODAL (PENGGANTI ALERT)
+            // Browser validation sudah dimatikan dengan 'novalidate' di form tag
+            const missingItems = getMissingFields();
             
+            if (missingItems.length > 0) {
+                let htmlList = '<p class="mb-2 font-semibold">Mohon lengkapi isian berikut sebelum menyimpan:</p><ul class="list-disc pl-5 space-y-1">';
+                missingItems.forEach(item => {
+                    htmlList += `<li>${item}</li>`;
+                });
+                htmlList += '</ul>';
+                
+                showModal('error', htmlList);
+                return;
+            }
+
+            // 2. VALIDASI DATA KRUSIAL (Sudin/Wilayah)
+            const sudin = document.getElementById('hidden_sudin').value;
+            if (!sudin) {
+                 showModal('error', '<b>Data Wilayah Kosong!</b><br>Silakan hubungi Admin untuk melengkapi data profil sekolah (Sudin/Wilayah).');
+                 return;
+            }
+
+            // 3. KONFIRMASI CUSTOM (PENGGANTI CONFIRM() BAWAAN)
+            showModal('confirm', 
+                "Apakah Anda yakin ingin menyimpan data secara permanen? <br><br><span class='text-xs text-red-500 font-bold'>*Data tidak dapat diubah kembali kecuali dengan pengajuan izin ke Supervisor.</span>", 
+                submitFinalData // Panggil fungsi submitFinalData jika user klik YA
+            );
+        });
+
+        // FUNGSI BARU: SUBMIT DATA KE FIREBASE SETELAH LOLOS VALIDASI & KONFIRMASI
+        async function submitFinalData() {
             showModal('loading', 'Menyimpan ke Database...');
             const npsn = document.getElementById('hidden_npsn').value;
             if(!npsn) { showModal('error', 'Sesi habis, silakan login ulang.'); return; }
             
-            // Ambil data terbaru dari form, jangan cuma dari localstorage karena mungkin ada perubahan last second
+            // Ambil data terbaru dari form
             const formData = {};
-            const elements = this.elements;
+            const form = document.getElementById('evalForm');
+            const elements = form.elements;
             for (let i = 0; i < elements.length; i++) { const el = elements[i]; if (el.name && !el.disabled) { if (el.type === 'radio') { if (el.checked) formData[el.name] = el.value; } else if (el.type === 'checkbox') { } else { formData[el.name] = el.value; } } }
             
             formData.is_locked = true; 
             formData.request_edit = false;
+            formData.status_verifikasi = "Menunggu Verifikasi"; 
             formData.updatedAt = new Date().toISOString();
             formData.submittedAt = new Date().toISOString();
 
@@ -697,15 +1005,16 @@
                 showModal('success', 'Data Berhasil Disimpan Permanen!');
                 loadEvaluationData(npsn); 
             } catch (error) { console.error(error); showModal('error', 'Gagal menyimpan: ' + error.message); }
-        });
+        }
 
-        // MODIFIKASI LOAD DATA: MERGE LOCALSTORAGE & FIRESTORE
+        // MODIFIKASI LOAD DATA: MERGE LOCALSTORAGE & FIRESTORE & HANDLE "PERLU PERBAIKAN"
         async function loadEvaluationData(npsn) {
             try {
                 // 1. Ambil dari Firestore
                 const docRef = doc(db, "evaluasi_sekolah", npsn);
                 const docSnap = await getDoc(docRef);
                 let firestoreData = docSnap.exists() ? docSnap.data() : {};
+                currentEvalData = firestoreData; // Simpan ke global
                 
                 // 2. Ambil dari LocalStorage
                 const draftKey = `sakti_draft_${npsn}`;
@@ -726,15 +1035,29 @@
                     usingDraft = true;
                 }
 
-                // STATUS BANNER LOGIC
+                // --- STATUS BANNER & LOGIC PERBAIKAN ---
                 const banner = document.getElementById('status-banner');
+                const noteBanner = document.getElementById('supervisor-note-banner');
+                const noteText = document.getElementById('supervisor-note-text');
+                
                 const icon = document.getElementById('status-icon');
                 const title = document.getElementById('status-title');
                 const desc = document.getElementById('status-desc');
                 const btnEdit = document.getElementById('btn-request-edit');
 
-                if (data.is_locked) {
+                // LOGIC UTAMA: Cek Status Verifikasi DULU
+                if (data.status_verifikasi === 'Perlu Perbaikan') {
+                    // JIKA PERLU PERBAIKAN, UNLOCK FORM MESKIPUN IS_LOCKED TRUE
+                    lockForm(false);
+                    banner.classList.add('hidden'); // Sembunyikan banner status biasa
+                    
+                    // Tampilkan Banner Khusus Catatan Supervisor
+                    noteBanner.classList.remove('hidden');
+                    noteText.innerText = data.catatan_supervisor || "- Tidak ada catatan -";
+                    
+                } else if (data.is_locked) {
                     lockForm(true);
+                    noteBanner.classList.add('hidden'); // Sembunyikan banner catatan
                     banner.classList.remove('hidden');
                     
                     if (data.request_edit) {
@@ -745,18 +1068,29 @@
                         title.className = "font-bold text-lg text-blue-800";
                         desc.innerText = "Pengajuan perubahan data sedang ditinjau oleh Supervisor.";
                         btnEdit.classList.add('hidden');
+                    } else if (data.status_verifikasi === 'Valid') {
+                        // Jika sudah Valid
+                        banner.className = "max-w-4xl mx-auto mb-4 p-4 rounded-xl border flex items-center justify-between shadow-sm bg-green-50 border-green-200";
+                        icon.className = "w-10 h-10 rounded-full flex items-center justify-center text-white text-lg bg-green-500";
+                        icon.innerHTML = '<i class="fas fa-check-double"></i>';
+                        title.innerText = "Data Valid (Disetujui)";
+                        title.className = "font-bold text-lg text-green-800";
+                        desc.innerText = "Data sekolah Anda telah diverifikasi dan disetujui oleh Supervisor.";
+                        btnEdit.classList.add('hidden'); // Tidak bisa edit lagi kalau valid
                     } else {
+                        // Menunggu Verifikasi
                         banner.className = "max-w-4xl mx-auto mb-4 p-4 rounded-xl border flex items-center justify-between shadow-sm bg-green-50 border-green-200";
                         icon.className = "w-10 h-10 rounded-full flex items-center justify-center text-white text-lg bg-green-500";
                         icon.innerHTML = '<i class="fas fa-check"></i>';
                         title.innerText = "Data Terkirim";
                         title.className = "font-bold text-lg text-green-800";
-                        desc.innerText = "Anda sudah melakukan input data. Klik tombol di kanan jika ingin merubah.";
+                        desc.innerText = "Menunggu verifikasi Supervisor. Klik tombol di kanan jika ingin merubah.";
                         btnEdit.classList.remove('hidden');
                     }
                 } else {
                     lockForm(false);
                     banner.classList.add('hidden');
+                    noteBanner.classList.add('hidden');
                 }
 
                 // FILL FORM
@@ -818,6 +1152,8 @@
         }
 
         async function requestEdit() {
+            // CONFIRM BAWAAN JUGA DIGANTI MODAL CUSTOM (Jika diperlukan)
+            // Untuk saat ini kita gunakan confirm standar karena diluar flow submit, tapi jika mau konsisten:
             if(!confirm("Apakah Anda yakin ingin mengajukan perubahan data ke Supervisor?")) return;
             
             const npsn = document.getElementById('hidden_npsn').value;
