@@ -72,10 +72,9 @@
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            background-attachment: fixed; /* Efek Parallax */
+            background-attachment: fixed;
         }
         
-        /* Overlay gradien putih di bagian bawah hero untuk transisi halus ke konten */
         .hero-overlay-bottom {
             background: linear-gradient(to top, #ffffff 0%, rgba(255,255,255,0) 100%);
         }
@@ -90,6 +89,11 @@
             background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);
             background-size: 1rem 1rem;
         }
+
+        /* Scrollbar untuk modal table */
+        .modal-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .modal-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .modal-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased selection:bg-brand-100 selection:text-brand-900">
@@ -114,9 +118,6 @@
                     <a href="#beranda" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Beranda</a>
                     <a href="#statistik" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Data Wilayah</a>
                     
-                    <!-- MENU TIM (TRIGGER MODAL) -->
-                    <a href="#" onclick="openTimModal()" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Tim</a>
-
                     <!-- Admin Login Icon -->
                     <a href="Admin.html" class="w-9 h-9 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-white hover:text-blue-600 hover:shadow-md transition-all border border-transparent hover:border-slate-200" title="Login Admin">
                         <i class="fa-solid fa-lock text-xs"></i>
@@ -133,7 +134,6 @@
 
     <!-- Hero Section -->
     <section id="beranda" class="hero-bg relative min-h-[90vh] flex items-center justify-center pt-20 overflow-hidden">
-        
         <div class="absolute bottom-0 left-0 right-0 h-32 hero-overlay-bottom z-10"></div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-20 w-full pb-20">
@@ -204,14 +204,14 @@
             <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
                 <div>
                     <h2 class="text-4xl font-extrabold text-slate-900 tracking-tight">Statistik Wilayah</h2>
-                    <p class="text-slate-500 mt-3 text-lg font-medium">Pantauan langsung progres pengisian data per Suku Dinas.</p>
+                    <p class="text-slate-500 mt-3 text-lg font-medium">Data rekapitulasi real-time per Suku Dinas. <span class="text-blue-600 font-bold">Klik kartu untuk detail Kecamatan.</span></p>
                 </div>
                 <div class="bg-white border border-slate-200 px-5 py-2.5 rounded-full flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow cursor-default">
                     <div class="flex h-3 w-3 relative">
                         <span id="loading-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                         <span id="loading-dot" class="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
                     </div>
-                    <span id="last-update" class="text-xs font-bold text-slate-600 uppercase tracking-wide">Menghitung Data...</span>
+                    <span id="last-update" class="text-xs font-bold text-slate-600 uppercase tracking-wide">Memuat Data...</span>
                 </div>
             </div>
 
@@ -256,38 +256,7 @@
         </div>
     </footer>
 
-    <!-- MODAL TIM (Menampilkan Data dari Koleksi tim_tppk) -->
-    <div id="modal-tim" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
-        <div class="fixed inset-0 z-10 overflow-y-auto">
-            <div class="flex min-h-full items-center justify-center p-4 text-center">
-                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:w-full sm:max-w-md border border-slate-100">
-                    <!-- Header Modal -->
-                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <div class="flex justify-between items-center mb-4 border-b pb-3 border-gray-100">
-                            <h3 class="text-lg font-bold leading-6 text-slate-900" id="modal-title">
-                                <i class="fa-solid fa-users text-blue-600 mr-2"></i> Tim Pengembang Kurikulum
-                            </h3>
-                            <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition">
-                                <i class="fa-solid fa-xmark text-xl"></i>
-                            </button>
-                        </div>
-                        
-                        <!-- List Tim -->
-                        <div class="mt-2 space-y-3 max-h-[60vh] overflow-y-auto custom-scrollbar px-1" id="tim-list-container">
-                            <!-- Loading State -->
-                            <div class="text-center py-8 text-gray-500">
-                                <i class="fa-solid fa-circle-notch fa-spin text-blue-500 mb-2"></i>
-                                <p class="text-xs">Memuat Data Tim...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Alert (Pengganti Alert Browser) -->
+    <!-- Modal Alert -->
     <div id="modal-alert" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
         <div class="fixed inset-0 z-10 overflow-y-auto">
@@ -303,9 +272,109 @@
                         </div>
                     </div>
                     <div class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                        <button type="button" onclick="closeModal()" class="inline-flex w-full justify-center rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white shadow-lg hover:bg-slate-800 transition-all">
+                        <button type="button" onclick="closeModal('modal-alert')" class="inline-flex w-full justify-center rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white shadow-lg hover:bg-slate-800 transition-all">
                             Mengerti
                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DETAIL WILAYAH (LEVEL 1: KECAMATAN) -->
+    <div id="modal-detail" class="fixed inset-0 z-[90] hidden" aria-labelledby="detail-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm transition-opacity" onclick="closeModal('modal-detail')"></div>
+        <div class="fixed inset-0 z-10 overflow-hidden flex items-center justify-center p-4 sm:p-6">
+            <div class="relative w-full max-w-5xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all">
+                
+                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800" id="detail-title">Detail Wilayah</h3>
+                        <p class="text-sm text-slate-500">Klik nama kecamatan untuk melihat detail sekolah</p>
+                    </div>
+                    <button onclick="closeModal('modal-detail')" class="text-slate-400 hover:text-slate-600 transition-colors p-2 rounded-full hover:bg-slate-100">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto modal-scrollbar p-0">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-100 sticky top-0 z-10 shadow-sm">
+                            <tr>
+                                <th class="px-6 py-4 w-1/4">Kecamatan</th>
+                                <th class="px-6 py-4 text-center w-24">Sekolah</th>
+                                <th class="px-6 py-4 w-1/3">Status Input Data</th>
+                                <th class="px-6 py-4 text-center">Status Penilaian (Detail)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detail-tbody" class="divide-y divide-slate-100">
+                            <!-- Data -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end">
+                    <button onclick="closeModal('modal-detail')" class="px-5 py-2 bg-white border border-gray-300 text-slate-700 font-bold rounded-lg hover:bg-gray-50 transition shadow-sm text-sm">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DETAIL SEKOLAH (LEVEL 2: DAFTAR SEKOLAH) - NEW -->
+    <div id="modal-sekolah-detail" class="fixed inset-0 z-[95] hidden" aria-labelledby="sekolah-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-md transition-opacity" onclick="closeModal('modal-sekolah-detail')"></div>
+        <div class="fixed inset-0 z-20 overflow-hidden flex items-center justify-center p-4 sm:p-6">
+            <div class="relative w-full max-w-4xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all animate-fade-in-up">
+                
+                <!-- Header -->
+                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-blue-50/50">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span onclick="closeModal('modal-sekolah-detail')" class="cursor-pointer text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded hover:bg-blue-200 transition">
+                                <i class="fa-solid fa-arrow-left mr-1"></i> Kembali
+                            </span>
+                            <span class="text-xs text-slate-400 font-mono" id="sekolah-wilayah-tag">WILAYAH</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800" id="sekolah-title">Daftar Sekolah</h3>
+                    </div>
+                    <button onclick="closeModal('modal-sekolah-detail')" class="text-slate-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Search / Filter (Optional placeholder) -->
+                <div class="px-6 py-3 bg-white border-b border-gray-100">
+                    <div class="relative">
+                        <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400 text-sm"></i>
+                        <input type="text" id="search-sekolah-input" onkeyup="filterSekolahTable()" placeholder="Cari nama sekolah..." class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <!-- Content Table -->
+                <div class="flex-1 overflow-y-auto modal-scrollbar p-0 bg-white min-h-[300px] relative">
+                    <!-- Loading Spinner -->
+                    <div id="sekolah-loading" class="absolute inset-0 bg-white z-10 flex flex-col items-center justify-center hidden">
+                        <i class="fa-solid fa-circle-notch fa-spin text-4xl text-blue-500 mb-3"></i>
+                        <p class="text-sm text-slate-500 font-medium">Memuat data sekolah...</p>
+                    </div>
+
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-100 sticky top-0 z-10 shadow-sm">
+                            <tr>
+                                <th class="px-6 py-4">Nama Sekolah</th>
+                                <th class="px-6 py-4 text-center w-32">Input</th>
+                                <th class="px-6 py-4 text-center w-32">Perbaikan</th>
+                                <th class="px-6 py-4 text-center w-40">Status Penilaian</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sekolah-tbody" class="divide-y divide-slate-100">
+                            <!-- Data Sekolah -->
+                        </tbody>
+                    </table>
+                    <div id="sekolah-empty" class="hidden p-8 text-center text-slate-400">
+                        Tidak ada data sekolah ditemukan.
                     </div>
                 </div>
             </div>
@@ -315,8 +384,8 @@
     <!-- Logic Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        // Import getDocs & query untuk mengambil list data
-        import { getFirestore, collection, query, where, getCountFromServer, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // Import tambahan: query, where, documentId
+        import { getFirestore, collection, getDocs, query, where, documentId } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDOYIAjVph2Jwpb0xTSGad1Zlg0DdMlmfU",
@@ -330,7 +399,9 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const regions = [
+        window.globalStatsData = {};
+
+        const orderedRegions = [
             "Jakarta Pusat 1", "Jakarta Pusat 2",
             "Jakarta Utara 1", "Jakarta Utara 2",
             "Jakarta Barat 1", "Jakarta Barat 2",
@@ -341,90 +412,62 @@
 
         async function fetchStatistics() {
             try {
-                const promises = regions.map(async (region) => {
-                    const qTotal = query(collection(db, "data_sekolah"), where("Sudin", "==", region));
-                    const qInput = query(collection(db, "evaluasi_sekolah"), where("sudin", "==", region));
-
-                    const [snapTotal, snapInput] = await Promise.all([
-                        getCountFromServer(qTotal),
-                        getCountFromServer(qInput)
-                    ]);
-
-                    return {
-                        region: region,
-                        total: snapTotal.data().count,
-                        input: snapInput.data().count
-                    };
-                });
-
-                const results = await Promise.all(promises);
-
+                const querySnapshot = await getDocs(collection(db, "rekap_statistik"));
+                
                 let totalMap = {};
                 let inputMap = {};
-                
-                results.forEach(r => {
-                    totalMap[r.region] = r.total;
-                    inputMap[r.region] = r.input;
+                let lastUpdate = null;
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const regionName = doc.id;
+                    window.globalStatsData[regionName] = data;
+                    totalMap[regionName] = data.total_sekolah || 0;
+                    inputMap[regionName] = data.total_sudah_input || 0;
+                    if(data.last_updated) lastUpdate = data.last_updated;
                 });
 
-                renderGrid(totalMap, inputMap);
+                renderGrid(totalMap, inputMap, orderedRegions);
                 
                 document.getElementById('loading-ping').classList.remove('animate-ping', 'bg-blue-400');
                 document.getElementById('loading-ping').classList.add('bg-green-400');
                 document.getElementById('loading-dot').classList.replace('bg-blue-500', 'bg-green-500');
-                document.getElementById('last-update').innerText = "DATA TERKINI";
+                
+                if (lastUpdate) {
+                    const dateObj = new Date(lastUpdate);
+                    const options = { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
+                    document.getElementById('last-update').innerText = `Update: ${dateObj.toLocaleDateString('id-ID', options)}`;
+                } else {
+                    document.getElementById('last-update').innerText = "Belum Ada Data";
+                }
                 document.getElementById('last-update').classList.add('text-green-600');
 
             } catch (error) {
                 console.error("Error fetching stats:", error);
                 document.getElementById('loading-dot').classList.replace('bg-blue-500', 'bg-red-500');
                 document.getElementById('last-update').innerText = "GAGAL MEMUAT";
-                showModal("Gagal memuat data statistik. Pastikan koneksi internet Anda stabil.");
+                showModal("Gagal memuat data statistik. Pastikan Admin telah menekan tombol 'Hitung Ulang'.");
             }
         }
 
-        function renderGrid(totalMap, inputMap) {
+        function renderGrid(totalMap, inputMap, regions) {
             const grid = document.getElementById('stats-grid');
             grid.innerHTML = '';
 
             regions.forEach((region, index) => {
                 const total = totalMap[region] || 0;
                 const input = inputMap[region] || 0;
-                
-                let percent = 0;
-                if(total > 0) percent = Math.round((input / total) * 100);
+                let percent = total > 0 ? Math.round((input / total) * 100) : 0;
                 if(percent > 100) percent = 100;
                 
-                let theme = { 
-                    bg: 'bg-blue-50', 
-                    text: 'text-blue-600', 
-                    bar: 'bg-blue-500', 
-                    icon: 'fa-chart-simple',
-                    border: 'border-slate-200'
-                };
-                
-                if(percent >= 90) { 
-                    theme = { 
-                        bg: 'bg-green-50', 
-                        text: 'text-green-600', 
-                        bar: 'bg-green-500', 
-                        icon: 'fa-check-circle',
-                        border: 'border-green-200'
-                    };
-                } else if(percent < 50) { 
-                    theme = { 
-                        bg: 'bg-amber-50', 
-                        text: 'text-amber-600', 
-                        bar: 'bg-amber-500', 
-                        icon: 'fa-clock',
-                        border: 'border-amber-200'
-                    };
-                }
+                let theme = { bg: 'bg-blue-50', text: 'text-blue-600', bar: 'bg-blue-500', icon: 'fa-chart-simple', border: 'border-slate-200' };
+                if(percent >= 90) theme = { bg: 'bg-green-50', text: 'text-green-600', bar: 'bg-green-500', icon: 'fa-check-circle', border: 'border-green-200' };
+                else if(percent < 50) theme = { bg: 'bg-amber-50', text: 'text-amber-600', bar: 'bg-amber-500', icon: 'fa-clock', border: 'border-amber-200' };
 
-                const delay = index * 100; 
+                const delay = index * 50; 
 
                 const cardHtml = `
-                    <div class="glass-card rounded-2xl p-6 relative group hover:-translate-y-2 hover:shadow-xl transition-all duration-300 animate-fade-in-up border ${theme.border}" style="animation-delay: ${delay}ms">
+                    <div onclick="openDetail('${region}')" class="glass-card rounded-2xl p-6 relative group hover:-translate-y-2 hover:shadow-xl transition-all duration-300 animate-fade-in-up border ${theme.border} cursor-pointer" style="animation-delay: ${delay}ms">
                         <div class="flex justify-between items-start mb-6">
                             <div>
                                 <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wider opacity-70">${region}</h3>
@@ -448,8 +491,8 @@
                                 <span>Input: <span class="text-slate-900 text-sm">${input}</span></span>
                             </div>
                             <div class="flex items-center gap-1.5 opacity-60">
-                                <i class="fa-solid fa-database"></i>
-                                <span>Total: ${total}</span>
+                                <i class="fa-solid fa-eye text-blue-400"></i>
+                                <span class="group-hover:text-blue-600 transition-colors">Lihat Detail</span>
                             </div>
                         </div>
                     </div>
@@ -457,75 +500,211 @@
                 grid.innerHTML += cardHtml;
             });
 
-            setTimeout(() => {
-                document.querySelectorAll('[data-width]').forEach(bar => {
-                    bar.style.width = bar.getAttribute('data-width');
-                });
-            }, 300);
+            setTimeout(() => { document.querySelectorAll('[data-width]').forEach(bar => { bar.style.width = bar.getAttribute('data-width'); }); }, 300);
         }
 
-        // --- TIM TPPK LOGIC ---
-        // Fetch langsung dari koleksi 'tim_tppk'
-        window.openTimModal = async function() {
-            document.getElementById('modal-tim').classList.remove('hidden');
-            const container = document.getElementById('tim-list-container');
-            
-            try {
-                // UPDATE: Menggunakan collection "tim_tppk"
-                const q = query(collection(db, "tim_tppk"));
-                const snapshot = await getDocs(q);
+        window.openDetail = function(region) {
+            const data = window.globalStatsData[region];
+            if(!data || !data.kecamatan) { showModal("Data detail untuk wilayah ini belum tersedia."); return; }
+
+            document.getElementById('detail-title').innerText = `Detail: ${region}`;
+            const tbody = document.getElementById('detail-tbody');
+            tbody.innerHTML = '';
+
+            const kecList = Object.keys(data.kecamatan).sort();
+
+            kecList.forEach(kecName => {
+                const kData = data.kecamatan[kecName];
+                const total = kData.total_sekolah || 0;
+                const sudahInputCount = kData.total_sudah_input || 0;
+                const belumInputCount = total - sudahInputCount;
+                const sudahInputPct = total > 0 ? Math.round((sudahInputCount / total) * 100) : 0;
+                const belumInputPct = total > 0 ? Math.round((belumInputCount / total) * 100) : 0;
+
+                const s = kData.status || {};
+                const validCount = s.Valid || 0;
+                const perbaikanCount = s['Perlu Perbaikan'] || 0;
+                const invalidCount = s['Tidak Valid'] || 0;
+                const validPct = total > 0 ? Math.round((validCount / total) * 100) : 0;
+                const perbaikanPct = total > 0 ? Math.round((perbaikanCount / total) * 100) : 0;
+                const invalidPct = total > 0 ? Math.round((invalidCount / total) * 100) : 0;
+
+                // CLICKABLE ROW -> openSchoolList
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-blue-50 border-b border-slate-100 transition-colors cursor-pointer group";
+                tr.onclick = () => openSchoolList(region, kecName);
                 
-                let html = '';
-                if(snapshot.empty) {
-                    html = '<div class="text-center py-4 text-gray-500 text-sm">Belum ada data tim.</div>';
-                } else {
-                    snapshot.forEach(doc => {
-                        const data = doc.data();
-                        
-                        // Mapping Field sesuai struktur database 'tim_tppk'
-                        const name = data.nama || "Tanpa Nama";
-                        const role = data.jabatan || "Anggota Tim";
-                        const phone = data.no_wa || ""; 
-                        
-                        let waLink = "#";
-                        let phoneDisplay = "Tidak ada nomor";
-                        let cursorClass = "cursor-default opacity-60";
-                        let iconColor = "text-gray-400";
-                        
-                        if(phone) {
-                            let cleanPhone = phone.toString().replace(/\D/g, ''); 
-                            if(cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.substring(1);
-                            if(cleanPhone.startsWith('62')) {
-                                waLink = `https://wa.me/${cleanPhone}`;
-                                cursorClass = "cursor-pointer hover:bg-green-50 hover:border-green-200";
-                                iconColor = "text-green-500";
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-bold text-slate-700 group-hover:text-blue-600 flex items-center gap-2">
+                        <i class="fa-solid fa-folder text-yellow-400 group-hover:text-yellow-500"></i> ${kecName}
+                    </td>
+                    <td class="px-6 py-4 text-center font-bold text-slate-900">${total}</td>
+                    <td class="px-6 py-4">
+                        <div class="mb-1 flex justify-between text-xs font-bold"><span class="text-green-600">Sudah: ${sudahInputPct}%</span><span class="text-red-400">Belum: ${belumInputPct}%</span></div>
+                        <div class="w-full bg-red-100 rounded-full h-2.5 overflow-hidden"><div class="h-full bg-green-500 rounded-full" style="width: ${sudahInputPct}%"></div></div>
+                        <div class="text-[10px] text-slate-400 mt-1">${sudahInputCount} dari ${total} sekolah</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div class="flex flex-col items-center p-1 rounded bg-green-50 border border-green-100"><span class="text-[10px] font-bold text-green-700 uppercase">Valid</span><span class="text-lg font-bold text-green-600 leading-none mt-1">${validPct}%</span><span class="text-[10px] text-green-600/70 mt-0.5">(${validCount})</span></div>
+                            <div class="flex flex-col items-center p-1 rounded bg-yellow-50 border border-yellow-100"><span class="text-[10px] font-bold text-yellow-700 uppercase">Revisi</span><span class="text-lg font-bold text-yellow-600 leading-none mt-1">${perbaikanPct}%</span><span class="text-[10px] text-yellow-600/70 mt-0.5">(${perbaikanCount})</span></div>
+                            <div class="flex flex-col items-center p-1 rounded bg-red-50 border border-red-100"><span class="text-[10px] font-bold text-red-700 uppercase">Invalid</span><span class="text-lg font-bold text-red-600 leading-none mt-1">${invalidPct}%</span><span class="text-[10px] text-red-600/70 mt-0.5">(${invalidCount})</span></div>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('modal-detail').classList.remove('hidden');
+        };
+
+        // --- NEW: LOGIKA MODAL SEKOLAH ---
+        window.openSchoolList = async function(region, kecamatan) {
+            const modal = document.getElementById('modal-sekolah-detail');
+            const loading = document.getElementById('sekolah-loading');
+            const tbody = document.getElementById('sekolah-tbody');
+            const title = document.getElementById('sekolah-title');
+            const tag = document.getElementById('sekolah-wilayah-tag');
+            const empty = document.getElementById('sekolah-empty');
+            const searchInput = document.getElementById('search-sekolah-input');
+
+            // Setup UI Awal
+            title.innerText = `Kecamatan ${kecamatan}`;
+            tag.innerText = region.toUpperCase();
+            searchInput.value = '';
+            tbody.innerHTML = '';
+            modal.classList.remove('hidden');
+            loading.classList.remove('hidden');
+            empty.classList.add('hidden');
+
+            try {
+                // 1. Ambil Data Sekolah di Kecamatan ini
+                const qSekolah = query(collection(db, "data_sekolah"), 
+                    where("Kecamatan", "==", kecamatan),
+                    where("Sudin", "==", region) // Double check agar akurat
+                );
+                const snapSekolah = await getDocs(qSekolah);
+                
+                if (snapSekolah.empty) {
+                    loading.classList.add('hidden');
+                    empty.classList.remove('hidden');
+                    return;
+                }
+
+                let schools = [];
+                let npsnList = [];
+
+                snapSekolah.forEach(doc => {
+                    const d = doc.data();
+                    schools.push({
+                        npsn: d.NPSN, // ID Document = NPSN
+                        nama: d.Sekolah,
+                        input: false,
+                        status: 'Belum Input',
+                        perbaikan: false
+                    });
+                    npsnList.push(d.NPSN);
+                });
+
+                // 2. Ambil Status Evaluasi (Batching jika perlu, tapi biasanya kecamatan < 30 sekolah)
+                // Firestore 'in' limit 30. Kita buat chunks aman (10 per batch)
+                const chunkSize = 10;
+                const chunks = [];
+                for (let i = 0; i < npsnList.length; i += chunkSize) {
+                    chunks.push(npsnList.slice(i, i + chunkSize));
+                }
+
+                const evalPromises = chunks.map(chunk => {
+                    const qEval = query(collection(db, "evaluasi_sekolah"), where(documentId(), "in", chunk));
+                    return getDocs(qEval);
+                });
+
+                const evalSnaps = await Promise.all(evalPromises);
+
+                // 3. Merge Data
+                evalSnaps.forEach(snap => {
+                    snap.forEach(doc => {
+                        const evalData = doc.data();
+                        const schoolIdx = schools.findIndex(s => s.npsn === doc.id);
+                        if(schoolIdx !== -1) {
+                            schools[schoolIdx].input = true;
+                            schools[schoolIdx].status = evalData.status_verifikasi || 'Menunggu Verifikasi';
+                            if (schools[schoolIdx].status === 'Perlu Perbaikan') {
+                                schools[schoolIdx].perbaikan = true;
                             }
                         }
-
-                        html += `
-                        <div onclick="${phone ? `window.open('${waLink}', '_blank')` : ''}" class="flex items-center justify-between p-3 border border-gray-100 rounded-xl transition-all ${cursorClass} group">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
-                                    ${name.charAt(0).toUpperCase()}
-                                </div>
-                                <div>
-                                    <h4 class="text-sm font-bold text-slate-800 group-hover:text-blue-700 transition-colors">${name}</h4>
-                                    <p class="text-xs text-slate-500">${role}</p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <i class="fa-brands fa-whatsapp ${iconColor} text-xl group-hover:scale-110 transition-transform"></i>
-                            </div>
-                        </div>
-                        `;
                     });
-                }
-                container.innerHTML = html;
+                });
 
-            } catch (error) {
-                console.error("Fetch Tim Error:", error);
-                container.innerHTML = `<div class="text-center py-4 text-red-500 text-sm">Gagal memuat data tim.<br><span class="text-xs text-gray-400">${error.message}</span></div>`;
+                // 4. Render Table
+                loading.classList.add('hidden');
+                
+                // Sort: Yang 'Perlu Perbaikan' di atas, lalu 'Menunggu', lalu 'Valid'
+                schools.sort((a, b) => {
+                    if (a.status === 'Perlu Perbaikan' && b.status !== 'Perlu Perbaikan') return -1;
+                    if (b.status === 'Perlu Perbaikan' && a.status !== 'Perlu Perbaikan') return 1;
+                    return a.nama.localeCompare(b.nama);
+                });
+
+                window.currentSchoolList = schools; // Cache untuk filter
+                renderSchoolRows(schools);
+
+            } catch (e) {
+                console.error("Error fetching schools", e);
+                loading.classList.add('hidden');
+                showModal("Gagal mengambil data sekolah.");
             }
+        };
+
+        function renderSchoolRows(schools) {
+            const tbody = document.getElementById('sekolah-tbody');
+            const empty = document.getElementById('sekolah-empty');
+            tbody.innerHTML = '';
+
+            if(schools.length === 0) {
+                empty.classList.remove('hidden');
+                empty.innerText = "Tidak ada sekolah yang cocok.";
+                return;
+            }
+            empty.classList.add('hidden');
+
+            schools.forEach(s => {
+                let statusBadge = '';
+                let perbaikanIcon = '-';
+                let inputBadge = '<span class="px-2 py-1 rounded bg-red-100 text-red-600 text-xs font-bold">Belum</span>';
+
+                if (s.input) {
+                    inputBadge = '<span class="px-2 py-1 rounded bg-green-100 text-green-600 text-xs font-bold">Sudah</span>';
+                    
+                    if (s.status === 'Valid') statusBadge = '<span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold border border-green-200"><i class="fa-solid fa-check-circle mr-1"></i> Valid</span>';
+                    else if (s.status === 'Perlu Perbaikan') {
+                        statusBadge = '<span class="px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs font-bold border border-yellow-200"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Revisi</span>';
+                        perbaikanIcon = '<i class="fa-solid fa-check text-yellow-600 font-bold text-lg"></i>';
+                    }
+                    else if (s.status === 'Tidak Valid') statusBadge = '<span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold border border-red-200"><i class="fa-solid fa-times-circle mr-1"></i> Invalid</span>';
+                    else statusBadge = '<span class="px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-bold border border-gray-200"><i class="fa-solid fa-clock mr-1"></i> Menunggu</span>';
+                } else {
+                    statusBadge = '<span class="text-xs text-gray-400 italic">Belum tersedia</span>';
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-slate-700">${s.nama}</div>
+                        <div class="text-[10px] text-slate-400 font-mono">${s.npsn}</div>
+                    </td>
+                    <td class="px-6 py-4 text-center">${inputBadge}</td>
+                    <td class="px-6 py-4 text-center">${perbaikanIcon}</td>
+                    <td class="px-6 py-4 text-center">${statusBadge}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.filterSekolahTable = function() {
+            const term = document.getElementById('search-sekolah-input').value.toLowerCase();
+            const filtered = window.currentSchoolList.filter(s => s.nama.toLowerCase().includes(term) || s.npsn.includes(term));
+            renderSchoolRows(filtered);
         }
 
         window.showModal = function(msg) {
@@ -533,13 +712,12 @@
             document.getElementById('modal-alert').classList.remove('hidden');
         }
 
-        window.closeModal = function() {
-            document.getElementById('modal-alert').classList.add('hidden');
-            document.getElementById('modal-tim').classList.add('hidden');
+        window.closeModal = function(id) {
+            const modalId = id || 'modal-alert';
+            document.getElementById(modalId).classList.add('hidden');
         }
 
         fetchStatistics();
-
     </script>
 </body>
 </html>
