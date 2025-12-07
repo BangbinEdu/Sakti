@@ -118,6 +118,11 @@
                     <a href="#beranda" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Beranda</a>
                     <a href="#statistik" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Data Wilayah</a>
                     
+                    <!-- MENU TIM (TRIGGERS MODAL) -->
+                    <button onclick="openTimModal()" class="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">
+                        Tim TPPK
+                    </button>
+                    
                     <!-- Admin Login Icon -->
                     <a href="Admin.html" class="w-9 h-9 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-white hover:text-blue-600 hover:shadow-md transition-all border border-transparent hover:border-slate-200" title="Login Admin">
                         <i class="fa-solid fa-lock text-xs"></i>
@@ -256,8 +261,43 @@
         </div>
     </footer>
 
+    <!-- MODAL TIM TPPK (BARU - UKURAN COMPACT) -->
+    <div id="modal-tim" class="fixed inset-0 z-[100] hidden" aria-labelledby="tim-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeModal('modal-tim')"></div>
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all animate-fade-in-up">
+                    
+                    <!-- Header -->
+                    <div class="px-6 py-4 bg-blue-600 border-b border-blue-500 flex justify-between items-center">
+                        <div class="text-white">
+                            <h3 class="text-lg font-bold" id="tim-title"><i class="fa-solid fa-user-shield mr-2"></i>Tim TPPK</h3>
+                            <p class="text-xs text-blue-100">Klik nama untuk hubungi via WhatsApp</p>
+                        </div>
+                        <button onclick="closeModal('modal-tim')" class="text-blue-100 hover:text-white transition-colors bg-blue-700/50 p-2 rounded-full">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
+                    </div>
+
+                    <!-- Content List -->
+                    <div id="tim-list" class="max-h-[60vh] overflow-y-auto p-2 bg-slate-50">
+                        <div class="text-center py-8 text-slate-400">
+                            <i class="fa-solid fa-circle-notch fa-spin text-xl mb-2"></i>
+                            <p class="text-sm">Memuat data tim...</p>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="px-6 py-3 bg-white border-t border-slate-100 text-center">
+                        <p class="text-[10px] text-slate-400">Tim Pencegahan dan Penanganan Kekerasan (TPPK)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Alert -->
-    <div id="modal-alert" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id="modal-alert" class="fixed inset-0 z-[110] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
         <div class="fixed inset-0 z-10 overflow-y-auto">
             <div class="flex min-h-full items-center justify-center p-4 text-center">
@@ -322,13 +362,12 @@
         </div>
     </div>
 
-    <!-- MODAL DETAIL SEKOLAH (LEVEL 2: DAFTAR SEKOLAH) - NEW -->
+    <!-- MODAL DETAIL SEKOLAH (LEVEL 2: DAFTAR SEKOLAH) -->
     <div id="modal-sekolah-detail" class="fixed inset-0 z-[95] hidden" aria-labelledby="sekolah-title" role="dialog" aria-modal="true">
         <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-md transition-opacity" onclick="closeModal('modal-sekolah-detail')"></div>
         <div class="fixed inset-0 z-20 overflow-hidden flex items-center justify-center p-4 sm:p-6">
             <div class="relative w-full max-w-4xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all animate-fade-in-up">
                 
-                <!-- Header -->
                 <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-blue-50/50">
                     <div>
                         <div class="flex items-center gap-2 mb-1">
@@ -344,7 +383,6 @@
                     </button>
                 </div>
 
-                <!-- Search / Filter (Optional placeholder) -->
                 <div class="px-6 py-3 bg-white border-b border-gray-100">
                     <div class="relative">
                         <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400 text-sm"></i>
@@ -352,9 +390,7 @@
                     </div>
                 </div>
 
-                <!-- Content Table -->
                 <div class="flex-1 overflow-y-auto modal-scrollbar p-0 bg-white min-h-[300px] relative">
-                    <!-- Loading Spinner -->
                     <div id="sekolah-loading" class="absolute inset-0 bg-white z-10 flex flex-col items-center justify-center hidden">
                         <i class="fa-solid fa-circle-notch fa-spin text-4xl text-blue-500 mb-3"></i>
                         <p class="text-sm text-slate-500 font-medium">Memuat data sekolah...</p>
@@ -369,13 +405,9 @@
                                 <th class="px-6 py-4 text-center w-40">Status Penilaian</th>
                             </tr>
                         </thead>
-                        <tbody id="sekolah-tbody" class="divide-y divide-slate-100">
-                            <!-- Data Sekolah -->
-                        </tbody>
+                        <tbody id="sekolah-tbody" class="divide-y divide-slate-100"></tbody>
                     </table>
-                    <div id="sekolah-empty" class="hidden p-8 text-center text-slate-400">
-                        Tidak ada data sekolah ditemukan.
-                    </div>
+                    <div id="sekolah-empty" class="hidden p-8 text-center text-slate-400">Tidak ada data sekolah ditemukan.</div>
                 </div>
             </div>
         </div>
@@ -384,7 +416,6 @@
     <!-- Logic Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        // Import tambahan: query, where, documentId
         import { getFirestore, collection, getDocs, query, where, documentId } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -413,7 +444,6 @@
         async function fetchStatistics() {
             try {
                 const querySnapshot = await getDocs(collection(db, "rekap_statistik"));
-                
                 let totalMap = {};
                 let inputMap = {};
                 let lastUpdate = null;
@@ -503,6 +533,56 @@
             setTimeout(() => { document.querySelectorAll('[data-width]').forEach(bar => { bar.style.width = bar.getAttribute('data-width'); }); }, 300);
         }
 
+        // --- FETCH & RENDER TIM TPPK (IN MODAL) ---
+        window.openTimModal = async function() {
+            const modal = document.getElementById('modal-tim');
+            const listContainer = document.getElementById('tim-list');
+            modal.classList.remove('hidden');
+            
+            // Only fetch if empty or has loader
+            if(listContainer.innerHTML.includes('fa-circle-notch') || listContainer.children.length === 0) {
+                try {
+                    const querySnapshot = await getDocs(collection(db, "tim_tppk"));
+                    listContainer.innerHTML = '';
+
+                    if (querySnapshot.empty) {
+                        listContainer.innerHTML = `<div class="text-center py-8 text-slate-400 italic">Belum ada data Tim TPPK.</div>`;
+                        return;
+                    }
+
+                    querySnapshot.forEach(doc => {
+                        const t = doc.data();
+                        const waLink = formatWALink(t.no_wa);
+                        
+                        const item = `
+                            <div onclick="window.open('${waLink}', '_blank')" class="p-3 mb-2 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl cursor-pointer group transition-all flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                    <i class="fa-solid fa-user-shield"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-sm text-slate-800">${t.nama || 'Tanpa Nama'}</h4>
+                                    <p class="text-xs text-slate-500 font-medium">${t.jabatan || 'Anggota Tim'}</p>
+                                </div>
+                                <i class="fa-brands fa-whatsapp text-green-500 text-lg opacity-50 group-hover:opacity-100"></i>
+                            </div>
+                        `;
+                        listContainer.innerHTML += item;
+                    });
+
+                } catch (error) {
+                    console.error("Error fetching Tim:", error);
+                    listContainer.innerHTML = `<div class="text-center py-4 text-red-400 text-sm">Gagal memuat data.</div>`;
+                }
+            }
+        };
+
+        function formatWALink(phone) {
+            if (!phone) return '#';
+            let p = phone.replace(/\D/g, ''); 
+            if (p.startsWith('0')) p = '62' + p.substring(1);
+            return `https://wa.me/${p}`;
+        }
+
         window.openDetail = function(region) {
             const data = window.globalStatsData[region];
             if(!data || !data.kecamatan) { showModal("Data detail untuk wilayah ini belum tersedia."); return; }
@@ -529,7 +609,6 @@
                 const perbaikanPct = total > 0 ? Math.round((perbaikanCount / total) * 100) : 0;
                 const invalidPct = total > 0 ? Math.round((invalidCount / total) * 100) : 0;
 
-                // CLICKABLE ROW -> openSchoolList
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-blue-50 border-b border-slate-100 transition-colors cursor-pointer group";
                 tr.onclick = () => openSchoolList(region, kecName);
@@ -557,7 +636,6 @@
             document.getElementById('modal-detail').classList.remove('hidden');
         };
 
-        // --- NEW: LOGIKA MODAL SEKOLAH ---
         window.openSchoolList = async function(region, kecamatan) {
             const modal = document.getElementById('modal-sekolah-detail');
             const loading = document.getElementById('sekolah-loading');
@@ -567,7 +645,6 @@
             const empty = document.getElementById('sekolah-empty');
             const searchInput = document.getElementById('search-sekolah-input');
 
-            // Setup UI Awal
             title.innerText = `Kecamatan ${kecamatan}`;
             tag.innerText = region.toUpperCase();
             searchInput.value = '';
@@ -577,50 +654,27 @@
             empty.classList.add('hidden');
 
             try {
-                // 1. Ambil Data Sekolah di Kecamatan ini
-                const qSekolah = query(collection(db, "data_sekolah"), 
-                    where("Kecamatan", "==", kecamatan),
-                    where("Sudin", "==", region) // Double check agar akurat
-                );
+                const qSekolah = query(collection(db, "data_sekolah"), where("Kecamatan", "==", kecamatan), where("Sudin", "==", region));
                 const snapSekolah = await getDocs(qSekolah);
                 
-                if (snapSekolah.empty) {
-                    loading.classList.add('hidden');
-                    empty.classList.remove('hidden');
-                    return;
-                }
+                if (snapSekolah.empty) { loading.classList.add('hidden'); empty.classList.remove('hidden'); return; }
 
                 let schools = [];
                 let npsnList = [];
 
                 snapSekolah.forEach(doc => {
                     const d = doc.data();
-                    schools.push({
-                        npsn: d.NPSN, // ID Document = NPSN
-                        nama: d.Sekolah,
-                        input: false,
-                        status: 'Belum Input',
-                        perbaikan: false
-                    });
+                    schools.push({ npsn: d.NPSN, nama: d.Sekolah, input: false, status: 'Belum Input', perbaikan: false });
                     npsnList.push(d.NPSN);
                 });
 
-                // 2. Ambil Status Evaluasi (Batching jika perlu, tapi biasanya kecamatan < 30 sekolah)
-                // Firestore 'in' limit 30. Kita buat chunks aman (10 per batch)
                 const chunkSize = 10;
                 const chunks = [];
-                for (let i = 0; i < npsnList.length; i += chunkSize) {
-                    chunks.push(npsnList.slice(i, i + chunkSize));
-                }
+                for (let i = 0; i < npsnList.length; i += chunkSize) { chunks.push(npsnList.slice(i, i + chunkSize)); }
 
-                const evalPromises = chunks.map(chunk => {
-                    const qEval = query(collection(db, "evaluasi_sekolah"), where(documentId(), "in", chunk));
-                    return getDocs(qEval);
-                });
-
+                const evalPromises = chunks.map(chunk => getDocs(query(collection(db, "evaluasi_sekolah"), where(documentId(), "in", chunk))));
                 const evalSnaps = await Promise.all(evalPromises);
 
-                // 3. Merge Data
                 evalSnaps.forEach(snap => {
                     snap.forEach(doc => {
                         const evalData = doc.data();
@@ -628,31 +682,23 @@
                         if(schoolIdx !== -1) {
                             schools[schoolIdx].input = true;
                             schools[schoolIdx].status = evalData.status_verifikasi || 'Menunggu Verifikasi';
-                            if (schools[schoolIdx].status === 'Perlu Perbaikan') {
-                                schools[schoolIdx].perbaikan = true;
-                            }
+                            if (schools[schoolIdx].status === 'Perlu Perbaikan') schools[schoolIdx].perbaikan = true;
                         }
                     });
                 });
 
-                // 4. Render Table
                 loading.classList.add('hidden');
                 
-                // Sort: Yang 'Perlu Perbaikan' di atas, lalu 'Menunggu', lalu 'Valid'
                 schools.sort((a, b) => {
                     if (a.status === 'Perlu Perbaikan' && b.status !== 'Perlu Perbaikan') return -1;
                     if (b.status === 'Perlu Perbaikan' && a.status !== 'Perlu Perbaikan') return 1;
                     return a.nama.localeCompare(b.nama);
                 });
 
-                window.currentSchoolList = schools; // Cache untuk filter
+                window.currentSchoolList = schools; 
                 renderSchoolRows(schools);
 
-            } catch (e) {
-                console.error("Error fetching schools", e);
-                loading.classList.add('hidden');
-                showModal("Gagal mengambil data sekolah.");
-            }
+            } catch (e) { console.error("Error fetching schools", e); loading.classList.add('hidden'); showModal("Gagal mengambil data sekolah."); }
         };
 
         function renderSchoolRows(schools) {
@@ -660,43 +706,23 @@
             const empty = document.getElementById('sekolah-empty');
             tbody.innerHTML = '';
 
-            if(schools.length === 0) {
-                empty.classList.remove('hidden');
-                empty.innerText = "Tidak ada sekolah yang cocok.";
-                return;
-            }
+            if(schools.length === 0) { empty.classList.remove('hidden'); empty.innerText = "Tidak ada sekolah yang cocok."; return; }
             empty.classList.add('hidden');
 
             schools.forEach(s => {
-                let statusBadge = '';
-                let perbaikanIcon = '-';
-                let inputBadge = '<span class="px-2 py-1 rounded bg-red-100 text-red-600 text-xs font-bold">Belum</span>';
+                let statusBadge = '', perbaikanIcon = '-', inputBadge = '<span class="px-2 py-1 rounded bg-red-100 text-red-600 text-xs font-bold">Belum</span>';
 
                 if (s.input) {
                     inputBadge = '<span class="px-2 py-1 rounded bg-green-100 text-green-600 text-xs font-bold">Sudah</span>';
-                    
                     if (s.status === 'Valid') statusBadge = '<span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold border border-green-200"><i class="fa-solid fa-check-circle mr-1"></i> Valid</span>';
-                    else if (s.status === 'Perlu Perbaikan') {
-                        statusBadge = '<span class="px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs font-bold border border-yellow-200"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Revisi</span>';
-                        perbaikanIcon = '<i class="fa-solid fa-check text-yellow-600 font-bold text-lg"></i>';
-                    }
+                    else if (s.status === 'Perlu Perbaikan') { statusBadge = '<span class="px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs font-bold border border-yellow-200"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Revisi</span>'; perbaikanIcon = '<i class="fa-solid fa-check text-yellow-600 font-bold text-lg"></i>'; }
                     else if (s.status === 'Tidak Valid') statusBadge = '<span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold border border-red-200"><i class="fa-solid fa-times-circle mr-1"></i> Invalid</span>';
                     else statusBadge = '<span class="px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-bold border border-gray-200"><i class="fa-solid fa-clock mr-1"></i> Menunggu</span>';
-                } else {
-                    statusBadge = '<span class="text-xs text-gray-400 italic">Belum tersedia</span>';
-                }
+                } else { statusBadge = '<span class="text-xs text-gray-400 italic">Belum tersedia</span>'; }
 
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 border-b border-slate-100";
-                tr.innerHTML = `
-                    <td class="px-6 py-4">
-                        <div class="font-bold text-slate-700">${s.nama}</div>
-                        <div class="text-[10px] text-slate-400 font-mono">${s.npsn}</div>
-                    </td>
-                    <td class="px-6 py-4 text-center">${inputBadge}</td>
-                    <td class="px-6 py-4 text-center">${perbaikanIcon}</td>
-                    <td class="px-6 py-4 text-center">${statusBadge}</td>
-                `;
+                tr.innerHTML = `<td class="px-6 py-4"><div class="font-bold text-slate-700">${s.nama}</div><div class="text-[10px] text-slate-400 font-mono">${s.npsn}</div></td><td class="px-6 py-4 text-center">${inputBadge}</td><td class="px-6 py-4 text-center">${perbaikanIcon}</td><td class="px-6 py-4 text-center">${statusBadge}</td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -707,15 +733,8 @@
             renderSchoolRows(filtered);
         }
 
-        window.showModal = function(msg) {
-            document.getElementById('modal-message').innerText = msg;
-            document.getElementById('modal-alert').classList.remove('hidden');
-        }
-
-        window.closeModal = function(id) {
-            const modalId = id || 'modal-alert';
-            document.getElementById(modalId).classList.add('hidden');
-        }
+        window.showModal = function(msg) { document.getElementById('modal-message').innerText = msg; document.getElementById('modal-alert').classList.remove('hidden'); }
+        window.closeModal = function(id) { document.getElementById(id || 'modal-alert').classList.add('hidden'); }
 
         fetchStatistics();
     </script>
