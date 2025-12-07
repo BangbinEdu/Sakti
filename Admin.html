@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - SAKTI SD</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS (XLSX) untuk Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #c7c7c7; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a0a0a0; }
+    </style>
+</head>
+<body class="bg-gray-100 h-screen flex overflow-hidden">
+
+    <!-- LOGIN OVERLAY (NEW) -->
+    <div id="login-overlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-gradient-to-br from-blue-900 to-slate-900">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm mx-4 text-center transform transition-all scale-100">
+            <div class="mb-6 flex justify-center">
+                <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 shadow-inner">
+                    <i class="fa-solid fa-user-shield text-4xl"></i>
+                </div>
+            </div>
+            <h2 class="text-2xl font-extrabold text-gray-900 mb-1">Admin Panel</h2>
+            <p class="text-gray-500 text-sm mb-8">SAKTI - Manajemen Data Pendidikan</p>
+            
+            <form id="loginForm" class="space-y-5 text-left">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Username</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400"><i class="fa-solid fa-user"></i></span>
+                        <input type="text" id="login-username" required class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition shadow-sm bg-gray-50 focus:bg-white" placeholder="Masukkan username">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Password</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400"><i class="fa-solid fa-lock"></i></span>
+                        <input type="password" id="login-password" required class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition shadow-sm bg-gray-50 focus:bg-white" placeholder="Masukkan password">
+                    </div>
+                </div>
+                <button type="submit" id="btn-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow-lg mt-4 flex justify-center items-center gap-2 transform active:scale-95">
+                    <span>Masuk Dashboard</span> <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+            <p id="login-error" class="text-red-500 text-xs mt-4 hidden font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Username atau Password salah.</p>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-blue-900 text-white flex flex-col shadow-2xl z-20 hidden md:flex">
+        <div class="h-16 flex items-center px-6 border-b border-blue-800">
+            <i class="fa-solid fa-database text-yellow-400 text-xl mr-3"></i>
+            <span class="font-bold text-lg tracking-wide">SAKTI SD</span>
+        </div>
+
+        <nav class="flex-1 py-6 px-3 space-y-2">
+            <a href="./" class="w-full flex items-center px-4 py-3 text-left rounded-lg transition-all hover:bg-blue-800 text-blue-200 hover:text-white">
+                <i class="fa-solid fa-home w-8 text-center"></i>
+                <span class="font-medium">Home</span>
+            </a>
+            <button onclick="switchTab('users')" id="nav-users" class="w-full flex items-center px-4 py-3 text-left rounded-lg transition-all hover:bg-blue-800 bg-blue-800 text-white shadow-inner">
+                <i class="fa-solid fa-users-gear w-8 text-center"></i>
+                <span class="font-medium">Admin & Supervisor</span>
+            </button>
+            <button onclick="switchTab('sekolah')" id="nav-sekolah" class="w-full flex items-center px-4 py-3 text-left rounded-lg transition-all hover:bg-blue-800 text-blue-200 hover:text-white">
+                <i class="fa-solid fa-school w-8 text-center"></i>
+                <span class="font-medium">Data Sekolah (User)</span>
+            </button>
+            <button onclick="switchTab('tim')" id="nav-tim" class="w-full flex items-center px-4 py-3 text-left rounded-lg transition-all hover:bg-blue-800 text-blue-200 hover:text-white">
+                <i class="fa-solid fa-users-viewfinder w-8 text-center"></i>
+                <span class="font-medium">Tim TPPK</span>
+            </button>
+            <button onclick="switchTab('stats')" id="nav-stats" class="w-full flex items-center px-4 py-3 text-left rounded-lg transition-all hover:bg-blue-800 text-blue-200 hover:text-white">
+                <i class="fa-solid fa-chart-pie w-8 text-center"></i>
+                <span class="font-medium">Manajemen Statistik</span>
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-blue-800">
+            <button onclick="logout()" class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-800 text-blue-200 rounded-lg hover:bg-blue-700 hover:text-white transition text-xs font-semibold">
+                <i class="fa-solid fa-sign-out-alt"></i> Keluar
+            </button>
+            <div class="text-xs text-blue-400 text-center mt-3">&copy; 2025 SAKTI Admin</div>
+        </div>
+    </aside>
+
+    <!-- MOBILE HEADER -->
+    <div class="md:hidden fixed w-full bg-blue-900 text-white z-50 flex items-center justify-between px-4 h-16 shadow-md">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-database text-yellow-400"></i>
+            <span class="font-bold">SAKTI SD</span>
+        </div>
+        <button onclick="toggleMobileMenu()" class="text-white p-2">
+            <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+    </div>
+    
+    <!-- MOBILE MENU OVERLAY -->
+    <div id="mobile-menu" class="fixed inset-0 bg-blue-900 z-40 hidden flex-col pt-20 px-4 space-y-4 md:hidden">
+        <button onclick="switchTab('users'); toggleMobileMenu()" class="w-full text-left text-white py-3 border-b border-blue-700"><i class="fa-solid fa-users-gear mr-3"></i>Admin & Supervisor</button>
+        <button onclick="switchTab('sekolah'); toggleMobileMenu()" class="w-full text-left text-white py-3 border-b border-blue-700"><i class="fa-solid fa-school mr-3"></i>Data Sekolah</button>
+        <button onclick="switchTab('tim'); toggleMobileMenu()" class="w-full text-left text-white py-3 border-b border-blue-700"><i class="fa-solid fa-users-viewfinder mr-3"></i>Tim TPPK</button>
+        <button onclick="switchTab('stats'); toggleMobileMenu()" class="w-full text-left text-white py-3 border-b border-blue-700"><i class="fa-solid fa-chart-pie mr-3"></i>Statistik</button>
+        <button onclick="logout()" class="w-full text-left text-red-300 py-3 border-b border-blue-700 font-bold"><i class="fa-solid fa-sign-out-alt mr-3"></i>Keluar</button>
+        <button onclick="toggleMobileMenu()" class="w-full text-center mt-4 text-blue-300">Tutup Menu</button>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col relative h-full overflow-hidden pt-16 md:pt-0">
+        
+        <!-- Topbar -->
+        <header class="h-16 bg-white shadow-sm flex items-center justify-between px-8 border-b border-gray-200">
+            <h2 id="page-title" class="text-xl font-bold text-gray-800">Manajemen Admin</h2>
+            <div class="flex items-center gap-4">
+                <div id="connection-status" class="text-xs px-3 py-1 rounded-full bg-gray-200 text-gray-600 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> Menghubungkan...
+                </div>
+                <div class="flex items-center gap-3 pl-4 border-l border-gray-200">
+                    <div class="text-right hidden sm:block">
+                        <div id="admin-name" class="text-sm font-bold text-gray-800">Admin</div>
+                        <div id="admin-role" class="text-xs text-gray-500">SuperAdmin</div>
+                    </div>
+                    <div class="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 border border-indigo-200">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTENT AREA -->
+        <div class="flex-1 overflow-y-auto p-6 custom-scrollbar bg-slate-50">
+            
+            <!-- SECTION: USERS -->
+            <div id="view-users" class="fade-in">
+                <div class="flex flex-col md:flex-row items-center mb-6 gap-3">
+                    <div class="relative w-full md:flex-1">
+                        <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400 text-sm"></i>
+                        <input type="text" id="search-users" onkeyup="renderUsers()" placeholder="Cari admin..." class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none text-sm">
+                    </div>
+                    
+                    <select id="filter-wilayah-users" onchange="renderUsers()" class="w-full md:w-48 px-3 py-2 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">Semua Wilayah</option>
+                        <option value="Jakarta Pusat 1">Jakarta Pusat 1</option>
+                        <option value="Jakarta Pusat 2">Jakarta Pusat 2</option>
+                        <option value="Jakarta Utara 1">Jakarta Utara 1</option>
+                        <option value="Jakarta Utara 2">Jakarta Utara 2</option>
+                        <option value="Jakarta Barat 1">Jakarta Barat 1</option>
+                        <option value="Jakarta Barat 2">Jakarta Barat 2</option>
+                        <option value="Jakarta Selatan 1">Jakarta Selatan 1</option>
+                        <option value="Jakarta Selatan 2">Jakarta Selatan 2</option>
+                        <option value="Jakarta Timur 1">Jakarta Timur 1</option>
+                        <option value="Jakarta Timur 2">Jakarta Timur 2</option>
+                        <option value="Kepulauan Seribu">Kepulauan Seribu</option>
+                    </select>
+
+                    <button onclick="openUserModal()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-sm text-sm font-medium transition flex items-center justify-center gap-2 whitespace-nowrap">
+                        <i class="fa-solid fa-plus"></i> Tambah Admin
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left" id="users-table">
+                            <thead class="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200">
+                                <tr>
+                                    <th class="px-6 py-4">Username</th>
+                                    <th class="px-6 py-4">Role</th>
+                                    <th class="px-6 py-4">Wilayah</th>
+                                    <th class="px-6 py-4 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody" class="divide-y divide-gray-100">
+                                <!-- Data Injected JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: SEKOLAH -->
+            <div id="view-sekolah" class="hidden fade-in">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <div class="flex flex-col md:flex-row gap-2 flex-1 w-full">
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400 text-sm"></i>
+                            <input type="text" id="search-sekolah" onkeyup="renderSekolah()" placeholder="Cari sekolah (NPSN/Nama)..." class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 outline-none text-sm">
+                        </div>
+                        <select id="filter-wilayah-sekolah" onchange="renderSekolah()" class="w-full md:w-48 px-3 py-2 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-green-500 outline-none">
+                            <option value="">Semua Wilayah</option>
+                            <option value="Jakarta Pusat 1">Jakarta Pusat 1</option>
+                            <option value="Jakarta Pusat 2">Jakarta Pusat 2</option>
+                            <option value="Jakarta Utara 1">Jakarta Utara 1</option>
+                            <option value="Jakarta Utara 2">Jakarta Utara 2</option>
+                            <option value="Jakarta Barat 1">Jakarta Barat 1</option>
+                            <option value="Jakarta Barat 2">Jakarta Barat 2</option>
+                            <option value="Jakarta Selatan 1">Jakarta Selatan 1</option>
+                            <option value="Jakarta Selatan 2">Jakarta Selatan 2</option>
+                            <option value="Jakarta Timur 1">Jakarta Timur 1</option>
+                            <option value="Jakarta Timur 2">Jakarta Timur 2</option>
+                            <option value="Kepulauan Seribu">Kepulauan Seribu</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <button onclick="openImportModal()" class="flex-1 md:flex-none bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow-sm text-sm font-medium transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-file-excel"></i> Import Excel
+                        </button>
+                        <button onclick="openSekolahModal()" class="flex-1 md:flex-none bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-sm text-sm font-medium transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Tambah Sekolah
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left" id="sekolah-table">
+                            <thead class="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200">
+                                <tr>
+                                    <th class="px-6 py-4">NPSN / Username</th>
+                                    <th class="px-6 py-4">Nama Sekolah</th>
+                                    <th class="px-6 py-4">Wilayah</th>
+                                    <th class="px-6 py-4">Password</th>
+                                    <th class="px-6 py-4 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sekolah-tbody" class="divide-y divide-gray-100">
+                                <!-- Data Injected JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: TIM TPPK -->
+            <div id="view-tim" class="hidden fade-in">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <div class="relative w-full md:w-96">
+                        <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400 text-sm"></i>
+                        <input type="text" id="search-tim" onkeyup="renderTim()" placeholder="Cari nama atau jabatan..." class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 outline-none text-sm">
+                    </div>
+                    <button onclick="openTimModal()" class="w-full md:w-auto bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-sm text-sm font-medium transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Tambah Anggota
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200">
+                                <tr>
+                                    <th class="px-6 py-4">Nama Lengkap</th>
+                                    <th class="px-6 py-4">Jabatan/Role</th>
+                                    <th class="px-6 py-4">Nomor WhatsApp</th>
+                                    <th class="px-6 py-4 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tim-tbody" class="divide-y divide-gray-100">
+                                <!-- Data Injected JS -->
+                            </tbody>
+                        </table>
+                        <div id="empty-tim" class="hidden p-8 text-center text-gray-400 italic">
+                            Belum ada data Tim TPPK.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: MANAJEMEN STATISTIK -->
+            <div id="view-stats" class="hidden fade-in">
+                <div class="bg-orange-50 border border-orange-200 rounded-xl p-6 mb-8">
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                        <div>
+                            <h3 class="text-lg font-bold text-orange-800 mb-2"><i class="fa-solid fa-bolt mr-2"></i>Agregasi Data Otomatis</h3>
+                            <p class="text-sm text-orange-700 max-w-2xl">
+                                Fitur ini akan menghitung ulang seluruh data dari sekolah dan menyimpannya ke koleksi <b>'rekap_statistik'</b>. 
+                                Jalankan fitur ini secara berkala atau setelah terjadi perubahan data massal agar Dashboard Supervisor/Home dapat dimuat dengan cepat.
+                            </p>
+                        </div>
+                        <button id="btn-generate-stats" onclick="generateStatistics()" class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-xl shadow-lg font-bold transition flex items-center gap-2 transform hover:scale-105">
+                            <i class="fa-solid fa-sync"></i> Hitung Ulang & Simpan Statistik
+                        </button>
+                    </div>
+                    <!-- Progress Bar -->
+                    <div id="stats-progress-container" class="hidden mt-6">
+                        <div class="flex justify-between text-xs font-bold text-orange-800 mb-1">
+                            <span id="stats-status-text">Memproses data...</span>
+                            <span id="stats-percent">0%</span>
+                        </div>
+                        <div class="w-full bg-orange-200 rounded-full h-3">
+                            <div id="stats-progress-bar" class="bg-orange-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-lg font-bold text-gray-800 mb-4">Preview Hasil Perhitungan</h3>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-gray-50 text-gray-600 font-semibold border-b border-gray-200">
+                                <tr>
+                                    <th class="px-6 py-4">Wilayah (Sudin)</th>
+                                    <th class="px-6 py-4 text-center">Total Sekolah</th>
+                                    <th class="px-6 py-4 text-center">Sudah Input</th>
+                                    <th class="px-6 py-4 text-center">Status (V/P/T)</th>
+                                    <th class="px-6 py-4 text-center">Last Updated</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stats-tbody" class="divide-y divide-gray-100">
+                                <tr><td colspan="5" class="px-6 py-8 text-center text-gray-400 italic">Tekan tombol 'Hitung Ulang' untuk melihat data.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- --- MODALS --- -->
+    
+    <!-- MODAL USER FORM -->
+    <div id="modal-user" class="fixed inset-0 z-50 hidden" aria-hidden="true">
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="closeModal('modal-user')"></div>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-md relative z-10 transform transition-all scale-100">
+                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-gray-800" id="modal-user-title">Tambah Admin</h3>
+                    <button onclick="closeModal('modal-user')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+                <div class="p-6 space-y-4">
+                    <input type="hidden" id="user-mode" value="add">
+                    <div><label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Username</label><input type="text" id="form-username" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-gray-50"><p class="text-xs text-gray-400 mt-1" id="username-hint">*Username tidak bisa diubah.</p></div>
+                    <div><label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Password</label><input type="text" id="form-password" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-gray-50"></div>
+                    <div><label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Role</label><select id="form-role" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-gray-50"><option value="Admin">Admin</option><option value="Supervisor">Supervisor</option><option value="SuperAdmin">SuperAdmin</option></select></div>
+                    <div><label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Wilayah</label><select id="form-wilayah" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-gray-50"><option value="">-- Pilih Wilayah --</option><option value="Jakarta Pusat 1">Jakarta Pusat 1</option><option value="Jakarta Pusat 2">Jakarta Pusat 2</option><option value="Jakarta Utara 1">Jakarta Utara 1</option><option value="Jakarta Utara 2">Jakarta Utara 2</option><option value="Jakarta Barat 1">Jakarta Barat 1</option><option value="Jakarta Barat 2">Jakarta Barat 2</option><option value="Jakarta Selatan 1">Jakarta Selatan 1</option><option value="Jakarta Selatan 2">Jakarta Selatan 2</option><option value="Jakarta Timur 1">Jakarta Timur 1</option><option value="Jakarta Timur 2">Jakarta Timur 2</option><option value="Kepulauan Seribu">Kepulauan Seribu</option></select></div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 rounded-b-xl flex justify-end gap-3"><button onclick="closeModal('modal-user')" class="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg text-sm font-medium">Batal</button><button onclick="saveUser()" class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-sm font-medium shadow-sm">Simpan</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SEKOLAH FORM -->
+    <div id="modal-sekolah" class="fixed inset-0 z-50 hidden" aria-hidden="true">
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="closeModal('modal-sekolah')"></div>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-3xl relative z-10 transform transition-all scale-100 max-h-[90vh] flex flex-col">
+                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center"><h3 class="text-lg font-bold text-gray-800" id="modal-sekolah-title">Tambah Sekolah</h3><button onclick="closeModal('modal-sekolah')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button></div>
+                <div class="p-6 overflow-y-auto custom-scrollbar">
+                    <input type="hidden" id="sekolah-mode" value="add"><input type="hidden" id="sekolah-doc-id"> 
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2 bg-indigo-50 p-3 rounded-lg border border-indigo-100"><h4 class="text-indigo-800 text-xs font-bold uppercase mb-2"><i class="fa-solid fa-lock mr-1"></i> Akun Login Sekolah</h4><div class="grid grid-cols-2 gap-4"><div><label class="block text-xs text-gray-500 mb-1">NPSN (Username)</label><input type="text" id="form-s-npsn" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-gray-700 placeholder-gray-400" placeholder="Username Login"><p class="text-[10px] text-gray-400 mt-1 hidden" id="npsn-hint">*Username tidak dapat diubah.</p></div><div><label class="block text-xs text-gray-500 mb-1">Password</label><input type="text" id="form-s-password" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-white font-mono text-gray-700" placeholder="Default: 1234"></div></div></div>
+                        <div class="md:col-span-2"><h4 class="text-gray-800 text-xs font-bold uppercase mb-2 border-b pb-1">Identitas Sekolah</h4><div class="grid grid-cols-2 gap-4"><div class="col-span-2 md:col-span-1"><label class="block text-xs text-gray-500 mb-1">Nama Sekolah</label><input type="text" id="form-s-nama" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-green-500 outline-none"></div><div><label class="block text-xs text-gray-500 mb-1">Bentuk</label><select id="form-s-bentuk" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-green-500 outline-none bg-white"><option value="SD">SD</option><option value="SMP">SMP</option><option value="SMA">SMA</option><option value="SMK">SMK</option></select></div><div><label class="block text-xs text-gray-500 mb-1">Status</label><select id="form-s-status" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-green-500 outline-none bg-white"><option value="Negeri">Negeri</option><option value="Swasta">Swasta</option></select></div></div></div>
+                        <div class="md:col-span-2"><div class="grid grid-cols-2 gap-4"><div class="col-span-2 md:col-span-1"><label class="block text-xs text-gray-500 mb-1">Sudin / Wilayah</label><select id="form-s-sudin" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-green-500 outline-none bg-white"><option value="">-- Pilih Wilayah --</option><option value="Jakarta Pusat 1">Jakarta Pusat 1</option><option value="Jakarta Pusat 2">Jakarta Pusat 2</option><option value="Jakarta Utara 1">Jakarta Utara 1</option><option value="Jakarta Utara 2">Jakarta Utara 2</option><option value="Jakarta Barat 1">Jakarta Barat 1</option><option value="Jakarta Barat 2">Jakarta Barat 2</option><option value="Jakarta Selatan 1">Jakarta Selatan 1</option><option value="Jakarta Selatan 2">Jakarta Selatan 2</option><option value="Jakarta Timur 1">Jakarta Timur 1</option><option value="Jakarta Timur 2">Jakarta Timur 2</option><option value="Kepulauan Seribu">Kepulauan Seribu</option></select></div><div class="col-span-2 md:col-span-1"><label class="block text-xs text-gray-500 mb-1">Kabupaten/Kota</label><select id="form-s-kota" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-green-500 outline-none bg-white"><option value="">-- Pilih Kota --</option><option value="Jakarta Pusat">Jakarta Pusat</option><option value="Jakarta Utara">Jakarta Utara</option><option value="Jakarta Barat">Jakarta Barat</option><option value="Jakarta Selatan">Jakarta Selatan</option><option value="Jakarta Timur">Jakarta Timur</option><option value="Kepulauan Seribu">Kepulauan Seribu</option></select></div></div></div>
+                        <div class="md:col-span-2"><label class="block text-xs text-gray-500 mb-1">Alamat Lengkap</label><textarea id="form-s-alamat" rows="2" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-green-500 outline-none"></textarea></div>
+                        <div class="grid grid-cols-2 gap-4 md:col-span-2"><div><label class="block text-xs text-gray-500 mb-1">Kecamatan</label><input type="text" id="form-s-kecamatan" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-green-500 outline-none"></div><div><label class="block text-xs text-gray-500 mb-1">Kelurahan</label><input type="text" id="form-s-kelurahan" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-green-500 outline-none"></div></div>
+                        <div class="md:col-span-2 border-t pt-4 mt-2"><h4 class="text-gray-800 text-xs font-bold uppercase mb-2">Kontak & Personil</h4><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div><label class="block text-xs text-gray-500 mb-1">Telepon Sekolah</label><input type="text" id="form-s-telp" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-green-500 outline-none"></div><div><label class="block text-xs text-gray-500 mb-1">Kepala Sekolah</label><input type="text" id="form-s-kepsek" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-green-500 outline-none"></div><div><label class="block text-xs text-gray-500 mb-1">HP Kepsek</label><input type="text" id="form-s-hpkepsek" class="w-full px-3 py-2 border rounded text-sm focus:ring-2 focus:ring-green-500 outline-none"></div></div></div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 rounded-b-xl flex justify-end gap-3"><button onclick="closeModal('modal-sekolah')" class="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg text-sm font-medium">Batal</button><button onclick="saveSekolah()" class="px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg text-sm font-medium shadow-sm">Simpan Data</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TIM FORM -->
+    <div id="modal-tim" class="fixed inset-0 z-50 hidden" aria-hidden="true">
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="closeModal('modal-tim')"></div>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-md relative z-10 transform transition-all scale-100">
+                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-purple-50 rounded-t-xl"><h3 class="text-lg font-bold text-purple-800" id="modal-tim-title">Tambah Anggota Tim</h3><button onclick="closeModal('modal-tim')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button></div>
+                <div class="p-6 space-y-4">
+                    <input type="hidden" id="tim-mode" value="add"><input type="hidden" id="tim-id">
+                    <div><label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Nama Lengkap</label><input type="text" id="form-tim-nama" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-white" placeholder="Nama Anggota Tim"></div>
+                    <div><label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Jabatan / Role</label><input type="text" id="form-tim-jabatan" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-white" placeholder="Misal: Ketua, Anggota, Sekretaris"></div>
+                    <div><label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Nomor WhatsApp</label><div class="relative"><span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400"><i class="fa-brands fa-whatsapp"></i></span><input type="tel" id="form-tim-wa" class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none text-sm bg-white" placeholder="08xxxxxxxxxx"></div><p class="text-[10px] text-gray-400 mt-1">Nomor akan digunakan untuk link redirect WhatsApp.</p></div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 rounded-b-xl flex justify-end gap-3"><button onclick="closeModal('modal-tim')" class="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg text-sm font-medium">Batal</button><button onclick="saveTim()" class="px-4 py-2 bg-purple-600 text-white hover:bg-purple-700 rounded-lg text-sm font-medium shadow-sm">Simpan</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL IMPORT EXCEL -->
+    <div id="modal-import" class="fixed inset-0 z-50 hidden" aria-hidden="true">
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onclick="closeModal('modal-import')"></div>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-lg relative z-10">
+                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center"><h3 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-file-excel text-green-600 mr-2"></i>Import Data Sekolah</h3><button onclick="closeModal('modal-import')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button></div>
+                <div class="p-6 space-y-4">
+                    <div class="bg-blue-50 border border-blue-100 p-4 rounded-lg"><h4 class="text-blue-800 text-sm font-bold mb-2">Langkah Import:</h4><ol class="list-decimal list-inside text-xs text-gray-600 space-y-1"><li>Download template Excel.</li><li>Isi data (Pastikan <b>NPSN</b> dan <b>Nama Sekolah</b> terisi).</li><li>Upload file yang sudah diisi.</li><li>Tunggu proses import.</li></ol><p class="text-xs text-green-700 mt-2 font-semibold">Note: User login (NPSN) akan otomatis dibuat dengan password default "1234".</p><button onclick="downloadTemplate()" class="mt-3 text-xs bg-white border border-blue-200 text-blue-600 px-3 py-1.5 rounded hover:bg-blue-50 transition"><i class="fa-solid fa-download mr-1"></i> Download Template .xlsx</button></div>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:bg-gray-50 transition relative"><input type="file" id="import-file" accept=".xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleFileSelect(this)"><i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i><p class="text-sm text-gray-500" id="file-label">Klik atau drag file Excel di sini</p></div>
+                    <div id="import-progress" class="hidden"><div class="flex justify-between text-xs text-gray-600 mb-1"><span id="progress-text">Memproses...</span><span id="progress-percent">0%</span></div><div class="w-full bg-gray-200 rounded-full h-2.5"><div id="progress-bar" class="bg-green-600 h-2.5 rounded-full" style="width: 0%"></div></div><p id="import-log" class="text-xs text-gray-400 mt-2 italic truncate">Menunggu file...</p></div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 rounded-b-xl flex justify-end gap-3"><button onclick="closeModal('modal-import')" class="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg text-sm font-medium">Tutup</button><button onclick="processImport()" id="btn-process-import" class="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-sm font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>Mulai Import</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION MODAL -->
+    <div id="modal-notif" class="fixed inset-0 z-[120] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm"></div>
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+          <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm">
+              <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4 text-center">
+                <div id="notif-icon-bg" class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-green-100 mb-4"><i id="notif-icon" class="fa-solid fa-check text-green-600 text-lg"></i></div>
+                <h3 class="text-base font-semibold leading-6 text-gray-900" id="notif-title">Berhasil</h3>
+                <div class="mt-2"><p class="text-sm text-gray-500" id="notif-message">Aksi berhasil dilakukan.</p></div>
+              </div>
+              <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6"><button type="button" onclick="closeModal('modal-notif')" class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-50 sm:w-auto">OK</button></div>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, onSnapshot, doc, deleteDoc, updateDoc, setDoc, query, orderBy, getDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOYIAjVph2Jwpb0xTSGad1Zlg0DdMlmfU",
+            authDomain: "sakti-sd.firebaseapp.com",
+            projectId: "sakti-sd",
+            storageBucket: "sakti-sd.firebasestorage.app",
+            messagingSenderId: "642095360646",
+            appId: "1:642095360646:web:5b1e90d62f52e7a3e9bf07"
+        };
+
+        let app, db;
+        let currentUser = null;
+        let userDataCache = [];
+        let sekolahDataCache = [];
+        let timDataCache = [];
+        let importedData = [];
+
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            document.getElementById('connection-status').innerHTML = '<i class="fa-solid fa-check-circle text-green-500"></i> <span class="text-green-600 font-medium">Online</span>';
+        } catch (error) {
+            console.error("Firebase Init Error:", error);
+            document.getElementById('connection-status').innerHTML = '<i class="fa-solid fa-circle-xmark text-red-500"></i> <span class="text-red-600">Offline</span>';
+        }
+
+        // --- AUTH & SESSION ---
+        function checkSession() {
+            const stored = localStorage.getItem('sakti_admin_user');
+            if(stored) {
+                currentUser = JSON.parse(stored);
+                document.getElementById('login-overlay').classList.add('hidden');
+                document.getElementById('admin-name').innerText = currentUser.username;
+                document.getElementById('admin-role').innerText = currentUser.role;
+                startListeners(); // Start data sync only after login
+            }
+        }
+        checkSession();
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const u = document.getElementById('login-username').value.trim();
+            const p = document.getElementById('login-password').value.trim();
+            const btn = document.getElementById('btn-login');
+            const err = document.getElementById('login-error');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Memeriksa...';
+            err.classList.add('hidden');
+
+            try {
+                const docRef = doc(db, "users", u);
+                const docSnap = await getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.password === p && (data.role === 'Admin' || data.role === 'SuperAdmin')) {
+                        currentUser = { id: u, ...data };
+                        localStorage.setItem('sakti_admin_user', JSON.stringify(currentUser));
+                        document.getElementById('login-overlay').classList.add('hidden');
+                        document.getElementById('admin-name').innerText = currentUser.username;
+                        document.getElementById('admin-role').innerText = currentUser.role;
+                        startListeners();
+                    } else {
+                        throw new Error("Password salah atau bukan akun Admin.");
+                    }
+                } else {
+                    throw new Error("Username tidak ditemukan.");
+                }
+            } catch (error) {
+                err.classList.remove('hidden');
+                err.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> ${error.message}`;
+                btn.disabled = false;
+                btn.innerHTML = '<span>Masuk Dashboard</span> <i class="fa-solid fa-arrow-right"></i>';
+            }
+        });
+
+        window.logout = function() {
+            localStorage.removeItem('sakti_admin_user');
+            location.reload();
+        };
+
+        function startListeners() {
+            listenUsers();
+            listenSekolah();
+            listenTim();
+        }
+
+        // --- GLOBAL EXPORTS ---
+        window.switchTab = switchTab;
+        window.toggleMobileMenu = toggleMobileMenu;
+        window.openUserModal = openUserModal;
+        window.openSekolahModal = openSekolahModal;
+        window.openImportModal = openImportModal;
+        window.openTimModal = openTimModal;
+        window.closeModal = closeModal;
+        window.saveUser = saveUser;
+        window.deleteUser = deleteUser;
+        window.saveSekolah = saveSekolah;
+        window.deleteSekolah = deleteSekolah;
+        window.saveTim = saveTim;
+        window.deleteTim = deleteTim;
+        window.renderUsers = renderUsers;
+        window.renderSekolah = renderSekolah;
+        window.renderTim = renderTim;
+        window.downloadTemplate = downloadTemplate;
+        window.handleFileSelect = handleFileSelect;
+        window.processImport = processImport;
+        window.generateStatistics = generateStatistics;
+
+        // --- NAVIGATION ---
+        function switchTab(tab) {
+            ['users', 'sekolah', 'tim', 'stats'].forEach(t => {
+                document.getElementById(`nav-${t}`).className = "w-full flex items-center px-4 py-3 text-left rounded-lg transition-all hover:bg-blue-800 text-blue-200 hover:text-white";
+                document.getElementById(`view-${t}`).classList.add('hidden');
+            });
+            document.getElementById(`nav-${tab}`).className = "w-full flex items-center px-4 py-3 text-left rounded-lg transition-all hover:bg-blue-800 bg-blue-800 text-white shadow-inner";
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            const titles = { 'users': 'Manajemen Admin', 'sekolah': 'Data Sekolah', 'tim': 'Manajemen Tim TPPK', 'stats': 'Manajemen Statistik' };
+            document.getElementById('page-title').innerText = titles[tab];
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden'); menu.classList.toggle('flex');
+        }
+
+        function showNotification(title, message, isError = false) {
+            const modal = document.getElementById('modal-notif');
+            document.getElementById('notif-title').innerText = title;
+            document.getElementById('notif-message').innerText = message;
+            document.getElementById('notif-icon-bg').className = isError ? "mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 mb-4" : "mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-green-100 mb-4";
+            document.getElementById('notif-icon').className = isError ? "fa-solid fa-xmark text-red-600 text-lg" : "fa-solid fa-check text-green-600 text-lg";
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            if(id === 'modal-import') { document.getElementById('import-file').value = ''; document.getElementById('file-label').innerText = 'Klik atau drag file Excel di sini'; document.getElementById('btn-process-import').disabled = true; document.getElementById('import-progress').classList.add('hidden'); }
+        }
+
+        // --- MANAJEMEN STATISTIK ---
+        async function generateStatistics() {
+            const btn = document.getElementById('btn-generate-stats');
+            const progressContainer = document.getElementById('stats-progress-container');
+            const progressBar = document.getElementById('stats-progress-bar');
+            const percentText = document.getElementById('stats-percent');
+            const statusText = document.getElementById('stats-status-text');
+            const tbody = document.getElementById('stats-tbody');
+
+            btn.disabled = true; 
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            progressContainer.classList.remove('hidden');
+            progressBar.style.width = '0%';
+            percentText.innerText = '0%';
+            statusText.innerText = 'Mengambil Data Sekolah...';
+            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-blue-500 font-bold"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Sedang memproses data...</td></tr>';
+
+            try {
+                const [sekolahSnap, evaluasiSnap] = await Promise.all([
+                    getDocs(collection(db, "data_sekolah")),
+                    getDocs(collection(db, "evaluasi_sekolah"))
+                ]);
+
+                progressBar.style.width = '30%';
+                percentText.innerText = '30%';
+                statusText.innerText = 'Menganalisis & Mengelompokkan...';
+
+                let statsMap = {};
+
+                sekolahSnap.forEach(doc => {
+                    const data = doc.data();
+                    const sudin = data.Sudin || "Tanpa Wilayah";
+                    const kec = data.Kecamatan || "Tanpa Kecamatan";
+                    const kel = data.Kelurahan || "Tanpa Kelurahan";
+
+                    if (!statsMap[sudin]) {
+                        statsMap[sudin] = { id_wilayah: sudin, total_sekolah: 0, total_sudah_input: 0, status_verifikasi: { "Valid": 0, "Perlu Perbaikan": 0, "Tidak Valid": 0, "Menunggu Verifikasi": 0 }, kecamatan: {} };
+                    }
+                    statsMap[sudin].total_sekolah++;
+                    if (!statsMap[sudin].kecamatan[kec]) { statsMap[sudin].kecamatan[kec] = { total_sekolah: 0, total_sudah_input: 0, status: { "Valid": 0, "Perlu Perbaikan": 0, "Tidak Valid": 0, "Menunggu Verifikasi": 0 }, kelurahan: {} }; }
+                    statsMap[sudin].kecamatan[kec].total_sekolah++;
+                    if (!statsMap[sudin].kecamatan[kec].kelurahan[kel]) { statsMap[sudin].kecamatan[kec].kelurahan[kel] = { total: 0, input: 0 }; }
+                    statsMap[sudin].kecamatan[kec].kelurahan[kel].total++;
+                });
+
+                evaluasiSnap.forEach(doc => {
+                    const data = doc.data();
+                    const npsn = doc.id;
+                    const schoolRefData = sekolahDataCache.find(s => s.NPSN === npsn);
+
+                    if (schoolRefData) {
+                        const sudin = schoolRefData.Sudin || "Tanpa Wilayah";
+                        const kec = schoolRefData.Kecamatan || "Tanpa Kecamatan";
+                        const kel = schoolRefData.Kelurahan || "Tanpa Kelurahan";
+                        const status = data.status_verifikasi || "Menunggu Verifikasi";
+
+                        if (statsMap[sudin]) {
+                            statsMap[sudin].total_sudah_input++;
+                            if (statsMap[sudin].status_verifikasi[status] !== undefined) { statsMap[sudin].status_verifikasi[status]++; }
+                            if (statsMap[sudin].kecamatan[kec]) {
+                                statsMap[sudin].kecamatan[kec].total_sudah_input++;
+                                if (statsMap[sudin].kecamatan[kec].status[status] !== undefined) { statsMap[sudin].kecamatan[kec].status[status]++; }
+                                if(statsMap[sudin].kecamatan[kec].kelurahan[kel]) { statsMap[sudin].kecamatan[kec].kelurahan[kel].input++; }
+                            }
+                        }
+                    }
+                });
+
+                progressBar.style.width = '70%';
+                percentText.innerText = '70%';
+                statusText.innerText = 'Menyimpan ke Database...';
+
+                const batch = writeBatch(db);
+                const regions = Object.keys(statsMap);
+                const timestamp = new Date().toISOString();
+                let previewHTML = '';
+
+                regions.forEach(region => {
+                    const docRef = doc(db, "rekap_statistik", region);
+                    const regionData = statsMap[region];
+                    regionData.last_updated = timestamp;
+                    batch.set(docRef, regionData);
+
+                    const s = regionData.status_verifikasi;
+                    previewHTML += `<tr class="hover:bg-gray-50 border-b border-gray-100"><td class="px-6 py-4 font-bold text-gray-800">${region}</td><td class="px-6 py-4 text-center font-bold text-blue-600">${regionData.total_sekolah}</td><td class="px-6 py-4 text-center font-bold text-green-600">${regionData.total_sudah_input}</td><td class="px-6 py-4 text-center text-xs"><span class="bg-green-100 text-green-800 px-2 py-1 rounded font-bold" title="Valid">${s.Valid}</span> <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-bold" title="Perbaikan">${s['Perlu Perbaikan']}</span> <span class="bg-red-100 text-red-800 px-2 py-1 rounded font-bold" title="Tidak Valid">${s['Tidak Valid']}</span></td><td class="px-6 py-4 text-center text-gray-500 text-xs">${new Date().toLocaleTimeString()}</td></tr>`;
+                });
+
+                await batch.commit();
+
+                progressBar.style.width = '100%';
+                percentText.innerText = '100%';
+                statusText.innerText = 'Selesai!';
+                tbody.innerHTML = previewHTML;
+                showNotification("Sukses", "Data statistik berhasil dihitung ulang dan disimpan.");
+
+            } catch (error) {
+                console.error("Stats Error:", error);
+                statusText.innerText = "Error: " + error.message;
+                statusText.classList.add("text-red-500");
+                showNotification("Gagal", "Terjadi kesalahan saat menghitung data.", true);
+            } finally {
+                setTimeout(() => { btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-not-allowed'); }, 1000);
+            }
+        }
+
+        // --- LISTENERS & RENDER ---
+        function listenUsers() {
+            const q = query(collection(db, "users"));
+            onSnapshot(q, (snapshot) => {
+                userDataCache = [];
+                snapshot.forEach((docSnap) => { const user = docSnap.data(); if (user.role !== 'Sekolah') { userDataCache.push({ id: docSnap.id, ...user }); } });
+                renderUsers();
+            });
+        }
+        function renderUsers() {
+            const searchText = document.getElementById('search-users').value.toLowerCase();
+            const regionFilter = document.getElementById('filter-wilayah-users').value;
+            const tbody = document.getElementById('users-tbody');
+            tbody.innerHTML = '';
+            const filteredData = userDataCache.filter(user => { const matchSearch = user.username.toLowerCase().includes(searchText) || (user.role || '').toLowerCase().includes(searchText) || (user.wilayah || '').toLowerCase().includes(searchText); const matchRegion = regionFilter === '' || user.wilayah === regionFilter; return matchSearch && matchRegion; });
+            filteredData.forEach(user => {
+                const tr = document.createElement('tr'); tr.className = "hover:bg-blue-50/50 transition border-b border-gray-100 last:border-0";
+                tr.innerHTML = `<td class="px-6 py-4 font-medium text-gray-900">${user.username}</td><td class="px-6 py-4"><span class="px-2 py-1 rounded text-xs font-semibold ${user.role === 'SuperAdmin' ? 'bg-purple-100 text-purple-700' : (user.role === 'Admin' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700')}">${user.role}</span></td><td class="px-6 py-4 text-gray-500">${user.wilayah || '-'}</td><td class="px-6 py-4 text-center"><div class="flex justify-center gap-2"><button onclick="openUserModal('${user.id}')" class="text-blue-500 hover:text-blue-700 p-2 bg-blue-50 hover:bg-blue-100 rounded-lg transition"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteUser('${user.id}')" class="text-red-500 hover:text-red-700 p-2 bg-red-50 hover:bg-red-100 rounded-lg transition"><i class="fa-solid fa-trash"></i></button></div></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function listenSekolah() {
+            const q = query(collection(db, "data_sekolah"));
+            onSnapshot(q, (snapshot) => {
+                sekolahDataCache = [];
+                snapshot.forEach((docSnap) => { sekolahDataCache.push({ id: docSnap.id, ...docSnap.data() }); });
+                renderSekolah();
+            });
+        }
+        function renderSekolah() {
+            const searchText = document.getElementById('search-sekolah').value.toLowerCase();
+            const regionFilter = document.getElementById('filter-wilayah-sekolah').value;
+            const tbody = document.getElementById('sekolah-tbody');
+            tbody.innerHTML = '';
+            const filteredData = sekolahDataCache.filter(data => { return ((data.Sekolah || '').toLowerCase().includes(searchText) || (data.NPSN || '').toLowerCase().includes(searchText)) && (regionFilter === '' || data.Sudin === regionFilter); });
+            filteredData.forEach(data => {
+                const tr = document.createElement('tr'); tr.className = "hover:bg-green-50/50 transition border-b border-gray-100 last:border-0";
+                const passwordDisplay = data.password ? `<code class="bg-gray-100 px-2 py-1 rounded text-xs text-indigo-600 font-bold">${data.password}</code>` : `<span class="text-xs text-red-400 italic">Belum diset</span>`;
+                tr.innerHTML = `<td class="px-6 py-4 font-bold text-gray-900">${data.NPSN || '-'}</td><td class="px-6 py-4 font-semibold text-gray-700">${data.Sekolah}</td><td class="px-6 py-4 text-sm text-gray-500">${data.Sudin || '-'}</td><td class="px-6 py-4 text-sm">${passwordDisplay}</td><td class="px-6 py-4 text-center"><div class="flex justify-center gap-2"><button onclick="openSekolahModal('${data.id}')" class="text-green-600 hover:text-green-800 p-2 bg-green-50 hover:bg-green-100 rounded-lg transition"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteSekolah('${data.id}')" class="text-red-500 hover:text-red-700 p-2 bg-red-50 hover:bg-red-100 rounded-lg transition"><i class="fa-solid fa-trash"></i></button></div></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function listenTim() {
+            const q = query(collection(db, "tim_tppk"));
+            onSnapshot(q, (snapshot) => {
+                timDataCache = [];
+                snapshot.forEach((docSnap) => { timDataCache.push({ id: docSnap.id, ...docSnap.data() }); });
+                renderTim();
+            });
+        }
+        function renderTim() {
+            const searchText = document.getElementById('search-tim').value.toLowerCase();
+            const tbody = document.getElementById('tim-tbody');
+            const emptyMsg = document.getElementById('empty-tim');
+            tbody.innerHTML = '';
+            const filteredData = timDataCache.filter(item => { return (item.nama || '').toLowerCase().includes(searchText) || (item.jabatan || '').toLowerCase().includes(searchText); });
+            if (filteredData.length === 0) { emptyMsg.classList.remove('hidden'); return; } else { emptyMsg.classList.add('hidden'); }
+            filteredData.forEach(item => {
+                const tr = document.createElement('tr'); tr.className = "hover:bg-purple-50/50 transition border-b border-gray-100 last:border-0";
+                tr.innerHTML = `<td class="px-6 py-4 font-bold text-gray-800">${item.nama || '-'}</td><td class="px-6 py-4 text-purple-700 font-medium">${item.jabatan || '-'}</td><td class="px-6 py-4 text-gray-500 font-mono">${item.no_wa || '-'}</td><td class="px-6 py-4 text-center"><div class="flex justify-center gap-2"><button onclick="openTimModal('${item.id}')" class="text-purple-600 hover:text-purple-800 p-2 bg-purple-50 hover:bg-purple-100 rounded-lg transition"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteTim('${item.id}')" class="text-red-500 hover:text-red-700 p-2 bg-red-50 hover:bg-red-100 rounded-lg transition"><i class="fa-solid fa-trash"></i></button></div></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- MODAL FUNCTIONS (DEFINED) ---
+        function openUserModal(userId = null) {
+            const modal = document.getElementById('modal-user');
+            const title = document.getElementById('modal-user-title');
+            const mode = document.getElementById('user-mode');
+            const usernameInput = document.getElementById('form-username');
+            const hint = document.getElementById('username-hint');
+            document.getElementById('form-username').value = ''; document.getElementById('form-password').value = ''; document.getElementById('form-role').value = 'Admin'; document.getElementById('form-wilayah').value = '';
+            if (userId) {
+                const user = userDataCache.find(u => u.id === userId);
+                if(user) { title.innerText = "Edit Admin"; mode.value = "edit"; usernameInput.value = user.username; usernameInput.disabled = true; usernameInput.classList.add('bg-gray-200', 'cursor-not-allowed'); hint.classList.remove('hidden'); document.getElementById('form-password').value = user.password; document.getElementById('form-role').value = user.role; document.getElementById('form-wilayah').value = user.wilayah; }
+            } else { title.innerText = "Tambah Admin Baru"; mode.value = "add"; usernameInput.disabled = false; usernameInput.classList.remove('bg-gray-200', 'cursor-not-allowed'); hint.classList.add('hidden'); }
+            modal.classList.remove('hidden');
+        }
+
+        function openSekolahModal(docId = null) {
+            const modal = document.getElementById('modal-sekolah');
+            const title = document.getElementById('modal-sekolah-title');
+            const mode = document.getElementById('sekolah-mode');
+            const docIdInput = document.getElementById('sekolah-doc-id'); const npsnInput = document.getElementById('form-s-npsn'); const passwordInput = document.getElementById('form-s-password'); const hint = document.getElementById('npsn-hint');
+            const fields = ['npsn', 'nama', 'bentuk', 'status', 'alamat', 'kelurahan', 'kecamatan', 'sudin', 'kota', 'telp', 'kepsek', 'hpkepsek'];
+            fields.forEach(f => document.getElementById(`form-s-${f}`).value = ''); docIdInput.value = ''; passwordInput.value = '1234'; 
+            if(docId) {
+                const data = sekolahDataCache.find(s => s.id === docId);
+                if(data) { title.innerText = "Edit Data Sekolah & Password"; mode.value = "edit"; docIdInput.value = docId; npsnInput.value = data.NPSN; npsnInput.disabled = true; npsnInput.classList.add('bg-gray-200', 'cursor-not-allowed'); hint.classList.remove('hidden'); passwordInput.value = data.password || '1234'; document.getElementById('form-s-nama').value = data.Sekolah || ''; document.getElementById('form-s-bentuk').value = data.Bentuk || 'SD'; document.getElementById('form-s-status').value = data.Status || 'Negeri'; document.getElementById('form-s-alamat').value = data.Alamat || ''; document.getElementById('form-s-kelurahan').value = data.Kelurahan || ''; document.getElementById('form-s-kecamatan').value = data.Kecamatan || ''; document.getElementById('form-s-sudin').value = data.Sudin || ''; document.getElementById('form-s-kota').value = data.Kabupaten_Kota || ''; document.getElementById('form-s-telp').value = data.Telepon || ''; document.getElementById('form-s-kepsek').value = data.KepSek || ''; document.getElementById('form-s-hpkepsek').value = data.HP_Kepsek || ''; }
+            } else { title.innerText = "Tambah Sekolah Baru"; mode.value = "add"; npsnInput.disabled = false; npsnInput.classList.remove('bg-gray-200', 'cursor-not-allowed'); hint.classList.add('hidden'); }
+            modal.classList.remove('hidden');
+        }
+
+        function openTimModal(id = null) {
+            const modal = document.getElementById('modal-tim');
+            const title = document.getElementById('modal-tim-title');
+            const mode = document.getElementById('tim-mode');
+            const idInput = document.getElementById('tim-id'); const namaInput = document.getElementById('form-tim-nama'); const jabatanInput = document.getElementById('form-tim-jabatan'); const waInput = document.getElementById('form-tim-wa');
+            namaInput.value = ''; jabatanInput.value = ''; waInput.value = ''; idInput.value = '';
+            if (id) { const data = timDataCache.find(t => t.id === id); if (data) { title.innerText = "Edit Anggota Tim"; mode.value = "edit"; idInput.value = id; namaInput.value = data.nama; jabatanInput.value = data.jabatan; waInput.value = data.no_wa; } } 
+            else { title.innerText = "Tambah Anggota Tim"; mode.value = "add"; }
+            modal.classList.remove('hidden');
+        }
+
+        function openImportModal() {
+            document.getElementById('modal-import').classList.remove('hidden');
+        }
+
+        function downloadTemplate() {
+            const templateData = [{ "NPSN": "12345678", "Sekolah": "SDN CONTOH 01", "Bentuk": "SD", "Status": "Negeri", "Alamat": "Jl. Merdeka No. 1", "Kelurahan": "Gambir", "Kecamatan": "Gambir", "Sudin": "Jakarta Pusat 1", "Kabupaten_Kota": "Jakarta Pusat", "Telepon": "021-1234567", "KepSek": "Budi Santoso", "HP_Kepsek": "08123456789" }];
+            const ws = XLSX.utils.json_to_sheet(templateData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Template Sekolah");
+            XLSX.writeFile(wb, "Template_Data_Sekolah.xlsx");
+        }
+
+        function handleFileSelect(input) {
+            const file = input.files[0]; const label = document.getElementById('file-label'); const btn = document.getElementById('btn-process-import');
+            if (file) { label.innerText = file.name; btn.disabled = false; const reader = new FileReader(); reader.onload = (e) => { const data = new Uint8Array(e.target.result); const workbook = XLSX.read(data, { type: 'array' }); const firstSheet = workbook.Sheets[workbook.SheetNames[0]]; importedData = XLSX.utils.sheet_to_json(firstSheet); document.getElementById('import-log').innerText = `${importedData.length} baris data ditemukan. Siap import.`; }; reader.readAsArrayBuffer(file); } 
+            else { label.innerText = 'Klik atau drag file Excel di sini'; btn.disabled = true; }
+        }
+
+        async function processImport() {
+            const btn = document.getElementById('btn-process-import'); const progressBar = document.getElementById('progress-bar'); const progressPercent = document.getElementById('progress-percent'); const logText = document.getElementById('import-log');
+            if (importedData.length === 0) { alert("File kosong atau tidak terbaca!"); return; }
+            btn.disabled = true; btn.innerText = "Memproses..."; document.getElementById('import-progress').classList.remove('hidden');
+            const totalRows = importedData.length; const BATCH_SIZE = 400; let processedCount = 0;
+            for (let i = 0; i < totalRows; i += BATCH_SIZE) {
+                const chunk = importedData.slice(i, i + BATCH_SIZE); const batch = writeBatch(db);
+                chunk.forEach(row => { const npsn = row['NPSN'] ? String(row['NPSN']).trim() : null; const nama = row['Sekolah'] ? String(row['Sekolah']).trim() : null; if (npsn && nama) { const sekolahRef = doc(db, "data_sekolah", npsn); const sekolahData = { NPSN: npsn, username: npsn, password: "1234", role: "Sekolah", Sekolah: nama, Bentuk: row['Bentuk'] || 'SD', Status: row['Status'] || 'Negeri', Alamat: row['Alamat'] || '', Kelurahan: row['Kelurahan'] || '', Kecamatan: row['Kecamatan'] || '', Sudin: row['Sudin'] || '', Kabupaten_Kota: row['Kabupaten_Kota'] || '', Telepon: row['Telepon'] || '', KepSek: row['KepSek'] || '', HP_Kepsek: row['HP_Kepsek'] || '', updatedAt: new Date().toISOString(), createdAt: new Date().toISOString() }; batch.set(sekolahRef, sekolahData, { merge: true }); } });
+                try { await batch.commit(); processedCount += chunk.length; const percent = Math.min(100, Math.round((processedCount / totalRows) * 100)); progressBar.style.width = `${percent}%`; progressPercent.innerText = `${percent}%`; logText.innerText = `Berhasil menyimpan ${processedCount} dari ${totalRows} data...`; await new Promise(resolve => setTimeout(resolve, 200)); } catch (error) { console.error("Batch Error:", error); logText.innerText = `Error pada batch ${i}: ${error.message}`; logText.classList.add("text-red-500"); btn.disabled = false; btn.innerText = "Coba Lagi (Sisa)"; return; }
+            }
+            logText.innerText = "Import Selesai!"; logText.classList.remove("text-red-500"); logText.classList.add("text-green-600", "font-bold"); btn.innerText = "Selesai"; btn.onclick = () => closeModal('modal-import'); btn.disabled = false; showNotification("Import Berhasil", `${processedCount} Data Sekolah telah ditambahkan.`);
+        }
+
+        // --- CRUD ACTIONS ---
+        async function saveUser() {
+            const mode = document.getElementById('user-mode').value; const username = document.getElementById('form-username').value.trim(); const password = document.getElementById('form-password').value; const role = document.getElementById('form-role').value; const wilayah = document.getElementById('form-wilayah').value;
+            if(!username || !password) { showNotification("Gagal", "Username dan Password wajib diisi!", true); return; }
+            const data = { username, password, role, wilayah, updatedAt: new Date().toISOString() };
+            try { if (mode === 'add') { await setDoc(doc(db, "users", username), { ...data, createdAt: new Date().toISOString() }); showNotification("Berhasil", "Admin baru berhasil ditambahkan."); } else { await updateDoc(doc(db, "users", username), data); showNotification("Berhasil", "Data admin berhasil diperbarui."); } closeModal('modal-user'); } catch (error) { showNotification("Error", error.message, true); }
+        }
+        async function deleteUser(id) { if(confirm(`Yakin ingin menghapus admin ${id}?`)) { try { await deleteDoc(doc(db, "users", id)); showNotification("Terhapus", "User berhasil dihapus."); } catch (e) { showNotification("Gagal", "Gagal menghapus: " + e.message, true); } } }
+        async function saveSekolah() {
+            const mode = document.getElementById('sekolah-mode').value; const docId = document.getElementById('sekolah-doc-id').value; const npsn = document.getElementById('form-s-npsn').value.trim(); const password = document.getElementById('form-s-password').value.trim() || '1234';
+            const sekolahData = { NPSN: npsn, username: npsn, password: password, role: "Sekolah", Sekolah: document.getElementById('form-s-nama').value, Bentuk: document.getElementById('form-s-bentuk').value, Status: document.getElementById('form-s-status').value, Alamat: document.getElementById('form-s-alamat').value, Kelurahan: document.getElementById('form-s-kelurahan').value, Kecamatan: document.getElementById('form-s-kecamatan').value, Sudin: document.getElementById('form-s-sudin').value, Kabupaten_Kota: document.getElementById('form-s-kota').value, Telepon: document.getElementById('form-s-telp').value, KepSek: document.getElementById('form-s-kepsek').value, HP_Kepsek: document.getElementById('form-s-hpkepsek').value, updatedAt: new Date().toISOString() };
+            if(!npsn || !sekolahData.Sekolah) { showNotification("Gagal", "NPSN dan Nama Sekolah wajib diisi.", true); return; }
+            try { if(mode === 'edit') { await updateDoc(doc(db, "data_sekolah", docId), sekolahData); showNotification("Berhasil", "Data sekolah & password diperbarui."); } else { const docRef = doc(db, "data_sekolah", npsn); const docSnap = await getDoc(docRef); if (docSnap.exists()) { showNotification("Gagal", `NPSN ${npsn} sudah terdaftar!`, true); return; } sekolahData.createdAt = new Date().toISOString(); await setDoc(docRef, sekolahData); showNotification("Berhasil", "Sekolah ditambahkan (Password: " + password + ")."); } closeModal('modal-sekolah'); } catch(e) { showNotification("Error", e.message, true); }
+        }
+        async function deleteSekolah(id) { if(confirm(`Hapus sekolah ini? \n\nData login sekolah ini juga akan terhapus.`)) { try { await deleteDoc(doc(db, "data_sekolah", id)); showNotification("Terhapus", "Data sekolah berhasil dihapus."); } catch (e) { showNotification("Gagal", e.message, true); } } }
+        async function saveTim() {
+            const mode = document.getElementById('tim-mode').value; const id = document.getElementById('tim-id').value; const nama = document.getElementById('form-tim-nama').value.trim(); const jabatan = document.getElementById('form-tim-jabatan').value.trim(); const wa = document.getElementById('form-tim-wa').value.trim();
+            if (!nama) { showNotification("Gagal", "Nama wajib diisi!", true); return; }
+            const data = { nama, jabatan, no_wa: wa, updatedAt: new Date().toISOString() };
+            try { if (mode === 'edit') { await updateDoc(doc(db, "tim_tppk", id), data); showNotification("Berhasil", "Data anggota tim diperbarui."); } else { data.createdAt = new Date().toISOString(); await addDoc(collection(db, "tim_tppk"), data); showNotification("Berhasil", "Anggota tim baru ditambahkan."); } closeModal('modal-tim'); } catch (error) { showNotification("Error", error.message, true); }
+        }
+        async function deleteTim(id) { if (confirm("Yakin ingin menghapus anggota tim ini?")) { try { await deleteDoc(doc(db, "tim_tppk", id)); showNotification("Terhapus", "Anggota tim berhasil dihapus."); } catch (e) { showNotification("Gagal", "Gagal menghapus: " + e.message, true); } } }
+    </script>
+</body>
+</html>
