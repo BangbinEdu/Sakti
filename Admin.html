@@ -27,7 +27,7 @@
 </head>
 <body class="bg-gray-100 h-screen flex overflow-hidden">
 
-    <!-- LOGIN OVERLAY (NEW) -->
+    <!-- LOGIN OVERLAY -->
     <div id="login-overlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-gradient-to-br from-blue-900 to-slate-900">
         <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm mx-4 text-center transform transition-all scale-100">
             <div class="mb-6 flex justify-center">
@@ -68,7 +68,7 @@
             <span class="font-bold text-lg tracking-wide">SAKTI SD</span>
         </div>
 
-        <nav class="flex-1 py-6 px-3 space-y-2">
+        <nav class="flex-1 py-6 px-3 space-y-2 overflow-y-auto">
             <a href="./" class="w-full flex items-center px-4 py-3 text-left rounded-lg transition-all hover:bg-blue-800 text-blue-200 hover:text-white">
                 <i class="fa-solid fa-home w-8 text-center"></i>
                 <span class="font-medium">Home</span>
@@ -88,6 +88,11 @@
             <button onclick="switchTab('stats')" id="nav-stats" class="w-full flex items-center px-4 py-3 text-left rounded-lg transition-all hover:bg-blue-800 text-blue-200 hover:text-white">
                 <i class="fa-solid fa-chart-pie w-8 text-center"></i>
                 <span class="font-medium">Manajemen Statistik</span>
+            </button>
+            <div class="my-2 border-t border-blue-800"></div>
+            <button onclick="switchTab('backup')" id="nav-backup" class="w-full flex items-center px-4 py-3 text-left rounded-lg transition-all hover:bg-blue-800 text-blue-200 hover:text-white">
+                <i class="fa-solid fa-cloud-arrow-up w-8 text-center"></i>
+                <span class="font-medium">Backup & Restore</span>
             </button>
         </nav>
 
@@ -116,6 +121,7 @@
         <button onclick="switchTab('sekolah'); toggleMobileMenu()" class="w-full text-left text-white py-3 border-b border-blue-700"><i class="fa-solid fa-school mr-3"></i>Data Sekolah</button>
         <button onclick="switchTab('tim'); toggleMobileMenu()" class="w-full text-left text-white py-3 border-b border-blue-700"><i class="fa-solid fa-users-viewfinder mr-3"></i>Tim TPPK</button>
         <button onclick="switchTab('stats'); toggleMobileMenu()" class="w-full text-left text-white py-3 border-b border-blue-700"><i class="fa-solid fa-chart-pie mr-3"></i>Statistik</button>
+        <button onclick="switchTab('backup'); toggleMobileMenu()" class="w-full text-left text-white py-3 border-b border-blue-700"><i class="fa-solid fa-cloud-arrow-up mr-3"></i>Backup & Restore</button>
         <button onclick="logout()" class="w-full text-left text-red-300 py-3 border-b border-blue-700 font-bold"><i class="fa-solid fa-sign-out-alt mr-3"></i>Keluar</button>
         <button onclick="toggleMobileMenu()" class="w-full text-center mt-4 text-blue-300">Tutup Menu</button>
     </div>
@@ -328,6 +334,79 @@
                 </div>
             </div>
 
+            <!-- SECTION: BACKUP & RESTORE -->
+            <div id="view-backup" class="hidden fade-in">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- KARTU BACKUP -->
+                    <div class="bg-white rounded-xl shadow-lg border border-blue-100 overflow-hidden">
+                        <div class="p-6 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                                    <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold">Backup Database</h3>
+                                    <p class="text-blue-100 text-sm">Firestore <i class="fa-solid fa-arrow-right mx-1"></i> Google Sheets</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <p class="text-gray-600 text-sm mb-4 leading-relaxed">
+                                Sistem akan mengambil seluruh <b>Data Master Sekolah</b> + <b>Data Evaluasi Sekolah</b> + <b>Penilaian Supervisor</b>, menggabungkannya, dan mengirim ke 6 Spreadsheet Wilayah terpisah.
+                            </p>
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
+                                <h4 class="text-xs font-bold text-blue-800 uppercase mb-2">Distribusi File:</h4>
+                                <ul class="text-xs text-gray-700 space-y-1">
+                                    <li><i class="fa-solid fa-file-excel text-green-600 mr-2"></i>JP 1 & 2 <i class="fa-solid fa-arrow-right mx-1 text-gray-400"></i> Sheet Pusat</li>
+                                    <li><i class="fa-solid fa-file-excel text-green-600 mr-2"></i>JU 1 & 2 <i class="fa-solid fa-arrow-right mx-1 text-gray-400"></i> Sheet Utara</li>
+                                    <li><i class="fa-solid fa-file-excel text-green-600 mr-2"></i>JB 1 & 2 <i class="fa-solid fa-arrow-right mx-1 text-gray-400"></i> Sheet Barat</li>
+                                    <li><i class="fa-solid fa-file-excel text-green-600 mr-2"></i>JS 1 & 2 <i class="fa-solid fa-arrow-right mx-1 text-gray-400"></i> Sheet Selatan</li>
+                                    <li><i class="fa-solid fa-file-excel text-green-600 mr-2"></i>JT 1 & 2 <i class="fa-solid fa-arrow-right mx-1 text-gray-400"></i> Sheet Timur</li>
+                                    <li><i class="fa-solid fa-file-excel text-green-600 mr-2"></i>Kep. Seribu <i class="fa-solid fa-arrow-right mx-1 text-gray-400"></i> Sheet Seribu</li>
+                                </ul>
+                            </div>
+                            <button onclick="openBackupModal()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md transition transform active:scale-95 flex justify-center items-center gap-2">
+                                <i class="fa-solid fa-upload"></i> Mulai Proses Backup Lengkap
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- KARTU RESTORE -->
+                    <div class="bg-white rounded-xl shadow-lg border border-orange-100 overflow-hidden">
+                        <div class="p-6 bg-gradient-to-r from-orange-500 to-red-600 text-white">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                                    <i class="fa-solid fa-cloud-arrow-down text-2xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold">Restore Database</h3>
+                                    <p class="text-orange-100 text-sm">Google Sheets <i class="fa-solid fa-arrow-right mx-1"></i> Firestore</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0"><i class="fa-solid fa-triangle-exclamation text-red-500"></i></div>
+                                    <div class="ml-3">
+                                        <p class="text-xs text-red-700 font-bold">PERINGATAN DANGER ZONE</p>
+                                        <p class="text-xs text-red-600 mt-1">Aksi ini akan menimpa data di Firestore dengan data yang ada di Spreadsheet Backup. Gunakan hanya jika database rusak/hilang.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-sm mb-6">
+                                Mengambil data gabungan dari 6 Spreadsheet dan menulis ulang ke database aplikasi (Firestore).
+                            </p>
+                            <button onclick="openRestoreModal()" class="w-full py-3 bg-white border-2 border-orange-500 text-orange-600 hover:bg-orange-50 rounded-lg font-bold shadow-sm transition flex justify-center items-center gap-2">
+                                <i class="fa-solid fa-download"></i> Tarik Data Recovery
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -409,6 +488,68 @@
         </div>
     </div>
 
+    <!-- MODAL CONFIRMATION (REPLACEMENT FOR CONFIRM ALERT) -->
+    <div id="modal-confirm" class="fixed inset-0 z-[130] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-900/60 transition-opacity backdrop-blur-sm"></div>
+        <div class="flex min-h-full items-center justify-center p-4 text-center">
+            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-md">
+                <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-yellow-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fa-solid fa-triangle-exclamation text-yellow-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                            <h3 class="text-base font-semibold leading-6 text-gray-900" id="confirm-title">Konfirmasi Aksi</h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500" id="confirm-msg">Apakah Anda yakin ingin melanjutkan tindakan ini?</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                    <button type="button" onclick="confirmAction()" class="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto">Ya, Lanjutkan</button>
+                    <button type="button" onclick="closeModal('modal-confirm')" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Batal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PROSES BACKUP/RESTORE -->
+    <div id="modal-process" class="fixed inset-0 z-[110] hidden" aria-hidden="true">
+        <div class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity"></div>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm relative z-10 text-center p-8">
+                
+                <!-- Loading State -->
+                <div id="process-loading" class="flex flex-col items-center">
+                    <div class="relative w-20 h-20 mb-6">
+                        <div class="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
+                        <div class="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+                        <i id="process-icon" class="fa-solid fa-sync absolute inset-0 flex items-center justify-center text-blue-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2" id="process-title">Sedang Memproses...</h3>
+                    <p class="text-sm text-gray-500 mb-6" id="process-desc">Menghubungkan ke Server Google Sheets...</p>
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                        <div id="process-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: 10%"></div>
+                    </div>
+                </div>
+
+                <!-- Result State (Hidden by default) -->
+                <div id="process-result" class="hidden">
+                    <div id="result-icon-bg" class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mb-4">
+                        <i id="result-icon" class="fa-solid fa-check text-2xl text-green-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2" id="result-title">Berhasil!</h3>
+                    <div class="bg-gray-50 rounded p-3 text-left mb-6 max-h-40 overflow-y-auto custom-scrollbar border border-gray-200">
+                        <pre class="text-xs text-gray-600 whitespace-pre-wrap font-mono" id="result-log">Detail log akan muncul di sini.</pre>
+                    </div>
+                    <button onclick="closeModal('modal-process')" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 rounded-lg transition">Tutup</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <!-- NOTIFICATION MODAL -->
     <div id="modal-notif" class="fixed inset-0 z-[120] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm"></div>
@@ -438,6 +579,9 @@
             messagingSenderId: "642095360646",
             appId: "1:642095360646:web:5b1e90d62f52e7a3e9bf07"
         };
+        
+        // URL WEB APP APPS SCRIPT
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyIjGGM2H6wHfcTddHrOTOty7gB6FTTALlAyxN04nGlXisPjka7FbWhQcrj1svgNDkjIg/exec";
 
         let app, db;
         let currentUser = null;
@@ -538,16 +682,35 @@
         window.handleFileSelect = handleFileSelect;
         window.processImport = processImport;
         window.generateStatistics = generateStatistics;
+        window.openBackupModal = openBackupModal;
+        window.openRestoreModal = openRestoreModal;
+        
+        // --- CUSTOM CONFIRMATION MODAL LOGIC ---
+        window.currentConfirmCallback = null;
+
+        window.showConfirm = function(title, message, callback) {
+            document.getElementById('confirm-title').innerText = title;
+            document.getElementById('confirm-msg').innerText = message;
+            window.currentConfirmCallback = callback;
+            document.getElementById('modal-confirm').classList.remove('hidden');
+        }
+
+        window.confirmAction = function() {
+            if (window.currentConfirmCallback) {
+                window.currentConfirmCallback();
+            }
+            closeModal('modal-confirm');
+        }
 
         // --- NAVIGATION ---
         function switchTab(tab) {
-            ['users', 'sekolah', 'tim', 'stats'].forEach(t => {
+            ['users', 'sekolah', 'tim', 'stats', 'backup'].forEach(t => {
                 document.getElementById(`nav-${t}`).className = "w-full flex items-center px-4 py-3 text-left rounded-lg transition-all hover:bg-blue-800 text-blue-200 hover:text-white";
                 document.getElementById(`view-${t}`).classList.add('hidden');
             });
             document.getElementById(`nav-${tab}`).className = "w-full flex items-center px-4 py-3 text-left rounded-lg transition-all hover:bg-blue-800 bg-blue-800 text-white shadow-inner";
             document.getElementById(`view-${tab}`).classList.remove('hidden');
-            const titles = { 'users': 'Manajemen Admin', 'sekolah': 'Data Sekolah', 'tim': 'Manajemen Tim TPPK', 'stats': 'Manajemen Statistik' };
+            const titles = { 'users': 'Manajemen Admin', 'sekolah': 'Data Sekolah', 'tim': 'Manajemen Tim TPPK', 'stats': 'Manajemen Statistik', 'backup': 'Backup & Restore Database' };
             document.getElementById('page-title').innerText = titles[tab];
         }
 
@@ -568,6 +731,194 @@
         function closeModal(id) {
             document.getElementById(id).classList.add('hidden');
             if(id === 'modal-import') { document.getElementById('import-file').value = ''; document.getElementById('file-label').innerText = 'Klik atau drag file Excel di sini'; document.getElementById('btn-process-import').disabled = true; document.getElementById('import-progress').classList.add('hidden'); }
+        }
+
+        // --- LOGIKA BACKUP (MERGE DATA) ---
+        function openBackupModal() {
+            showConfirm(
+                "Mulai Backup",
+                "Proses ini akan mengambil Data Sekolah + Data Evaluasi + Data Penilaian Supervisor dan mengirimnya ke Excel. Lanjutkan?",
+                () => { startBackupProcess(); }
+            );
+        }
+
+        async function startBackupProcess() {
+            // UI Loading setup
+            const modal = document.getElementById('modal-process');
+            const loading = document.getElementById('process-loading');
+            const result = document.getElementById('process-result');
+            const bar = document.getElementById('process-bar');
+            const desc = document.getElementById('process-desc');
+            
+            modal.classList.remove('hidden');
+            loading.classList.remove('hidden');
+            result.classList.add('hidden');
+            
+            document.getElementById('process-title').innerText = "Backup Data Lengkap";
+            document.getElementById('process-icon').className = "fa-solid fa-cloud-arrow-up absolute inset-0 flex items-center justify-center text-blue-600 text-2xl";
+            bar.style.width = "10%";
+            desc.innerText = "Mengambil Data Master Sekolah...";
+
+            try {
+                // 1. Ambil Data Master Sekolah
+                const sekolahSnap = await getDocs(collection(db, "data_sekolah"));
+                let masterData = {};
+                sekolahSnap.forEach(doc => {
+                    masterData[doc.id] = doc.data(); // Gunakan NPSN sebagai Key
+                });
+                
+                bar.style.width = "40%";
+                desc.innerText = "Mengambil Data Evaluasi & Penilaian...";
+
+                // 2. Ambil Data Evaluasi (Input Sekolah & Nilai Supervisor)
+                const evalSnap = await getDocs(collection(db, "evaluasi_sekolah"));
+                let evalData = {};
+                evalSnap.forEach(doc => {
+                    evalData[doc.id] = doc.data(); // NPSN sebagai Key
+                });
+
+                bar.style.width = "60%";
+                desc.innerText = "Menggabungkan Data...";
+
+                // 3. MERGING DATA
+                let combinedData = [];
+                
+                // Loop berdasarkan Data Master (karena ini acuan utama)
+                Object.keys(masterData).forEach(npsn => {
+                    let sekolah = masterData[npsn];
+                    let evaluasi = evalData[npsn] || {}; // Jika belum ada evaluasi, pakai object kosong
+
+                    // Gabungkan object (Evaluasi menimpa field Master jika ada nama field sama, tapi disini field beda semua jadi aman)
+                    let mergedRow = {
+                        ...sekolah,
+                        ...evaluasi
+                    };
+                    
+                    combinedData.push(mergedRow);
+                });
+
+                desc.innerText = `Mengirim ${combinedData.length} data lengkap ke Server Spreadsheet...`;
+                bar.style.width = "80%";
+
+                // 4. Kirim ke Google Apps Script
+                const response = await fetch(GAS_API_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "backup", data: combinedData })
+                });
+                
+                const resJson = await response.json();
+                bar.style.width = "100%";
+                
+                // 5. Tampilkan Hasil
+                setTimeout(() => {
+                    loading.classList.add('hidden');
+                    result.classList.remove('hidden');
+                    
+                    if(resJson.status === 'success') {
+                        document.getElementById('result-title').innerText = "Backup Sukses";
+                        document.getElementById('result-icon').className = "fa-solid fa-check text-2xl text-green-600";
+                        document.getElementById('result-log').innerText = resJson.message;
+                    } else {
+                        throw new Error(resJson.message);
+                    }
+                }, 500);
+
+            } catch (error) {
+                console.error(error);
+                loading.classList.add('hidden');
+                result.classList.remove('hidden');
+                document.getElementById('result-title').innerText = "Gagal Backup";
+                document.getElementById('result-icon-bg').className = "mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 mb-4";
+                document.getElementById('result-icon').className = "fa-solid fa-xmark text-2xl text-red-600";
+                document.getElementById('result-log').innerText = error.message;
+            }
+        }
+
+        // --- LOGIKA RESTORE ---
+        function openRestoreModal() {
+            showConfirm(
+                "Restore Database",
+                "PERHATIAN: Restore akan mengambil data dari Excel dan menimpa/update data di Firestore. Lanjutkan?",
+                () => { startRestoreProcess(); }
+            );
+        }
+
+        async function startRestoreProcess() {
+            const modal = document.getElementById('modal-process');
+            const loading = document.getElementById('process-loading');
+            const result = document.getElementById('process-result');
+            const bar = document.getElementById('process-bar');
+            
+            modal.classList.remove('hidden');
+            loading.classList.remove('hidden');
+            result.classList.add('hidden');
+            
+            document.getElementById('process-title').innerText = "Melakukan Restore";
+            document.getElementById('process-desc').innerText = "Mengunduh data dari 6 Spreadsheet...";
+            document.getElementById('process-icon').className = "fa-solid fa-cloud-arrow-down absolute inset-0 flex items-center justify-center text-orange-600 text-2xl";
+            bar.style.width = "20%";
+
+            try {
+                // 1. Request Data dari Apps Script
+                const response = await fetch(GAS_API_URL, {
+                    method: "POST", // Menggunakan POST agar konsisten
+                    body: JSON.stringify({ action: "restore" })
+                });
+                
+                const resJson = await response.json();
+                
+                if(resJson.status !== 'success') throw new Error(resJson.message);
+
+                const restoredData = resJson.data;
+                document.getElementById('process-desc').innerText = `Diterima ${restoredData.length} data. Menyimpan ke Firestore...`;
+                bar.style.width = "50%";
+
+                // 2. Simpan ke Firestore (Batching)
+                const batchSize = 400; // Limit Firestore 500
+                const total = restoredData.length;
+                let processed = 0;
+
+                for (let i = 0; i < total; i += batchSize) {
+                    const chunk = restoredData.slice(i, i + batchSize);
+                    const batch = writeBatch(db);
+                    
+                    chunk.forEach(row => {
+                        if(row.NPSN) {
+                            // Target Evaluasi Sekolah untuk Restore Data Isian
+                            const docRef = doc(db, "evaluasi_sekolah", String(row.NPSN));
+                            // Merge true agar data lain tidak hilang
+                            batch.set(docRef, row, { merge: true });
+                        }
+                    });
+
+                    await batch.commit();
+                    processed += chunk.length;
+                    
+                    let percent = 50 + Math.round((processed / total) * 50);
+                    bar.style.width = `${percent}%`;
+                    document.getElementById('process-desc').innerText = `Menyimpan ${processed} / ${total} data...`;
+                }
+
+                // 3. Selesai
+                setTimeout(() => {
+                    loading.classList.add('hidden');
+                    result.classList.remove('hidden');
+                    
+                    document.getElementById('result-title').innerText = "Restore Sukses";
+                    document.getElementById('result-icon-bg').className = "mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mb-4";
+                    document.getElementById('result-icon').className = "fa-solid fa-check text-2xl text-green-600";
+                    document.getElementById('result-log').innerText = `Berhasil memulihkan ${processed} data sekolah dari spreadsheet backup.`;
+                }, 500);
+
+            } catch (error) {
+                console.error(error);
+                loading.classList.add('hidden');
+                result.classList.remove('hidden');
+                document.getElementById('result-title').innerText = "Gagal Restore";
+                document.getElementById('result-icon-bg').className = "mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 mb-4";
+                document.getElementById('result-icon').className = "fa-solid fa-xmark text-2xl text-red-600";
+                document.getElementById('result-log').innerText = error.message;
+            }
         }
 
         // --- MANAJEMEN STATISTIK ---
@@ -801,7 +1152,7 @@
 
         async function processImport() {
             const btn = document.getElementById('btn-process-import'); const progressBar = document.getElementById('progress-bar'); const progressPercent = document.getElementById('progress-percent'); const logText = document.getElementById('import-log');
-            if (importedData.length === 0) { alert("File kosong atau tidak terbaca!"); return; }
+            if (importedData.length === 0) { showNotification("Gagal", "File kosong atau tidak terbaca!", true); return; }
             btn.disabled = true; btn.innerText = "Memproses..."; document.getElementById('import-progress').classList.remove('hidden');
             const totalRows = importedData.length; const BATCH_SIZE = 400; let processedCount = 0;
             for (let i = 0; i < totalRows; i += BATCH_SIZE) {
@@ -819,21 +1170,53 @@
             const data = { username, password, role, wilayah, updatedAt: new Date().toISOString() };
             try { if (mode === 'add') { await setDoc(doc(db, "users", username), { ...data, createdAt: new Date().toISOString() }); showNotification("Berhasil", "Admin baru berhasil ditambahkan."); } else { await updateDoc(doc(db, "users", username), data); showNotification("Berhasil", "Data admin berhasil diperbarui."); } closeModal('modal-user'); } catch (error) { showNotification("Error", error.message, true); }
         }
-        async function deleteUser(id) { if(confirm(`Yakin ingin menghapus admin ${id}?`)) { try { await deleteDoc(doc(db, "users", id)); showNotification("Terhapus", "User berhasil dihapus."); } catch (e) { showNotification("Gagal", "Gagal menghapus: " + e.message, true); } } }
+        
+        function deleteUser(id) { 
+            showConfirm(
+                "Hapus Admin",
+                `Yakin ingin menghapus admin ${id}?`,
+                async () => {
+                    try { await deleteDoc(doc(db, "users", id)); showNotification("Terhapus", "User berhasil dihapus."); } 
+                    catch (e) { showNotification("Gagal", "Gagal menghapus: " + e.message, true); }
+                }
+            );
+        }
+
         async function saveSekolah() {
             const mode = document.getElementById('sekolah-mode').value; const docId = document.getElementById('sekolah-doc-id').value; const npsn = document.getElementById('form-s-npsn').value.trim(); const password = document.getElementById('form-s-password').value.trim() || '1234';
             const sekolahData = { NPSN: npsn, username: npsn, password: password, role: "Sekolah", Sekolah: document.getElementById('form-s-nama').value, Bentuk: document.getElementById('form-s-bentuk').value, Status: document.getElementById('form-s-status').value, Alamat: document.getElementById('form-s-alamat').value, Kelurahan: document.getElementById('form-s-kelurahan').value, Kecamatan: document.getElementById('form-s-kecamatan').value, Sudin: document.getElementById('form-s-sudin').value, Kabupaten_Kota: document.getElementById('form-s-kota').value, Telepon: document.getElementById('form-s-telp').value, KepSek: document.getElementById('form-s-kepsek').value, HP_Kepsek: document.getElementById('form-s-hpkepsek').value, updatedAt: new Date().toISOString() };
             if(!npsn || !sekolahData.Sekolah) { showNotification("Gagal", "NPSN dan Nama Sekolah wajib diisi.", true); return; }
             try { if(mode === 'edit') { await updateDoc(doc(db, "data_sekolah", docId), sekolahData); showNotification("Berhasil", "Data sekolah & password diperbarui."); } else { const docRef = doc(db, "data_sekolah", npsn); const docSnap = await getDoc(docRef); if (docSnap.exists()) { showNotification("Gagal", `NPSN ${npsn} sudah terdaftar!`, true); return; } sekolahData.createdAt = new Date().toISOString(); await setDoc(docRef, sekolahData); showNotification("Berhasil", "Sekolah ditambahkan (Password: " + password + ")."); } closeModal('modal-sekolah'); } catch(e) { showNotification("Error", e.message, true); }
         }
-        async function deleteSekolah(id) { if(confirm(`Hapus sekolah ini? \n\nData login sekolah ini juga akan terhapus.`)) { try { await deleteDoc(doc(db, "data_sekolah", id)); showNotification("Terhapus", "Data sekolah berhasil dihapus."); } catch (e) { showNotification("Gagal", e.message, true); } } }
+        
+        function deleteSekolah(id) { 
+            showConfirm(
+                "Hapus Sekolah",
+                `Hapus sekolah ini? \n\nData login sekolah ini juga akan terhapus.`,
+                async () => {
+                    try { await deleteDoc(doc(db, "data_sekolah", id)); showNotification("Terhapus", "Data sekolah berhasil dihapus."); } 
+                    catch (e) { showNotification("Gagal", e.message, true); }
+                }
+            );
+        }
+
         async function saveTim() {
             const mode = document.getElementById('tim-mode').value; const id = document.getElementById('tim-id').value; const nama = document.getElementById('form-tim-nama').value.trim(); const jabatan = document.getElementById('form-tim-jabatan').value.trim(); const wa = document.getElementById('form-tim-wa').value.trim();
             if (!nama) { showNotification("Gagal", "Nama wajib diisi!", true); return; }
             const data = { nama, jabatan, no_wa: wa, updatedAt: new Date().toISOString() };
             try { if (mode === 'edit') { await updateDoc(doc(db, "tim_tppk", id), data); showNotification("Berhasil", "Data anggota tim diperbarui."); } else { data.createdAt = new Date().toISOString(); await addDoc(collection(db, "tim_tppk"), data); showNotification("Berhasil", "Anggota tim baru ditambahkan."); } closeModal('modal-tim'); } catch (error) { showNotification("Error", error.message, true); }
         }
-        async function deleteTim(id) { if (confirm("Yakin ingin menghapus anggota tim ini?")) { try { await deleteDoc(doc(db, "tim_tppk", id)); showNotification("Terhapus", "Anggota tim berhasil dihapus."); } catch (e) { showNotification("Gagal", "Gagal menghapus: " + e.message, true); } } }
+        
+        function deleteTim(id) { 
+            showConfirm(
+                "Hapus Anggota",
+                "Yakin ingin menghapus anggota tim ini?",
+                async () => {
+                    try { await deleteDoc(doc(db, "tim_tppk", id)); showNotification("Terhapus", "Anggota tim berhasil dihapus."); } 
+                    catch (e) { showNotification("Gagal", "Gagal menghapus: " + e.message, true); }
+                }
+            );
+        }
     </script>
 </body>
 </html>
